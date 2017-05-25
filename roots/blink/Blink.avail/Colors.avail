@@ -18,11 +18,31 @@ Body
 /**
  * Declare an X11 color.
  *
- * @macro "Color_is«_‡,»"
+ * The base name is made available case insensitively, i.e., a color name like
+ * "Light Sea Green" generates a method named "light~sea~green~".
+ *
+ * If more than one RGB value is provided, then a variant name is also made
+ * available case insensitively, i.e., a name like "Spring Green" generates a
+ * method named "spring~green~`#_". This message can be applied to {@type "whole
+ * number"}s in the range {@code "[0..n]"}, where {@code "n"} is the number of
+ * RGB values provided, i.e., {@code "n = |evaluate colorsPhrase|"}. Applying
+ * the message to {@code "0"} always answers the base RGB value, and applying
+ * the message to {@code "k"} always answers the {@code "k"}<sup>th</sup>
+ * variant.
+ *
+ * All generated methods are automatically {@method "Export_as a new name"
+ * exported}; they do not need to be manually entered into the {@code "Names"}
+ * section of the module.
+ *
+ * @macro "X11 color_is«_‡,»;"
  * @param "baseNamePhrase" "literal phrase ⇒ nonempty string"
  *        The base name of the X11 color, e.g., "Antique White", "Bisque", etc.
  * @param "colorsPhrase" "list phrase ⇒ (nonempty string+)"
  *        The standard base RGB value, followed by the four standard variants.
+ *        An RGB value must be provided as a six-character hexadecimal string,
+ *        such that the first two characters are the red channel, the second two
+ *        are the green channel, and the final two are the blue channel, i.e.,
+ *        RRGGBB.
  * @returns "sequence phrase"
  */
 Private macro "X11 color_is«_‡,»;" is
