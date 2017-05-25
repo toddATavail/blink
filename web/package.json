@@ -1,0 +1,23 @@
+{
+  "name": "blink-sim",
+  "version": "0.0.2",
+  "description": "",
+  "main": "index.html",
+  "dependencies": {
+    "dat.gui": "^0.6.1",
+    "three": "^0.85.2"
+  },
+  "devDependencies": {
+    "@types/dat-gui": "^0.6.2",
+    "@types/three": "^0.84.8",
+    "serve": "^5.1.5",
+    "systemjs": "^0.20.12",
+    "typescript": "^2.3.3"
+  },
+  "scripts": {
+    "start": "serve",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT"
+}
