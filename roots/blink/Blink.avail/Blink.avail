@@ -1,0 +1,8 @@
+/*
+ * Blink.avail
+ * Copyright (c) Todd L Smith and Taylor DH Smith, 2017.
+ * All rights reserved.
+ */
+
+Module "Blink"
+Body

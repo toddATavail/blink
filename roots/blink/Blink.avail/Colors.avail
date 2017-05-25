@@ -1,0 +1,235 @@
+/*
+ * Colors.avail
+ * Copyright (c) Todd L Smith and Taylor DH Smith, 2017.
+ * All rights reserved.
+ */
+
+Module "Colors"
+Uses
+	"Avail"
+Names
+	/* The names are automatically exported by the X11 declarator. */
+Body
+
+/******************************************************************************
+ *                                Declarators.                                *
+ ******************************************************************************/
+
+/**
+ * Declare an X11 color.
+ *
+ * @macro "Color_is«_‡,»"
+ * @param "baseNamePhrase" "literal phrase ⇒ nonempty string"
+ *        The base name of the X11 color, e.g., "Antique White", "Bisque", etc.
+ * @param "colorsPhrase" "list phrase ⇒ (nonempty string+)"
+ *        The standard base RGB value, followed by the four standard variants.
+ * @returns "sequence phrase"
+ */
+Private macro "X11 color_is«_‡,»;" is
+[
+	baseNamePhrase : literal phrase ⇒ nonempty string,
+	colorsPhrase : list phrase ⇒ (nonempty string+)
+|
+	baseName ::= evaluate baseNamePhrase;
+	colors ::= evaluate colorsPhrase;
+	baseExprs ::=
+	[
+		name ::=
+			replace all occurrences of " "
+			in (lowercase baseName) ++ "~"
+			with "~";
+		rgb ::= colors[1] (base 16);
+		<
+			send $"Method_is_" with
+			«<
+				‘name’,
+				«[<‘rgb’>] : rgb's type»
+			>» : ⊤,
+			send $"Export_as a new name" with «<‘name’>» : ⊤
+		>
+	]();
+	variantExprs ::=
+		if |colors| = 1 then [<>]
+		else
+		[
+			name ::=
+				replace all occurrences of " "
+				in (lowercase baseName) ++ "~`#_"
+				with "~";
+			abstractExprs ::=
+			<
+				send $"Abstract method_is_" with
+				«<
+					‘name’,
+					‘[[0..|colors|]]→whole number’
+				>» : ⊤,
+				send $"Export_as a new name" with «<‘name’>» : ⊤
+			>;
+			abstractExprs ++ map each color, index of colors through
+			[
+				rgb ::= color (base 16);
+				send $"Method_is_" with
+				«<
+					‘name’,
+					«[
+						<arg «this token: unused : (index-1)'s type»>
+					|
+						<‘rgb’>
+					] : rgb's type»
+				>» : ⊤
+			]
+		];
+	exprs ::= baseExprs ++ variantExprs;
+	seq «map each x of exprs through [x→statement phrase]»
+];
+
+/******************************************************************************
+ *                                X11 colors.                                 *
+ ******************************************************************************/
+
+X11 color "Alice Blue" is "F0F8FF";
+X11 color "Antique White" is "FAEBD7", "FFEFDB", "EEDFCC", "CDC0B0", "8B8378";
+X11 color "Aqua" is "00FFFF";
+X11 color "Aquamarine" is "7FFFD4", "7FFFD4", "76EEC6", "66CDAA", "458B74";
+X11 color "Azure" is "F0FFFF", "F0FFFF", "E0EEEE", "C1CDCD", "838B8B";
+X11 color "Beige" is "F5F5DC";
+X11 color "Bisque" is "FFE4C4", "FFE4C4", "EED5B7", "CDB79E", "8B7D6B";
+X11 color "Black" is "000000";
+X11 color "Blanched Almond" is "FFEBCD";
+X11 color "Blue Violet" is "8A2BE2";
+X11 color "Blue" is "0000FF", "0000FF", "0000EE", "0000CD", "00008B";
+X11 color "Brown" is "A52A2A", "FF4040", "EE3B3B", "CD3333", "8B2323";
+X11 color "Burlywood" is "DEB887", "FFD39B", "EEC591", "CDAA7D", "8B7355";
+X11 color "Cadet Blue" is "5F9EA0", "98F5FF", "8EE5EE", "7AC5CD", "53868B";
+X11 color "Chartreuse" is "7FFF00", "7FFF00", "76EE00", "66CD00", "458B00";
+X11 color "Chocolate" is "D2691E", "FF7F24", "EE7621", "CD661D", "8B4513";
+X11 color "Coral" is "FF7F50", "FF7256", "EE6A50", "CD5B45", "8B3E2F";
+X11 color "Cornflower" is "6495ED";
+X11 color "Cornsilk" is "FFF8DC", "FFF8DC", "EEE8CD", "CDC8B1", "8B8878";
+X11 color "Crimson" is "DC143C";
+X11 color "Cyan" is "00FFFF", "00FFFF", "00EEEE", "00CDCD", "008B8B";
+X11 color "Dark Blue" is "00008B";
+X11 color "Dark Cyan" is "008B8B";
+X11 color "Dark Goldenrod" is "B8860B", "FFB90F", "EEAD0E", "CD950C", "8B6508";
+X11 color "Dark Gray" is "A9A9A9";
+X11 color "Dark Green" is "006400";
+X11 color "Dark Khaki" is "BDB76B";
+X11 color "Dark Magenta" is "8B008B";
+X11 color "Dark Olive Green" is "556B2F", "CAFF70", "BCEE68", "A2CD5A", "6E8B3D";
+X11 color "Dark Orange" is "FF8C00", "FF7F00", "EE7600", "CD6600", "8B4500";
+X11 color "Dark Orchid" is "9932CC", "BF3EFF", "B23AEE", "9A32CD", "68228B";
+X11 color "Dark Red" is "8B0000";
+X11 color "Dark Salmon" is "E9967A";
+X11 color "Dark Sea Green" is "8FBC8F", "C1FFC1", "B4EEB4", "9BCD9B", "698B69";
+X11 color "Dark Slate Blue" is "483D8B";
+X11 color "Dark Slate Gray" is "2F4F4F", "97FFFF", "8DEEEE", "79CDCD", "528B8B";
+X11 color "Dark Turquoise" is "00CED1";
+X11 color "Dark Violet" is "9400D3";
+X11 color "Deep Pink" is "FF1493", "FF1493", "EE1289", "CD1076", "8B0A50";
+X11 color "Deep Sky Blue" is "00BFFF", "00BFFF", "00B2EE", "009ACD", "00688B";
+X11 color "Dim Gray" is "696969";
+X11 color "Dodger Blue" is "1E90FF", "1E90FF", "1C86EE", "1874CD", "104E8B";
+X11 color "Firebrick" is "B22222", "FF3030", "EE2C2C", "CD2626", "8B1A1A";
+X11 color "Floral White" is "FFFAF0";
+X11 color "Forest Green" is "228B22";
+X11 color "Fuchsia" is "FF00FF";
+X11 color "Gainsboro" is "DCDCDC";
+X11 color "Ghost White" is "F8F8FF";
+X11 color "Gold" is "FFD700", "FFD700", "EEC900", "CDAD00", "8B7500";
+X11 color "Goldenrod" is "DAA520", "FFC125", "EEB422", "CD9B1D", "8B6914";
+X11 color "Gray" is "BEBEBE";
+X11 color "Green Yellow" is "ADFF2F";
+X11 color "Green" is "00FF00", "00FF00", "00EE00", "00CD00", "008B00";
+X11 color "Honeydew" is "F0FFF0", "F0FFF0", "E0EEE0", "C1CDC1", "838B83";
+X11 color "Hot Pink" is "FF69B4", "FF6EB4", "EE6AA7", "CD6090", "8B3A62";
+X11 color "Indian Red" is "CD5C5C", "FF6A6A", "EE6363", "CD5555", "8B3A3A";
+X11 color "Indigo" is "4B0082";
+X11 color "Ivory" is "FFFFF0", "FFFFF0", "EEEEE0", "CDCDC1", "8B8B83";
+X11 color "Khaki" is "F0E68C", "FFF68F", "EEE685", "CDC673", "8B864E";
+X11 color "Lavender Blush" is "FFF0F5", "FFF0F5", "EEE0E5", "CDC1C5", "8B8386";
+X11 color "Lavender" is "E6E6FA";
+X11 color "Lawn Green" is "7CFC00";
+X11 color "Lemon Chiffon" is "FFFACD", "FFFACD", "EEE9BF", "CDC9A5", "8B8970";
+X11 color "Light Blue" is "ADD8E6", "BFEFFF", "B2DFEE", "9AC0CD", "68838B";
+X11 color "Light Coral" is "F08080";
+X11 color "Light Cyan" is "E0FFFF", "E0FFFF", "D1EEEE", "B4CDCD", "7A8B8B";
+X11 color "Light Goldenrod" is "EEDD82", "FFEC8B", "EEDC82", "CDBE70", "8B814C";
+X11 color "Light Gray" is "D3D3D3";
+X11 color "Light Green" is "90EE90";
+X11 color "Light Pink" is "FFB6C1", "FFAEB9", "EEA2AD", "CD8C95", "8B5F65";
+X11 color "Light Salmon" is "FFA07A", "FFA07A", "EE9572", "CD8162", "8B5742";
+X11 color "Light Sea Green" is "20B2AA";
+X11 color "Light Sky Blue" is "87CEFA", "B0E2FF", "A4D3EE", "8DB6CD", "607B8B";
+X11 color "Light Slate Gray" is "778899";
+X11 color "Light Steel Blue" is "B0C4DE", "CAE1FF", "BCD2EE", "A2B5CD", "6E7B8B";
+X11 color "Light Yellow" is "FFFFE0", "FFFFE0", "EEEED1", "CDCDB4", "8B8B7A";
+X11 color "Lime Green" is "32CD32";
+X11 color "Lime" is "00FF00";
+X11 color "Linen" is "FAF0E6";
+X11 color "Magenta" is "FF00FF", "FF00FF", "EE00EE", "CD00CD", "8B008B";
+X11 color "Maroon" is "B03060", "FF34B3", "EE30A7", "CD2990", "8B1C62";
+X11 color "Medium Aquamarine" is "66CDAA";
+X11 color "Medium Blue" is "0000CD";
+X11 color "Medium Orchid" is "BA55D3", "E066FF", "D15FEE", "B452CD", "7A378B";
+X11 color "Medium Purple" is "9370DB", "AB82FF", "9F79EE", "8968CD", "5D478B";
+X11 color "Medium Sea Green" is "3CB371";
+X11 color "Medium Slate Blue" is "7B68EE";
+X11 color "Medium Spring Green" is "00FA9A";
+X11 color "Medium Turquoise" is "48D1CC";
+X11 color "Medium Violet Red" is "C71585";
+X11 color "Midnight Blue" is "191970";
+X11 color "Mint Cream" is "F5FFFA";
+X11 color "Misty Rose" is "FFE4E1", "FFE4E1", "EED5D2", "CDB7B5", "8B7D7B";
+X11 color "Moccasin" is "FFE4B5";
+X11 color "Navajo White" is "FFDEAD", "FFDEAD", "EECFA1", "CDB38B", "8B795E";
+X11 color "Navy Blue" is "000080";
+X11 color "Old Lace" is "FDF5E6";
+X11 color "Olive Drab" is "6B8E23", "C0FF3E", "B3EE3A", "9ACD32", "698B22";
+X11 color "Olive" is "808000";
+X11 color "Orange Red" is "FF4500", "FF4500", "EE4000", "CD3700", "8B2500";
+X11 color "Orange" is "FFA500", "FFA500", "EE9A00", "CD8500", "8B5A00";
+X11 color "Orchid" is "DA70D6", "FF83FA", "EE7AE9", "CD69C9", "8B4789";
+X11 color "Pale Goldenrod" is "EEE8AA";
+X11 color "Pale Green" is "98FB98", "9AFF9A", "90EE90", "7CCD7C", "548B54";
+X11 color "Pale Turquoise" is "AFEEEE", "BBFFFF", "AEEEEE", "96CDCD", "668B8B";
+X11 color "Pale Violet Red" is "DB7093", "FF82AB", "EE799F", "CD6889", "8B475D";
+X11 color "Papaya Whip" is "FFEFD5";
+X11 color "Peach Puff" is "FFDAB9", "FFDAB9", "EECBAD", "CDAF95", "8B7765";
+X11 color "Peru" is "CD853F";
+X11 color "Pink" is "FFC0CB", "FFB5C5", "EEA9B8", "CD919E", "8B636C";
+X11 color "Plum" is "DDA0DD", "FFBBFF", "EEAEEE", "CD96CD", "8B668B";
+X11 color "Powder Blue" is "B0E0E6";
+X11 color "Purple" is "A020F0", "9B30FF", "912CEE", "7D26CD", "551A8B";
+X11 color "Rebecca Purple" is "663399";
+X11 color "Red" is "FF0000", "FF0000", "EE0000", "CD0000", "8B0000";
+X11 color "Rosy Brown" is "BC8F8F", "FFC1C1", "EEB4B4", "CD9B9B", "8B6969";
+X11 color "Royal Blue" is "4169E1", "4876FF", "436EEE", "3A5FCD", "27408B";
+X11 color "Saddle Brown" is "8B4513";
+X11 color "Salmon" is "FA8072", "FF8C69", "EE8262", "CD7054", "8B4C39";
+X11 color "Sandy Brown" is "F4A460";
+X11 color "Sea Green" is "2E8B57", "54FF9F", "4EEE94", "43CD80", "2E8B57";
+X11 color "Seashell" is "FFF5EE", "FFF5EE", "EEE5DE", "CDC5BF", "8B8682";
+X11 color "Sienna" is "A0522D", "FF8247", "EE7942", "CD6839", "8B4726";
+X11 color "Silver" is "C0C0C0";
+X11 color "Sky Blue" is "87CEEB", "87CEFF", "7EC0EE", "6CA6CD", "4A708B";
+X11 color "Slate Blue" is "6A5ACD", "836FFF", "7A67EE", "6959CD", "473C8B";
+X11 color "Slate Gray" is "708090", "C6E2FF", "B9D3EE", "9FB6CD", "6C7B8B";
+X11 color "Snow" is "FFFAFA", "FFFAFA", "EEE9E9", "CDC9C9", "8B8989";
+X11 color "Spring Green" is "00FF7F", "00FF7F", "00EE76", "00CD66", "008B45";
+X11 color "Steel Blue" is "4682B4", "63B8FF", "5CACEE", "4F94CD", "36648B";
+X11 color "Tan" is "D2B48C", "FFA54F", "EE9A49", "CD853F", "8B5A2B";
+X11 color "Teal" is "008080";
+X11 color "Thistle" is "D8BFD8", "FFE1FF", "EED2EE", "CDB5CD", "8B7B8B";
+X11 color "Tomato" is "FF6347", "FF6347", "EE5C42", "CD4F39", "8B3626";
+X11 color "Turquoise" is "40E0D0", "00F5FF", "00E5EE", "00C5CD", "00868B";
+X11 color "Violet Red" is "D02090", "FF3E96", "EE3A8C", "CD3278", "8B2252";
+X11 color "Violet" is "EE82EE";
+X11 color "Web Gray" is "808080";
+X11 color "Web Green" is "008000";
+X11 color "Web Maroon" is "7F0000";
+X11 color "Web Purple" is "7F007F";
+X11 color "Wheat" is "F5DEB3", "FFE7BA", "EED8AE", "CDBA96", "8B7E66";
+X11 color "White Smoke" is "F5F5F5";
+X11 color "White" is "FFFFFF";
+X11 color "Yellow Green" is "9ACD32";
+X11 color "Yellow" is "FFFF00", "FFFF00", "EEEE00", "CDCD00", "8B8B00";

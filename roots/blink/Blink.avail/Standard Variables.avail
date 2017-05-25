@@ -1,0 +1,55 @@
+/*
+ * Standard Variables.avail
+ * Copyright (c) Todd L Smith and Taylor DH Smith, 2017.
+ * All rights reserved.
+ */
+
+Module "Standard Variables"
+Uses
+	"Abstract Syntax Tree",
+	"Avail"
+Names
+	/* Standard variables. */
+	"lighting⁇color variable",
+	"lighting⁇mode variable",
+	"lighting⁇pattern variable",
+	"lighting⁇pattern duration variable"
+Body
+
+/******************************************************************************
+ *                                Declarators.                                *
+ ******************************************************************************/
+
+/**
+ * Declare a standard {@type "variable"} with the specified {@type "any's type"
+ * type}. A standard variable is a {@type "global"} {@type "variable"} that is
+ * automatically imported into a Blink module.
+ *
+ * @macro "Standard variable_is_"
+ * @param "varNamePhrase" "literal phrase ⇒ nonempty string"
+ * @param "varTypePhrase" "expression phrase ⇒ (any's type)"
+ * @returns "sequence phrase"
+ */
+Private macro "Standard variable_is_;" is
+[
+	varNamePhrase : literal phrase ⇒ nonempty string,
+	varTypePhrase : expression phrase ⇒ (any's type)
+|
+	varName ::= evaluate varNamePhrase;
+	var ::= a variable with
+		variable name ::= varName,
+		expression type ::= evaluate varTypePhrase,
+		variable scope ::= global;
+	methodName ::= varName ++ " variable";
+	exprs ::=
+	<
+		send $"Method_is_" with «<‘methodName’, «[<‘var’>] : var's type»>» : ⊤
+	>;
+	seq «map each x of exprs through [x→statement phrase]»
+];
+
+/******************************************************************************
+ *                              State variables.                              *
+ ******************************************************************************/
+
+Standard variable "lighting⁇color variable" is whole number;

@@ -1,0 +1,230 @@
+/*
+ * Abstract Syntax Tree.avail
+ * Copyright (c) Todd L Smith and Taylor DH Smith, 2017.
+ * All rights reserved.
+ */
+
+Module "Abstract Syntax Tree"
+Uses
+	"Avail"
+Names
+	/* Abstract expressions. */
+	"abstract expression",
+		"expression type",
+			"_'s⁇expression type",
+	"_'s⁇subexpressions",
+	"_expression",
+
+	/* Abstract statements. */
+	"abstract statement",
+
+	/* Variables. */
+	"variable",
+		"variable name",
+			"_'s⁇name",
+		"variable scope",
+			"_'s⁇scope",
+	"scope",
+		"local",
+		"global",
+	"__variable",
+	"_variable"
+Body
+
+/*
+ * 2017.05.24 — The AST is kept minimal, to satisfy the prototype simulator and
+ * its lone game, "Mortals". Only those features necessary to support "Mortals"
+ * have been built.
+ */
+
+/******************************************************************************
+ *                           Abstract expressions.                            *
+ ******************************************************************************/
+
+"expression type" is a new field atom;
+
+/**
+ * An {@type "abstract expression"} represents any Blink expression. It is
+ * parametric on the static {@type "type"} of the Blink expression.
+ *
+ * @type "abstract expression"
+ * @supertype "object"
+ * @field "expression type" "⊤'s type"
+ *        The static {@type "type"} of the {@type "abstract expression"
+ *        expression}.
+ */
+Public class "abstract expression" extends object
+	with field
+		expression type : ⊤'s type;
+
+Alias "abstract statement" to $"abstract expression";
+
+/**
+ * Construct a {@type "abstract expression" Blink expression} {@type "type"} for
+ * the specified {@type "type"}.
+ *
+ * @method "_expression"
+ * @param "exprType" "⊤'s type"
+ * @returns "abstract expression's type"
+ */
+Public method "_expression" is
+[
+	exprType : ⊤'s type
+|
+	extend abstract expression with expression type : (exprType's type)
+];
+
+/**
+ * Strengthen the {@type "abstract expression" Blink expression} {@type "type"}
+ * at compile time.
+ *
+ * @method "_expression"
+ * @restricts "⊤'s type's type"
+ */
+Semantic restriction "_expression" is
+[
+	exprMeta : ⊤'s type's type
+|
+	(extend abstract expression with
+		expression type : exprMeta)'s type
+];
+
+/**
+ * Answer the {@type "abstract expression" subexpressions} of the specified
+ * {@type "abstract expression" expression}.
+ *
+ * @method "_'s⁇subexpressions"
+ * @param "expr" "abstract expression"
+ * @returns "abstract expression*"
+ */
+Public abstract method "_'s⁇subexpressions" is
+	[abstract expression]→abstract expression*;
+
+/******************************************************************************
+ *                                 Variables.                                 *
+ ******************************************************************************/
+
+"local" is a new atom;
+"global" is a new atom;
+
+/**
+ * A {@type "scope"} denotes the scope of a {@type "variable"}, either {@method
+ * "local"} or {@method "global"}.
+ *
+ * @type "scope"
+ * @alias "{local, global}ᵀ"
+ */
+Public macro "scope" is [‘{local, global}ᵀ’];
+
+"variable name" is a new field atom;
+"variable scope" is a new field atom;
+
+/**
+ * A {@type "variable"} represents a statically typed fundamental storage unit
+ * in a Blink program.
+ *
+ * @type "variable"
+ * @supertype "abstract expression"
+ * @param "variable name" "nonempty string"
+ *        The lexical name of the {@type "variable"}.
+ * @param "variable scope" "scope"
+ *        The {@type "scope"} of the {@type "variable"}, either {@method
+ *        "local"} or {@type "global"}.
+ */
+Public class "variable" extends abstract expression
+	with fields
+		variable name : nonempty string ("_'s⁇name"),
+		expression type : any's type,
+		variable scope : scope ("_'s⁇scope");
+
+/**
+ * Construct a {@type "variable"} {@type "type"} for the specified {@type
+ * "any's type" type} and {@type "scope"}.
+ *
+ * @method "__variable"
+ * @param "varType" "any's type"
+ * @param "scopeType" "scope"
+ * @returns "variable's type"
+ */
+Public method "__variable" is
+[
+	varType : any's type,
+	scopeType : scope
+|
+	extend variable with
+		expression type : (varType's type),
+		variable scope : (scopeType's type)
+];
+
+/**
+ * Strengthen the {@type "variable"} {@type "type"} at compile time.
+ *
+ * @method "__variable"
+ * @restricts "any's type's type"
+ * @restricts "scope's type"
+ */
+Semantic restriction "__variable" is
+[
+	varMeta : any's type's type,
+	scopeMeta : scope's type
+|
+	(extend variable with
+		expression type : varMeta,
+		variable scope : scopeMeta)'s type
+];
+
+/**
+ * Construct a {@type "variable"} {@type "type"} for the specified {@type
+ * "scope"}.
+ *
+ * @method "_variable"
+ * @param "scopeType" "scope"
+ * @returns "variable's type"
+ */
+Public method "_variable" is
+[
+	scopeType : scope
+|
+	extend variable with variable scope : (scopeType's type)
+];
+
+/**
+ * Strengthen the {@type "variable"} {@type "type"} at compile time.
+ *
+ * @method "_variable"
+ * @restricts "scope's type"
+ */
+Semantic restriction "_variable" is
+[
+	scopeMeta : scope's type
+|
+	(extend variable with variable scope : scopeMeta)'s type
+];
+
+/**
+ * Construct a {@type "variable"} {@type "type"} for the specified {@type
+ * "any's type" type}.
+ *
+ * @method "_variable"
+ * @param "varType" "any's type"
+ * @returns "variable's type"
+ */
+Public method "_variable" is
+[
+	varType : any's type
+|
+	extend variable with expression type : (varType's type)
+];
+
+/**
+ * Strengthen the {@type "variable"} {@type "type"} at compile time.
+ *
+ * @method "_variable"
+ * @restricts "any's type's type"
+ */
+Semantic restriction "_variable" is
+[
+	varMeta : any's type's type
+|
+	(extend variable with expression type : varMeta)'s type
+];

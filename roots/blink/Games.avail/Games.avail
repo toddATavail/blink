@@ -1,0 +1,10 @@
+/*
+ * Games.avail
+ * Copyright (c) Todd L Smith and Taylor DH Smith, 2017.
+ * All rights reserved.
+ */
+
+Module "Games"
+Extends
+	"Mortals"
+Body
