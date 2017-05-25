@@ -6,7 +6,15 @@
 
 Module "Abstract Syntax Tree"
 Uses
-	"Avail"
+	"Avail" =
+	(
+		"variable" → "Avail variable",
+		…
+	)
+Extends
+	"Lighting Modes",
+	"Lighting Patterns",
+	"Timers"
 Names
 	/* Abstract expressions. */
 	"abstract expression",
@@ -17,6 +25,11 @@ Names
 
 	/* Abstract statements. */
 	"abstract statement",
+
+	/* Literals. */
+	"literal",
+		"_'s⁇value",
+	"_literal",
 
 	/* Variables. */
 	"variable",
@@ -41,7 +54,7 @@ Body
  *                           Abstract expressions.                            *
  ******************************************************************************/
 
-"expression type" is a new field atom;
+Public "expression type" is a new field atom;
 
 /**
  * An {@type "abstract expression"} represents any Blink expression. It is
@@ -101,11 +114,99 @@ Public abstract method "_'s⁇subexpressions" is
 	[abstract expression]→abstract expression*;
 
 /******************************************************************************
+ *                                 Literals.                                  *
+ ******************************************************************************/
+
+/**
+ * A {@type "literal"} denotes a statically known value. The {@field
+ * "expression type"} of a {@type "literal"} must be an instance {@type
+ * "any's type" type}.
+ *
+ * @type "literal"
+ * @supertype "abstract expression"
+ * @field "expression type" "any's type"
+ */
+Public explicit class "literal" extends abstract expression
+	with field
+		expression type : any's type;
+
+/**
+ * Answer the {@type "any" value} that the specified {@type "literal"} denotes.
+ *
+ * @method "_'s⁇value"
+ * @param "lit" "literal"
+ * @returns "any"
+ */
+Public method "_'s⁇value" is
+[
+	lit : literal
+|
+	lit's expression type's instance
+];
+
+/**
+ * Strengthen the {@type "literal"}'s {@type "_'s⁇value" value} {@type "type"}
+ * at compile time.
+ *
+ * @method "_'s⁇value"
+ * @restricts "literal's type"
+ */
+Semantic restriction "_'s⁇value" is
+[
+	litType : literal's type
+|
+	litType's expression type's instance
+];
+
+/**
+ * Construct a {@type "literal"} {@type "type"} for the specified {@type
+ * "type"}.
+ *
+ * @method "_literal"
+ * @param "valueType" "any's type"
+ * @returns "literal's type"
+ */
+Public method "_literal" is
+[
+	valueType : any's type
+|
+	extend literal with expression type : (valueType's type)
+];
+
+/**
+ * Strengthen the {@type "literal"} {@type "type"} at compile time.
+ *
+ * @method "_literal"
+ * @restricts "any's type's type"
+ */
+Semantic restriction "_literal" is
+[
+	exprMeta : any's type's type
+|
+	(extend literal with expression type : exprMeta)'s type
+];
+
+Public method "_'s⁇subexpressions" is [lit : literal| <>];
+
+/******************************************************************************
  *                                 Variables.                                 *
  ******************************************************************************/
 
-"local" is a new atom;
-"global" is a new atom;
+/**
+ * Answer an {@type "atom"} that denotes local scope.
+ *
+ * @method "local"
+ * @returns "atom"
+ */
+Public "local" is a new atom;
+
+/**
+ * Answer an {@type "atom"} that denotes global scope.
+ *
+ * @method "global"
+ * @returns "atom"
+ */
+Public "global" is a new atom;
 
 /**
  * A {@type "scope"} denotes the scope of a {@type "variable"}, either {@method
@@ -127,6 +228,7 @@ Public macro "scope" is [‘{local, global}ᵀ’];
  * @supertype "abstract expression"
  * @param "variable name" "nonempty string"
  *        The lexical name of the {@type "variable"}.
+ * @param "expression type" "any's type"
  * @param "variable scope" "scope"
  *        The {@type "scope"} of the {@type "variable"}, either {@method
  *        "local"} or {@type "global"}.
@@ -228,3 +330,6 @@ Semantic restriction "_variable" is
 |
 	(extend variable with expression type : varMeta)'s type
 ];
+
+Public method "_'s⁇subexpressions" is [var : variable | <>];
+

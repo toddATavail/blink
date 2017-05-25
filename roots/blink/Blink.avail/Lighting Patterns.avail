@@ -1,0 +1,46 @@
+/*
+ * Lighting Patterns.avail
+ * Copyright (c) Todd L Smith and Taylor DH Smith, 2017.
+ * All rights reserved.
+ */
+
+Module "Lighting Patterns"
+Uses
+	"Avail",
+	"Lighting Modes"
+Names
+	/* Lighting patterns. */
+	"lighting pattern",
+		"linear interpolation⁇",
+		"sinusoidal interpolation⁇"
+Body
+
+/******************************************************************************
+ *                             Lighting patterns.                             *
+ ******************************************************************************/
+
+/**
+ * Answer an {@type "atom"} that denotes linear interpolation.
+ *
+ * @method "linear interpolation⁇"
+ * @returns "atom"
+ */
+Public "linear interpolation⁇" is a new atom;
+
+/**
+ * Answer an {@type "atom"} that denotes sinusoidal interpolation.
+ *
+ * @method "sinusoidal interpolation⁇"
+ * @returns "atom"
+ */
+Public "sinusoidal interpolation⁇" is a new atom;
+
+/**
+ * A {@type "lighting pattern"} denotes the possible lighting patterns of a
+ * Blink. The modes correspond to built-in functions that support the {@type
+ * "lighting mode"}s.
+ *
+ * @type "lighting pattern"
+ * @alias "{constant, pulsing}ᵀ"
+ */
+Public macro "lighting pattern" is [‘{linear, sinusoidal}ᵀ’];

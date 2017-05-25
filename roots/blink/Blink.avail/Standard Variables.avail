@@ -7,7 +7,8 @@
 Module "Standard Variables"
 Uses
 	"Abstract Syntax Tree",
-	"Avail"
+	"Avail",
+	"Dimensional Analysis"
 Names
 	/* Standard variables. */
 	"lighting⁇color variable",
@@ -53,3 +54,6 @@ Private macro "Standard variable_is_;" is
  ******************************************************************************/
 
 Standard variable "lighting⁇color variable" is whole number;
+Standard variable "lighting⁇mode variable" is lighting mode;
+Standard variable "lighting⁇pattern variable" is lighting pattern;
+Standard variable "lighting⁇pattern duration variable" is natural number ms;

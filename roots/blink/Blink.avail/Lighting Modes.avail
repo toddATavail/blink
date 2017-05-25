@@ -1,0 +1,45 @@
+/*
+ * Lighting Modes.avail
+ * Copyright (c) Todd L Smith and Taylor DH Smith, 2017.
+ * All rights reserved.
+ */
+
+Module "Lighting Modes"
+Uses
+	"Avail"
+Names
+	/* Lighting modes. */
+	"lighting mode",
+		"constant",
+		"pulsing"
+Body
+
+/******************************************************************************
+ *                              Lighting modes.                               *
+ ******************************************************************************/
+
+/**
+ * Answer an {@type "atom"} that denotes constant lighting.
+ *
+ * @method "constant"
+ * @returns "atom"
+ */
+Public "constant" is a new atom;
+
+/**
+ * Answer an {@type "atom"} that denotes pulsing lighting.
+ *
+ * @method "pulsing"
+ * @returns "atom"
+ */
+Public "pulsing" is a new atom;
+
+/**
+ * A {@type "lighting mode"} denotes the possible lighting modes of a Blink.
+ * The modes correspond to built-in functions that govern the behavior of the
+ * RGB LED.
+ *
+ * @type "lighting mode"
+ * @alias "{constant, pulsing}ᵀ"
+ */
+Public macro "lighting mode" is [‘{constant, pulsing}ᵀ’];

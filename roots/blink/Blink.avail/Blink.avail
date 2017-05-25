@@ -5,4 +5,12 @@
  */
 
 Module "Blink"
+Extends
+	"Abstract Syntax Tree",
+	"Colors",
+	"Lighting Modes",
+	"Lighting Patterns",
+	"Literals",
+	"Standard Variables",
+	"Timers"
 Body

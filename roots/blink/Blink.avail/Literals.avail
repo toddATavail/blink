@@ -1,0 +1,50 @@
+/*
+ * Literals.avail
+ * Copyright (c) Todd L Smith and Taylor DH Smith, 2017.
+ * All rights reserved.
+ */
+
+Module "Literals"
+Uses
+	"Abstract Syntax Tree",
+	"Avail"
+Names
+	/* Literal adaptation. */
+	"(Blink)…#",
+	"(Blink)…$"
+Body
+
+/******************************************************************************
+ *                            Literal adaptation.                             *
+ ******************************************************************************/
+
+/**
+ * Convert a literal {@type "whole number"} into a {@type "literal" Blink
+ * literal}.
+ *
+ * @macro "(Blink)…#"
+ * @param "tPhrase" "literal phrase ⇒ (literal token ⇒ whole number)"
+ * @returns "literal phrase ⇒ whole number literal"
+ */
+Public macro "(Blink)…#" is
+[
+	tPhrase : literal phrase ⇒ (literal token ⇒ whole number)
+|
+	t ::= evaluate tPhrase;
+	‘a literal with expression type ::= t's value's type’
+];
+
+/**
+ * Convert a literal {@type "string"} into a {@type "literal" Blink literal}.
+ *
+ * @macro "(Blink)…$"
+ * @param "tPhrase" "literal phrase ⇒ (literal token ⇒ string)"
+ * @returns "literal phrase ⇒ string literal"
+ */
+Public macro "(Blink)…$" is
+[
+	tPhrase : literal phrase ⇒ (literal token ⇒ string)
+|
+	t ::= evaluate tPhrase;
+	‘a literal with expression type ::= t's value's type’
+];
