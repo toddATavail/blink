@@ -9,44 +9,6 @@ Uses
 	"Blink"
 Body
 
-/*
- * The initial comments are general architectural thoughts. Skip to line 49 to
- * dive right into the game code.
- */
-
-/*
- * UI events:
- * - low level
- *    - press (depress button, do not release)
- *    - release (release depressed button)
- * - high level
- *    - click (press & release)
- *    - double click (press & release 2x)
- *    - triple click (press & release 3x)
- *    - long click (depress button for a while then release)
- */
-
-/*
- * Semantic signals:
- * - setup (initialization event, automatically triggered)
- * - heartbeat (automatically happens when device loops)
- * - neighborhood occupancy changed
- * - neighborhood state changed
- * - timer expired
- */
-
-/*
- * User signals: custom events, programmatically fired
- */
-
-/*
- * UI handlers can *only* fire signals. All signals are custom by definition and
- * specific to a particular game or collection of related games. All logic must
- * be in signal handlers (not event handlers). This restriction encourages —
- * actually forces — good separation of concerns, and allows UI events to be
- * easily rebound to game logic.
- */
-
 /* These are the public states, available by IR. */
 "active", "inactive", and "dead" are public states.
 
@@ -54,18 +16,31 @@ Body
 "team" is [1..2].
 
 "initialize" is a signal.
-/*
-When device turns on, initialize.
+On boot, initialize.
 To initialize:
 [
-	team := 1.
+	/* Note that "_:=_" is equivalent to "Change_to_", and "my_" is always
+	 * optional for global variables. For less verbosity, we could rewrite:
+	 *
+	 * Change my team to 1.
+	 *
+	 * As either:
+	 *
+	 * Change team to 1.
+	 *
+	 * Or:
+	 *
+	 * team := 1.
+	 */
+	Change my team to 1.
 	Change my color to green.
 	Change my lighting mode to constant.
-	My state becomes dead.
+	Change my state to dead.
 ].
 
 "change sides" is a signal.
 On long click, change sides.
+/*
 To change sides:
 [
 	/* This is modular arithmetic; wrap around is automatic. */
@@ -73,20 +48,26 @@ To change sides:
 	If team = 1, change my color to green;
 	else, change my color to purple.
 ].
+*/
 
 "lifetime" is a timer.
 "begin play" is a signal.
 On triple click, begin play.
+/*
 When any dead neighbor becomes inactive, begin play.
+*/
 To begin play:
 [
-	My state becomes inactive.
+	Change my state to inactive.
 	Change my lighting mode to pulsing.
 	Change my pattern to sinusoidal.
+/*
 	Change my pattern duration to 2s.
 	Expire my lifetime in 60s.
+*/
 ].
 
+/*
 When I become isolated, my state becomes active.
 
 /* Since I cannot command any other Blinks to do something — I can only

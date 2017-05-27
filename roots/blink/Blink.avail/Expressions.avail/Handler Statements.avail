@@ -1,0 +1,101 @@
+/*
+ * Handler Statements.avail
+ * Copyright (c) Todd L Smith and Taylor DH Smith, 2017.
+ * All rights reserved.
+ */
+
+Module "Handler Statements"
+Uses
+	"Abstract Syntax Tree",
+	"Avail",
+	"Events"
+Names
+	/* Event handler statements. */
+	"(Blink)On_,_.",
+
+	/* Signal handler statements. */
+	"(Blink)To_,_.",
+	"(Blink)To_:_."
+Body
+
+/******************************************************************************
+ *                         Event handler statements.                          *
+ ******************************************************************************/
+
+/**
+ * Declare an event handler that translates a {@type "hardware event"} into a
+ * {@type "signal"}.
+ *
+ * @macro "(Blink)On_,_."
+ * @param "evPhrase" "expression phrase ⇒ hardware event"
+ * @param "sigPhrase" "expression phrase ⇒ signal"
+ * @returns "sequence phrase"
+ */
+Public macro "(Blink)On_,_." is
+[
+	evPhrase : expression phrase ⇒ hardware event,
+	sigPhrase : expression phrase ⇒ signal
+|
+	ev ::= evaluate evPhrase;
+	sig ::= evaluate sigPhrase;
+	handlerDeclExpr ::= a hardware event handler statement with
+		expression type ::= ⊤,
+		handled event ::= ev,
+		fired signal ::= sig;
+	stmts ::= statement recorder for handlerDeclExpr;
+	seq «stmts»
+];
+
+/******************************************************************************
+ *                         Signal handler statements.                         *
+ ******************************************************************************/
+
+/**
+ * Declare a {@type "signal handler statement" signal handler} that handles a
+ * {@type "signal"}.
+ *
+ * @macro "(Blink)To_,_."
+ * @param "sigPhrase" "expression phrase ⇒ signal"
+ * @param "stmtPhrase" "expression phrase ⇒ abstract statement"
+ * @returns "sequence phrase"
+ */
+Public macro "(Blink)To_,_." is
+[
+	sigPhrase : expression phrase ⇒ signal,
+	stmtPhrase : expression phrase ⇒ abstract statement
+|
+	sig ::= evaluate sigPhrase;
+	stmt ::= evaluate stmtPhrase;
+	sigDeclExpr ::= a signal handler statement with
+		expression type ::= ⊤,
+		handled signal ::= sig,
+		handler block ::= a block expression with
+			expression type ::= ⊤,
+			block body ::= <stmt>;
+	stmts ::= statement recorder for sigDeclExpr;
+	seq «stmts»
+];
+
+/**
+ * Declare a {@type "signal handler statement" signal handler} that handles a
+ * {@type "signal"}.
+ *
+ * @macro "(Blink)To_:_."
+ * @param "sigPhrase" "expression phrase ⇒ signal"
+ * @param "stmtPhrase" "expression phrase ⇒ block expression"
+ * @returns "sequence phrase"
+ */
+Public macro "(Blink)To_:_." is
+[
+	sigPhrase : expression phrase ⇒ signal,
+	blockPhrase : expression phrase ⇒ block expression
+|
+	sig ::= evaluate sigPhrase;
+	block ::= evaluate blockPhrase;
+	sigDeclExpr ::= a signal handler statement with
+		expression type ::= ⊤,
+		handled signal ::= sig,
+		handler block ::= block;
+	stmts ::= statement recorder for sigDeclExpr;
+	seq «stmts»
+];

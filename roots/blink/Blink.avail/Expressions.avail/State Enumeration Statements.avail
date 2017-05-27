@@ -67,12 +67,13 @@ Public macro "(Blink)«_‡,and⁇»is|are a⁇public state|states." is
 		[
 			stateName ::= state's value;
 			stateAtom ::= new atom named stateName;
+			lit ::= a literal with expression type ::= (stateAtom's type);
 			<
 				stateAtom,
 				send $"Method_is_" with
 				«<
 					‘stateName’,
-					«[<‘stateAtom’>] : stateAtom's type»
+					«[<‘lit’>] : lit's type»
 				>» : ⊤ → statement phrase
 			>
 		];
@@ -88,8 +89,8 @@ Public macro "(Blink)«_‡,and⁇»is|are a⁇public state|states." is
 			"state names to be unique"
 	];
 	stateVar ::= a variable with
-		variable name ::= "state",
 		expression type ::= enumeration of stateSet,
+		variable name ::= "state",
 		variable scope ::= global,
 		variable mutability ::= mutable;
 	varStmts ::=

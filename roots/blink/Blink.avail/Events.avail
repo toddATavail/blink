@@ -1,0 +1,194 @@
+/*
+ * Events.avail
+ * Copyright (c) Todd L Smith and Taylor DH Smith, 2017.
+ * All rights reserved.
+ */
+
+Module "Events"
+Uses
+	"Avail"
+Names
+	/* Events. */
+	"event",
+		"hardware event",
+			"boot",
+			"button press",
+			"button release",
+			"click",
+			"double click",
+			"triple click",
+			"long click",
+		"software event",
+			"heartbeat",
+			"neighborhood occupancy changed",
+			"neighborhood state changed",
+			"timer expired"
+Body
+
+/******************************************************************************
+ *                              Hardware events.                              *
+ ******************************************************************************/
+
+/**
+ * An {@type "atom"} that denotes booting a Blink.
+ *
+ * @method "boot"
+ * @returns "atom"
+ */
+Public "boot" is a new atom;
+
+/**
+ * An {@type "atom"} that denotes pressing a Blink's button, but not releasing
+ * it.
+ *
+ * @method "button press"
+ * @returns "atom"
+ */
+Public "button press" is a new atom;
+
+/**
+ * An {@type "atom"} that denotes releasing a Blink's pressed button.
+ *
+ * @method "button release"
+ * @returns "atom"
+ */
+Public "button release" is a new atom;
+
+/**
+ * An {@type "atom"} that denotes pressing and then releasing a Blink's button.
+ *
+ * @method "click"
+ * @returns "atom"
+ */
+Public "click" is a new atom;
+
+/**
+ * An {@type "atom"} that denotes pressing and then releasing a Blink's button
+ * twice in quick succession.
+ *
+ * @method "double click"
+ * @returns "atom"
+ */
+Public "double click" is a new atom;
+
+/**
+ * An {@type "atom"} that denotes pressing and then releasing a Blink's button
+ * thrice in quick succession.
+ *
+ * @method "triple click"
+ * @returns "atom"
+ */
+Public "triple click" is a new atom;
+
+/**
+ * An {@type "atom"} that denotes pressing a Blink's button and then releasing
+ * it after a while.
+ *
+ * @method "long click"
+ * @returns "atom"
+ */
+Public "long click" is a new atom;
+
+/**
+ * A {@type "hardware event"} is an event that is triggered either by the
+ * hardware or by the on-board Blink library.
+ *
+ * @type "hardware event"
+ * @supertype "atom"
+ */
+Public macro "hardware event" is
+[
+	‘{
+		boot,
+		button press,
+		button release,
+		click,
+		double click,
+		triple click,
+		long click
+	}ᵀ’
+];
+
+/******************************************************************************
+ *                              Software events.                              *
+ ******************************************************************************/
+
+/**
+ * An {@type "atom"} that denotes a Blink's heartbeat, corresponding to
+ * invocation's of its {@code "loop"} function.
+ *
+ * @method "heartbeat"
+ * @returns "atom"
+ */
+Public "heartbeat" is a new atom;
+
+/**
+ * An {@type "atom"} that denotes that neighbors have magnetically attached or
+ * detached from a Blink.
+ *
+ * @method "neighborhood occupancy changed"
+ * @returns "atom"
+ */
+Public "neighborhood occupancy changed" is a new atom;
+
+/**
+ * An {@type "atom"} that denotes that neighbors have changed their logical
+ * state, i.e., the value of their program-specific {@code "state"} variable.
+ *
+ * @method "neighborhood state changed"
+ * @returns "atom"
+ */
+Public "neighborhood state changed" is a new atom;
+
+/**
+ * An {@type "atom"} that denotes that a timer has expired.
+ *
+ * @method "timer expired"
+ * @returns "atom"
+ */
+Public "timer expired" is a new atom;
+
+/**
+ * A {@type "software event"} is an event that is detected by the simulator or
+ * by generated code.
+ *
+ * @type "software event"
+ * @supertype "atom"
+ */
+Public macro "software event" is
+[
+	‘{
+		heartbeat,
+		neighborhood occupancy changed,
+		neighborhood state changed,
+		timer expired
+	}ᵀ’
+];
+
+/******************************************************************************
+ *                              General events.                               *
+ ******************************************************************************/
+
+/**
+ * An {@type "event"} is either a {@type "hardware event"} or a {@type
+ * "software event"}.
+ *
+ * @type "event"
+ * @supertype "atom"
+ */
+Public macro "event" is
+[
+	‘{
+		boot,
+		button press,
+		button release,
+		click,
+		double click,
+		triple click,
+		long click,
+		heartbeat,
+		neighborhood occupancy changed,
+		neighborhood state changed,
+		timer expired
+	}ᵀ’
+];

@@ -6,6 +6,7 @@
 
 Module "Lighting Modes"
 Uses
+	"Abstract Syntax Tree",
 	"Avail"
 Names
 	/* Lighting modes. */
@@ -19,20 +20,28 @@ Body
  ******************************************************************************/
 
 /**
- * Answer an {@type "atom"} that denotes constant lighting.
+ * Answer a {@type "literal"} that denotes constant lighting.
  *
- * @method "constant"
- * @returns "atom"
+ * @macro "constant"
+ * @return "atom literal"
  */
-Public "constant" is a new atom;
+[
+	a ::= new atom named "constant";
+	lit ::= a literal with expression type ::= (a's type);
+	Public macro "constant" is [‘lit’];
+]();
 
 /**
- * Answer an {@type "atom"} that denotes pulsing lighting.
+ * Answer a {@type "literal"} that denotes pulsing lighting.
  *
- * @method "pulsing"
- * @returns "atom"
+ * @macro "pulsing"
+ * @return "atom literal"
  */
-Public "pulsing" is a new atom;
+[
+	a ::= new atom named "pulsing";
+	lit ::= a literal with expression type ::= (a's type);
+	Public macro "pulsing" is [‘lit’];
+]();
 
 /**
  * A {@type "lighting mode"} denotes the possible lighting modes of a Blink.
@@ -42,4 +51,4 @@ Public "pulsing" is a new atom;
  * @type "lighting mode"
  * @alias "{constant, pulsing}ᵀ"
  */
-Public macro "lighting mode" is [‘{constant, pulsing}ᵀ’];
+Public macro "lighting mode" is [‘{constant's value, pulsing's value}ᵀ’];

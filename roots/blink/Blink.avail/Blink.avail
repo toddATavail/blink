@@ -15,6 +15,23 @@ Extends
 		"[_.._]"
 	),
 	"Colors",
+	"Events" =
+	(
+		/* Hardware events. */
+		"boot",
+		"button press",
+		"button release",
+		"click",
+		"double click",
+		"triple click",
+		"long click",
+
+		/* Software events. */
+		"heartbeat",
+		"neighborhood occupancy changed",
+		"neighborhood state changed",
+		"timer expired"
+	),
 	"Expressions" =
 	(
 		/* State enumeration statements. */
@@ -27,14 +44,33 @@ Extends
 		/* Signal declaration statements. */
 		"(Blink)_is a signal." → "_is a signal.",
 
+		/* Timer declaration statements. */
+		"(Blink)_is a timer." → "_is a timer.",
+
+		/* Event handler statements. */
+		"(Blink)On_,_." → "On_,_.",
+
+		/* Signal handler statements. */
+		"(Blink)To_,_." → "To_,_.",
+		"(Blink)To_:_." → "To_:_.",
+
 		/* Block expressions. */
-		"(Blink)[§«_‡.»]",
+		"(Blink)[§«_‡.».⁇]" → "[§«_‡.».⁇]",
 
 		/* Local variable declaration statements. */
-		"(Blink)…" → "…",
 		"(Blink)…::=_" → "…::=_",
 		"(Blink)…:_†:=_" → "…:_†:=_",
-		"(Blink)…:=_" → "…:=_"
+
+		/* Local variable usage. */
+		"(Blink)…" → "…",
+
+		/* Ownership expressions. */
+		"(Blink)my_" → "my_",
+
+		/* Assignment statements. */
+		"(Blink)…:=_" → "…:=_",
+		"(Blink)…:=_" → "Change…to_",
+		"(Blink)Change_to_" → "Change_to_"
 	),
 	"Lighting Modes" =
 	(

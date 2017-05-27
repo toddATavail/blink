@@ -23,18 +23,23 @@ Names
 	"variable named_",
 	"Require:_does not shadow",
 
-	/* Local variables. */
+	/* Local variable usage. */
 	"(Blink)…",
+
+	/* Local variable declaration statements. */
 	"(Blink)…::=_",
 	"(Blink)…:_†:=_",
+
+	/* Assignment statements. */
 	"(Blink)…:=_",
+	"(Blink)Change_to_",
 
 	/* Block construction. */
-	"(Blink)[§«_‡.»]"
+	"(Blink)[§«_‡.».⁇]"
 Body
 
 /******************************************************************************
- *                              Local variables.                              *
+ *                             Scope management.                              *
  ******************************************************************************/
 
 "scope map key" is a new atom;
@@ -117,6 +122,10 @@ Public method "Pop scope" is
 	else [Shouldn't happen ("Pop underflowed the scope stack!")];
 ];
 
+/******************************************************************************
+ *                        Local variable introduction.                        *
+ ******************************************************************************/
+
 /**
  * Introduce a {@method "local"} {@type "variable"} into the current scope.
  *
@@ -131,6 +140,10 @@ Public method "Introduce variable_" is
 	scope map := scope map + var's name → var;
 ];
 
+/******************************************************************************
+ *                           Local variable lookup.                           *
+ ******************************************************************************/
+
 /**
  * Answer the {@method "local"} {@type "variable"} whose {@method "_'s⁇name"
  * name} matches the specified {@type "string"}.
@@ -138,15 +151,19 @@ Public method "Introduce variable_" is
  * @method "variable named_"
  * @param "varName" "string"
  * @returns "local variable"
- * @raises "key-not-found exception"
- *         If {@param "varName"} does not match any {@method "method"} {@type
- *         "variable"} currently in scope.
  */
 Public method "variable named_" is
 [
 	varName : string
 |
-	scope map[varName]
+	scope map[varName] else
+	[
+		Reject parse, expected:
+			format
+				"referenced local variable “①” to have been declared already"
+			with
+				varName
+	]
 ];
 
 /**
@@ -198,6 +215,10 @@ Public method "Require:_does not shadow" is
 	];
 ];
 
+/******************************************************************************
+ *                        Local variable declaration.                         *
+ ******************************************************************************/
+
 /**
  * Answer an {@type "assignment statement"} that initializes a new {@method
  * "immutable"} {@type "variable"} to the specified value.
@@ -220,8 +241,8 @@ Public macro "(Blink)…::=_" is
 	Require: varName does not shadow;
 	value ::= evaluate valuePhrase;
 	var ::= a variable with
+		expression type ::= value's expression type,
 		variable name ::= varName,
-		expression type ::= value's type,
 		variable scope ::= local,
 		variable mutability ::= immutable;
 	Introduce variable var;
@@ -288,16 +309,21 @@ Public macro "(Blink)…:_†:=_" is
 	‘<varDeclExpr, assignmentExpr>’
 ];
 
+/******************************************************************************
+ *                                Assignment.                                 *
+ ******************************************************************************/
+
 /**
  * Answer an {@type "assignment statement"} that assigns a value to an existing
- * {@method "mutable"} {@type "variable"}.
+ * {@method "local"} {@method "mutable"} {@type "variable"}.
  *
  * @macro "(Blink)…:=_"
  * @param "varTokenPhrase" "literal phrase ⇒ token"
  *        The keyword {@type "token"} that {@method "_'s⁇name" names} the target
- *        {@type "mutable"} {@type "variable"}.
+ *        {@method "local"} {@type "mutable"} {@type "variable"}.
  * @param "valuePhrase" "expression phrase ⇒ any expression"
- *         The new value of the {@type "mutable"} {@type "variable"}.
+ *         The new value of the {@method "local"} {@method "mutable"} {@type
+ *         "variable"}.
  * @returns "literal phrase ⇒ assignment statement"
  */
 Public macro "(Blink)…:=_" is
@@ -324,6 +350,41 @@ Public macro "(Blink)…:=_" is
 		assignment value ::= value’
 ];
 
+/**
+ * Answer an {@type "assignment statement"} that assigns a value to an existing
+ * {@method "global"} {@method "mutable"} {@type "variable"}.
+ *
+ * @macro "(Blink)Change_to_"
+ * @param "varPhrase" "expression phrase ⇒ any global mutable variable"
+ *        The target {@method "global"} {@mutable "mutable"} {@type "variable"}.
+ * @param "valuePhrase" "expression phrase ⇒ any expression"
+ *         The new value of the {@method "global"} {@mutable "mutable"} {@type
+ *         "variable"}.
+ * @returns "literal phrase ⇒ assignment statement"
+ */
+Public macro "(Blink)Change_to_" is
+[
+	varPhrase : expression phrase ⇒ any global mutable variable,
+	valuePhrase : expression phrase ⇒ any expression
+|
+	var ::= evaluate varPhrase;
+	varType ::= var's expression type;
+	value ::= evaluate valuePhrase;
+	If ¬value's expression type ⊆ varType then
+	[
+		Reject parse, expected:
+			format
+				"assignment value to conform to assignee's declared type \
+				\|(but “①” is not a subtype of “②”)"
+			with value's expression type, varType
+	];
+	‘an assignment statement with
+		expression type ::= ⊤,
+		expression scope ::= local,
+		assignment assignee ::= var,
+		assignment value ::= value’
+];
+
 /******************************************************************************
  *                                  Blocks.                                   *
  ******************************************************************************/
@@ -333,7 +394,7 @@ Public macro "(Blink)…:=_" is
  * of {@type "abstract statement" statements}. Every block constitutes a new
  * inner scope.
  *
- * @macro "(Blink)[§«_‡.»]"
+ * @macro "(Blink)[§«_‡.».⁇]"
  * @param "bodyPhrase" "list phrase ⇒ tuple"
  *        (Optional) The body of the block. It must comprise statements —
  *        {@type "abstract expression" expressions} that do not yield values —
@@ -341,7 +402,7 @@ Public macro "(Blink)…:=_" is
  *        expression}.
  * @returns "literal phrase ⇒ block expression"
  */
-Public macro "(Blink)[§«_‡.»]" is
+Public macro "(Blink)[§«_‡.».⁇]" is
 [
 	Push scope;
 ],

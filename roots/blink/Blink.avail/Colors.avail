@@ -6,6 +6,7 @@
 
 Module "Colors"
 Uses
+	"Abstract Syntax Tree",
 	"Avail"
 Names
 	/* The names are automatically exported by the X11 declarator. */
@@ -16,7 +17,7 @@ Body
  ******************************************************************************/
 
 /**
- * Declare an X11 color.
+ * Declare an X11 color as a {@type "Blink literal"}.
  *
  * The base name is made available case insensitively, i.e., a color name like
  * "Light Sea Green" generates a method named "light~sea~green~".
@@ -59,11 +60,12 @@ Private macro "X11 color_is«_‡,»;" is
 			in (lowercase baseName) ++ "~"
 			with "~";
 		rgb ::= colors[1] (base 16);
+		lit ::= a literal with expression type ::= (rgb's type);
 		<
 			send $"Method_is_" with
 			«<
 				‘name’,
-				«[<‘rgb’>] : rgb's type»
+				«[<‘lit’>] : lit's type»
 			>» : ⊤,
 			send $"Export_as a new name" with «<‘name’>» : ⊤
 		>
@@ -81,21 +83,22 @@ Private macro "X11 color_is«_‡,»;" is
 				send $"Abstract method_is_" with
 				«<
 					‘name’,
-					‘[[0..|colors|]]→whole number’
+					‘[[0..|colors|]]→([0..2^32) literal)’
 				>» : ⊤,
 				send $"Export_as a new name" with «<‘name’>» : ⊤
 			>;
 			abstractExprs ++ map each color, index of colors through
 			[
 				rgb ::= color (base 16);
+				lit ::= a literal with expression type ::= (rgb's type);
 				send $"Method_is_" with
 				«<
 					‘name’,
 					«[
 						<arg «this token: unused : (index-1)'s type»>
 					|
-						<‘rgb’>
-					] : rgb's type»
+						<‘lit’>
+					] : lit's type»
 				>» : ⊤
 			]
 		];

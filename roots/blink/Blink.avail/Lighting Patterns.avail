@@ -6,8 +6,8 @@
 
 Module "Lighting Patterns"
 Uses
-	"Avail",
-	"Lighting Modes"
+	"Abstract Syntax Tree",
+	"Avail"
 Names
 	/* Lighting patterns. */
 	"lighting pattern",
@@ -20,27 +20,35 @@ Body
  ******************************************************************************/
 
 /**
- * Answer an {@type "atom"} that denotes linear interpolation.
+ * Answer a {@type "literal"} that denotes linear interpolation.
  *
- * @method "linear interpolation⁇"
- * @returns "atom"
+ * @macro "linear interpolation⁇"
+ * @returns "atom literal"
  */
-Public "linear interpolation⁇" is a new atom;
+[
+	a ::= new atom named "linear interpolation";
+	lit ::= a literal with expression type ::= (a's type);
+	Public macro "linear interpolation⁇" is [‘lit’];
+]();
 
 /**
- * Answer an {@type "atom"} that denotes sinusoidal interpolation.
+ * Answer a {@type "literal"} that denotes sinusoidal interpolation.
  *
- * @method "sinusoidal interpolation⁇"
- * @returns "atom"
+ * @macro "sinusoidal interpolation⁇"
+ * @returns "atom literal"
  */
-Public "sinusoidal interpolation⁇" is a new atom;
+[
+	a ::= new atom named "sinusoidal interpolation";
+	lit ::= a literal with expression type ::= (a's type);
+	Public macro "sinusoidal interpolation⁇" is [‘lit’];
+]();
 
 /**
  * A {@type "lighting pattern"} denotes the possible lighting patterns of a
- * Blink. The modes correspond to built-in functions that support the {@type
- * "lighting mode"}s.
+ * Blink. The modes correspond to built-in functions that support the lighting
+ * modes.
  *
  * @type "lighting pattern"
  * @alias "{constant, pulsing}ᵀ"
  */
-Public macro "lighting pattern" is [‘{linear, sinusoidal}ᵀ’];
+Public macro "lighting pattern" is [‘{linear's value, sinusoidal's value}ᵀ’];

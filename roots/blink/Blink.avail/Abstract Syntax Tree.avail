@@ -10,11 +10,8 @@ Uses
 	(
 		"variable" → "Avail variable",
 		…
-	)
-Extends
-	"Lighting Modes",
-	"Lighting Patterns",
-	"Timers"
+	),
+	"Events"
 Names
 	/* Abstract expressions. */
 	"abstract expression",
@@ -55,6 +52,11 @@ Names
 	"signal",
 		"signal name",
 			/*"_'s⁇name",*/
+	
+	/* Timers. */
+	"timer",
+		"timer name",
+			/*"_'s⁇name",*/
 
 	/* Variable declaration statements. */
 	"variable declaration statement",
@@ -66,10 +68,27 @@ Names
 		"declared signal",
 			"_'s⁇signal",
 
+	/* Timer declaration statements. */
+	"timer declaration statement",
+		"declared timer",
+			"_'s⁇timer",
+
 	/* State enumeration statements. */
 	"state enumeration statement",
 		"declared states",
 			"_'s⁇states",
+
+	/* Handler statements. */
+	"hardware event handler statement",
+		"handled event",
+			"_'s⁇event",
+		"fired signal",
+			/*"_'s⁇signal",*/
+	"signal handler statement",
+		"handled signal",
+			/*"_'s⁇signal",*/
+		"handler block",
+			"_'s⁇block",
 
 	/* Assignment statements. */
 	"assignment statement",
@@ -524,6 +543,26 @@ Public class "signal" extends abstract expression
 Public method "_'s⁇subexpressions" is [sig : signal | <>];
 
 /******************************************************************************
+ *                                 Timers.                                    *
+ ******************************************************************************/
+
+Public "timer name" is a new field atom;
+
+/**
+ * A {@type "timer"} is a user-defined timer.
+ *
+ * @type "timer"
+ * @supertype "abstract expression"
+ * @field "timer name" "nonempty string"
+ *        The name of the {@type "timer"}.
+ */
+Public class "timer" extends abstract expression
+	with field
+		public timer name : nonempty string ("_'s⁇name");
+
+Public method "_'s⁇subexpressions" is [t : timer | <>];
+
+/******************************************************************************
  *                      Variable declaration statements.                      *
  ******************************************************************************/
 
@@ -594,6 +633,40 @@ Method "“_”" is
 ];
 
 /******************************************************************************
+ *                       Timer declaration statements.                        *
+ ******************************************************************************/
+
+Public "declared timer" is a new field atom;
+
+/**
+ * A {@type "timer declaration statement"} declares a {@type "timer"}.
+ *
+ * @type "timer declaration statement"
+ * @supertype "abstract statement"
+ * @field "declared timer" "timer"
+ *        The {@type "timer"} declared by the {@type
+ *        "timer declaration statement"}.
+ * @field "expression scope" "global's type"
+ *        A {@type "timer declaration statement"} is always {@type "global"}.
+ */
+Public class "timer declaration statement" extends abstract statement
+	with field
+		public declared timer : timer ("_'s⁇timer"),
+		public expression scope : global's type ("_'s⁇scope");
+
+Public method "_'s⁇subexpressions" is [stmt : timer declaration statement | <>];
+
+Method "“_”" is
+[
+	stmt : timer declaration statement
+|
+	t ::= stmt's timer;
+	format "‘①’ (‘②’)" with
+		(a|an) “stmt's type's names→tuple[1]”,
+		stmt's timer's name
+];
+
+/******************************************************************************
  *                       State enumeration statements.                        *
  ******************************************************************************/
 
@@ -629,6 +702,48 @@ Method "“_”" is
 ];
 
 /******************************************************************************
+ *                         Event handler statements.                          *
+ ******************************************************************************/
+
+Public "handled event" is a new field atom;
+Public "fired signal" is a new field atom;
+
+/**
+ * A {@type "hardware event handler statement"} establishes that a particular
+ * {@type "hardware event"} will fire a specific {@type "signal"}.
+ *
+ * @type "hardware event handler statement"
+ * @supertype "abstract statement"
+ * @field "expression scope" "global's type"
+ *        A {@type "hardware event handler statement"} is always {@type
+ *        "global"}.
+ * @field "handled event" "hardware event"
+ *        The {@type "hardware event"} handled by the {@type
+ *        "hardware event handler statement"}.
+ * @field "fired signal" "signal"
+ *        The {@type "signal"} that is automatically fired upon receipt of the
+ *        {@type "hardware event"}.
+ */
+Public class "hardware event handler statement" extends abstract statement
+	with field
+		public expression scope : global's type ("_'s⁇scope"),
+		public handled event : hardware event ("_'s⁇event"),
+		public fired signal : signal ("_'s⁇signal");
+
+Public method "_'s⁇subexpressions" is
+	[expr : hardware event handler statement | <>];
+
+Method "“_”" is
+[
+	stmt : hardware event handler statement
+|
+	format "‘①’ (‘②’ → ‘③’)" with
+		(a|an) “stmt's type's names→tuple[1]”,
+		stmt's event's name,
+		stmt's signal's name
+];
+
+/******************************************************************************
  *                             Block expressions.                             *
  ******************************************************************************/
 
@@ -649,6 +764,45 @@ Public class "block expression" extends abstract expression
 		public block body : abstract statement* ("_'s⁇body");
 
 Public method "_'s⁇subexpressions" is [expr : block expression | expr's body];
+
+/******************************************************************************
+ *                         Signal handler statements.                         *
+ ******************************************************************************/
+
+Public "handled signal" is a new field atom;
+Public "handler block" is a new field atom;
+
+/**
+ * A {@type "signal handler statement"} establishes that a particular {@type
+ * "signal"} will execute a specific {@type "block expression" block of code}.
+ *
+ * @type "signal handler statement"
+ * @supertype "abstract statement"
+ * @field "expression scope" "global's type"
+ *        A {@type "signal handler statement"} is always {@type "global"}.
+ * @field "handled signal" "signal"
+ *        The {@type "signal"} handled by the {@type
+ *        "signal handler statement"}.
+ * @field "handler block" "block expression"
+ *        The {@type "block expression" block of code} that implements the logic
+ *        of the {@type "signal handler statement"}.
+ */
+Public class "signal handler statement" extends abstract statement
+	with fields
+		public expression scope : global's type ("_'s⁇scope"),
+		public handled signal : signal ("_'s⁇signal"),
+		public handler block : block expression ("_'s⁇block");
+
+Public method "_'s⁇subexpressions" is [stmt : signal handler statement | <>];
+
+Method "“_”" is
+[
+	stmt : signal handler statement
+|
+	format "‘①’ (‘②’)" with
+		(a|an) “stmt's type's names→tuple[1]”,
+		stmt's signal's name
+];
 
 /******************************************************************************
  *                          Assignment expressions.                           *
@@ -719,6 +873,24 @@ programAccumulator : program := <>;
 Public read-only variable programAccumulator is "program accumulator";
 
 /**
+ * The handled {@type "hardware event"}s. Registration of {@type
+ * "hardware events"} supports uniqueness of handlers, permitting the compiler
+ * to reject attempts to define conflicting handlers.
+ *
+ * @global "handledHardwareEvents" "{hardware event|}"
+ */
+handledHardwareEvents : {hardware event|} := ∅;
+
+/**
+ * The handled {@type "signal"}s. Registration of {@type "signal"}s supports
+ * uniqueness of handlers, permitting the compiler to reject attempts to define
+ * conflicting handlers.
+ *
+ * @global "handledSignals" "{signal|}"
+ */
+handledSignals : {signal|} := ∅;
+
+/**
  * Record the specified {@type "module"} as the one containing the entire Blink
  * {@method "program accumulator" program}. Splitting a Blink program across
  * {@type "module"}s is currently unsupported.
@@ -735,8 +907,38 @@ Private method "Record module_" is
 	After the current module is unloaded, do
 	[
 		programAccumulator := <>;
+		handledHardwareEvents := ∅;
+		handledSignals := ∅;
 		Clear programModule;
 	];
+];
+
+/**
+ * Register that a handler exists for the specified {@type "hardware event"}.
+ *
+ * @method "Register hardware event handler for_"
+ * @param "ev" "hardware event"
+ * @returns "⊤"
+ */
+Private method "Register hardware event handler for_" is
+[
+	ev : hardware event
+|
+	handledHardwareEvents := handledHardwareEvents + ev;
+];
+
+/**
+ * Register that a handler exists for the specified {@type "signal"}.
+ *
+ * @method "Register signal handler for_"
+ * @param "sig" "signal"
+ * @returns "⊤"
+ */
+Private method "Register signal handler for_" is
+[
+	sig : signal
+|
+	handledSignals := handledSignals + sig;
 ];
 
 /**
@@ -786,6 +988,44 @@ Public method "statement recorder for_" is
 				programModule's name,
 				mod's name
 	];
+	Cast expr into
+	[
+		h : hardware event handler statement
+	|
+		ev ::= h's event;
+		If h's event ∈ handledHardwareEvents then
+		[
+			Reject parse, expected:
+				format
+					"each hardware event handler to be unique (but there is \
+					\|already a handler for ‘①’)"
+				with
+					ev's name
+		];
+		stmts ++=
+			<send $"Register hardware event handler for_"
+				with «<‘ev’>» : ⊤ → statement phrase>;
+	]
+	else [/* Nothing. */];
+	Cast expr into
+	[
+		h : signal handler statement
+	|
+		sig ::= h's signal;
+		If h's signal ∈ handledSignals then
+		[
+			Reject parse, expected:
+				format
+					"each signal handler to be unique (but there is already a \
+					\|handler for ‘①’)"
+				with
+					sig's name
+		];
+		stmts ++=
+			<send $"Register signal handler for_"
+				with «<‘sig’>» : ⊤ → statement phrase>;
+	]
+	else [/* Nothing. */];
 	stmts
 ] : statement phrase+;
 

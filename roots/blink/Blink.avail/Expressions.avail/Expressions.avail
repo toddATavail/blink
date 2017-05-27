@@ -7,7 +7,9 @@
 Module "Expressions"
 Extends
 	"Block Expressions",
+	"Handler Statements",
 	"Signal Statements",
 	"State Enumeration Statements",
+	"Timer Statements",
 	"Variable Expressions"
 Body

@@ -14,7 +14,10 @@ Uses
 	)
 Names
 	/* Variable declaration statements. */
-	"(Blink)_is_."
+	"(Blink)_is_.",
+
+	/* Ownership expressions. */
+	"(Blink)my_"
 Body
 
 /******************************************************************************
@@ -38,8 +41,8 @@ Public macro "(Blink)_is_." is
 	varName ::= evaluate varNamePhrase;
 	varType ::= evaluate varTypePhrase;
 	var ::= a variable with
-		variable name ::= varName's value,
 		expression type ::= varType,
+		variable name ::= varName's value,
 		variable scope ::= global,
 		variable mutability ::= mutable;
 	varStmts ::=
@@ -57,4 +60,31 @@ Public macro "(Blink)_is_." is
 	recordStmts ::= statement recorder for varDeclExpr;
 	stmts ::= varStmts ++ recordStmts;
 	seq «stmts»
+];
+
+/******************************************************************************
+ *                           Ownership expression.                            *
+ ******************************************************************************/
+
+/**
+ * Answer the specified {@type "global variable"}. An ownership expression is a
+ * bit of syntactic sugar to make the NL-style syntax nicer.
+ *
+ * @method "(Blink)my_"
+ * @param "var" "global variable"
+ * @returns {@param "var"}.
+ */
+Public method "(Blink)my_" is [var : global variable | var];
+
+/**
+ * Strengthen the ownership expression to the exact {@type "global variable"}.
+ *
+ * @method "(Blink)my_"
+ * @restricts "global variable's type"
+ */
+Semantic restriction "(Blink)my_" is
+[
+	varType : global variable's type
+|
+	varType
 ];
