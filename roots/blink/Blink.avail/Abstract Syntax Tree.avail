@@ -43,6 +43,11 @@ Names
 	"__variable",
 	"_variable",
 
+	/* Global variable declaration statements. */
+	"global variable declaration statement",
+		"declared variable",
+			"_'s⁇variable",
+
 	/* State enumeration statements. */
 	"state enumeration statement",
 		"declared states",
@@ -52,6 +57,8 @@ Names
 	"program",
 	"program accumulator",
 	"statement recorder for_"
+Entries
+	"*Dump program"
 Body
 
 /*
@@ -344,6 +351,29 @@ Semantic restriction "_variable" is
 Public method "_'s⁇subexpressions" is [var : variable | <>];
 
 /******************************************************************************
+ *                  Global variable declaration statements.                   *
+ ******************************************************************************/
+
+Public "declared variable" is a new field atom;
+
+/**
+ * A {@type "global variable declaration statement"} declares a {@method
+ * "global"} {@type "variable"}.
+ *
+ * @type "global variable declaration statement"
+ * @supertype "abstract statement"
+ * @field "declared variable" "global variable"
+ *        The {@method "global"} {@type "variable"} declared by the {@type
+ *        "global variable declaration statement"}.
+ */
+Public class "global variable declaration statement" extends abstract statement
+ 	with field
+ 		declared variable : global variable ("_'s⁇variable");
+
+Public method "_'s⁇subexpressions" is
+	[stmt : global variable declaration statement | <>];
+
+/******************************************************************************
  *                       State enumeration statements.                        *
  ******************************************************************************/
 
@@ -363,6 +393,8 @@ Public "declared states" is a new field atom;
 Public class "state enumeration statement" extends abstract statement
 	with fields
 		public declared states : {atom|} ("_'s⁇states");
+
+Public method "_'s⁇subexpressions" is [stmt : state enumeration statement | <>];
 
 /******************************************************************************
  *                              Blink programs.                               *
@@ -470,3 +502,17 @@ Public method "statement recorder for_" is
 	];
 	stmts
 ] : statement phrase+;
+
+/**
+ * Perform a raw dump of the {@method "program accumulator"} to standard output.
+ *
+ * @method "*Dump program"
+ * @returns "⊤"
+ */
+Private method "*Dump program" is
+[
+	For each stmt of programAccumulator do
+	[
+		Print: “stmt” ++ "\n";
+	];
+];

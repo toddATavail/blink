@@ -1,0 +1,58 @@
+/*
+ * Variable Expressions.avail
+ * Copyright (c) Todd L Smith and Taylor DH Smith, 2017.
+ * All rights reserved.
+ */
+
+Module "Variable Expressions"
+Uses
+	"Abstract Syntax Tree",
+	"Avail" =
+	(
+		"variable" → "Avail variable",
+		…
+	)
+Names
+	/* Global variable declaration statements. */
+	"(Blink)_is_."
+Body
+
+/******************************************************************************
+ *                  Global variable declaration statements.                   *
+ ******************************************************************************/
+
+/**
+ * Declare a {@method "global"} {@type "variable"} with the specified {@type
+ * "any's type" type}.
+ *
+ * @macro "(Blink)_is_."
+ * @param "varNamePhrase" "expression phrase ⇒ nonempty string literal"
+ * @param "varTypePhrase" "expression phrase ⇒ (any's type)"
+ * @returns "sequence phrase"
+ */
+Public macro "(Blink)_is_." is
+[
+	varNamePhrase : expression phrase ⇒ nonempty string literal,
+	varTypePhrase : expression phrase ⇒ (any's type)
+|
+	varName ::= evaluate varNamePhrase;
+	varType ::= evaluate varTypePhrase;
+	var ::= a variable with
+		variable name ::= varName's value,
+		expression type ::= varType,
+		variable scope ::= global;
+	varStmts ::=
+	<
+		send $"Method_is_" with
+		«<
+			‘var's name’,
+			«[<‘var’>] : var's type»
+		>» : ⊤ → statement phrase
+	>;
+	varDeclExpr ::= a global variable declaration statement with
+		declared variable ::= var,
+		expression type ::= ⊤;
+	recordStmts ::= statement recorder for varDeclExpr;
+	stmts ::= varStmts ++ recordStmts;
+	seq «stmts»
+];

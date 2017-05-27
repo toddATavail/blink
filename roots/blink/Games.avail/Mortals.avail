@@ -51,8 +51,9 @@ Body
 "active", "inactive", and "dead" are public states.
 
 /* The range type specifies modular arithmetic. */
-"team" is an integer in [1..2].
+"team" is [1..2].
 
+/*
 "initialize" is a signal.
 When device turns on, initialize.
 To initialize:
@@ -113,3 +114,4 @@ When my lifetime expires:
 	Change my lighting mode to constant.
 	Change my color to 50% white.
 ].
+*/

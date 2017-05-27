@@ -37,13 +37,13 @@ Private method "ordinal suffix for_" is
  * Declare the supported public states of this particular Blink program.
  *
  * @macro "(Blink)«_‡,and⁇»is|are a⁇public state|states."
- * @param "statesPhrase" "list phrase ⇒ (string literal+)"
+ * @param "statesPhrase" "list phrase ⇒ (nonempty string literal+)"
  *        The declared state names.
  * @returns "sequence phrase"
  */
 Public macro "(Blink)«_‡,and⁇»is|are a⁇public state|states." is
 [
-	statesPhrase : list phrase ⇒ (string literal+)
+	statesPhrase : list phrase ⇒ (nonempty string literal+)
 |
 	exprs ::= statesPhrase's expressions;
 	lastExpr ::= exprs' last;
@@ -59,7 +59,7 @@ Public macro "(Blink)«_‡,and⁇»is|are a⁇public state|states." is
 	];
 ],
 [
-	statesPhrase : list phrase ⇒ (string literal+)
+	statesPhrase : list phrase ⇒ (nonempty string literal+)
 |
 	states ::= evaluate statesPhrase;
 	/* Generate atoms and accessors for each of the states. */

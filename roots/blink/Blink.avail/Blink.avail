@@ -6,12 +6,23 @@
 
 Module "Blink"
 Extends
+	"Avail" =
+	(
+		/* Numeric literals (for integer range type construction). */
+		"…#",
+
+		/* Integer range type construction. */
+		"[_.._]"
+	),
 	"Colors",
 	"Expressions" =
 	(
 		/* State enumeration statements. */
 		"(Blink)«_‡,and⁇»is|are a⁇public state|states." →
-			"«_‡,and⁇»is|are a⁇public state|states."
+			"«_‡,and⁇»is|are a⁇public state|states.",
+
+		/* Global variable declaration statements. */
+		"(Blink)_is_." → "_is_."
 	),
 	"Lighting Modes" =
 	(
