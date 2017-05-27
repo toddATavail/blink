@@ -1,0 +1,103 @@
+/*
+ * State Enumeration Statements.avail
+ * Copyright (c) Todd L Smith and Taylor DH Smith, 2017.
+ * All rights reserved.
+ */
+
+Module "State Enumeration Statements"
+Uses
+	"Abstract Syntax Tree",
+	"Avail"
+Names
+	/* State enumeration statements. */
+	"(Blink)«_‡,and⁇»is|are a⁇public state|states."
+Body
+
+/******************************************************************************
+ *                       State enumeration statements.                        *
+ ******************************************************************************/
+
+/**
+ * Answer the appropriate ordinal suffix for the specified {@type
+ * "natural number"}.
+ *
+ * @method "ordinal suffix for_"
+ * @param "n" "natural number"
+ * @returns "nonempty string"
+ */
+Private method "ordinal suffix for_" is
+[
+	n : natural number
+|
+	if 4 ≤ n mod 100 ≤ 20 then ["th"]
+	else [(<"th", "st", "nd", "rd"> ++ 6 of "th")[(n mod 10) + 1]]
+];
+
+/**
+ * Declare the supported public states of this particular Blink program.
+ *
+ * @macro "(Blink)«_‡,and⁇»is|are a⁇public state|states."
+ * @param "statesPhrase" "list phrase ⇒ (string literal+)"
+ *        The declared state names.
+ * @returns "sequence phrase"
+ */
+Public macro "(Blink)«_‡,and⁇»is|are a⁇public state|states." is
+[
+	statesPhrase : list phrase ⇒ (string literal+)
+|
+	exprs ::= statesPhrase's expressions;
+	lastExpr ::= exprs' last;
+	If ¬lastExpr ∈ literal phrase then
+	[
+		Reject parse, expected:
+			format
+				"public state names to be statically known (but the “①”‘②’ \
+				\|name is not a literal)"
+			with
+				|exprs|,
+				ordinal suffix for |exprs|
+	];
+],
+[
+	statesPhrase : list phrase ⇒ (string literal+)
+|
+	states ::= evaluate statesPhrase;
+	/* Generate atoms and accessors for each of the states. */
+	atomsAndAccessors ::= map each state of states through
+		[
+			stateName ::= state's value;
+			stateAtom ::= new atom named stateName;
+			<
+				stateAtom,
+				send $"Method_is_" with
+				«<
+					‘stateName’,
+					«[<‘stateAtom’>] : stateAtom's type»
+				>» : ⊤ → statement phrase
+			>
+		];
+	accessorStmts ::= stripe atomsAndAccessors at 2;
+	/* Generate the special "state" variable and give it a type which is the
+	 * enumeration of the named states.
+	 */
+	stateSet ::= stripe atomsAndAccessors at 1→set;
+	stateVar ::= a variable with
+		variable name ::= "state",
+		expression type ::= enumeration of stateSet,
+		variable scope ::= global;
+	varStmts ::=
+	<
+		send $"Method_is_" with
+		«<
+			‘stateVar's name’,
+			«[<‘stateVar’>] : stateVar's type»
+		>» : ⊤ → statement phrase
+	>;
+	/* Generate and record a state enumeration statement. */
+	stateEnumExpr ::= a state enumeration statement with
+		declared states ::= stateSet,
+		expression type ::= ⊤;
+	recordStmts ::= statement recorder for stateEnumExpr;
+	stmts ::= accessorStmts ++ varStmts ++ recordStmts;
+	seq «stmts»
+];

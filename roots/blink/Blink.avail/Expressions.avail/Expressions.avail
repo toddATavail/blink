@@ -1,0 +1,10 @@
+/*
+ * Expressions.avail
+ * Copyright (c) Todd L Smith and Taylor DH Smith, 2017.
+ * All rights reserved.
+ */
+
+Module "Expressions"
+Extends
+	"State Enumeration Statements"
+Body

@@ -6,11 +6,33 @@
 
 Module "Blink"
 Extends
-	"Abstract Syntax Tree",
 	"Colors",
-	"Lighting Modes",
-	"Lighting Patterns",
-	"Literals",
-	"Standard Variables",
-	"Timers"
+	"Expressions" =
+	(
+		/* State enumeration statements. */
+		"(Blink)«_‡,and⁇»is|are a⁇public state|states." →
+			"«_‡,and⁇»is|are a⁇public state|states."
+	),
+	"Lighting Modes" =
+	(
+		"constant",
+		"pulsing"
+	),
+	"Lighting Patterns" =
+	(
+		"linear interpolation⁇",
+		"sinusoidal interpolation⁇"
+	),
+	"Literals" =
+	(
+		"(Blink)…#" → "…#",
+		"(Blink)…$" → "…$"
+	),
+	"Standard Variables" =
+	(
+		"lighting⁇color variable" → "lighting⁇color",
+		"lighting⁇mode variable" → "lighting⁇mode",
+		"lighting⁇pattern variable" → "lighting⁇pattern",
+		"lighting⁇pattern duration variable" → "lighting⁇pattern duration"
+	)
 Body

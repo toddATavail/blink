@@ -41,7 +41,17 @@ Names
 		"local",
 		"global",
 	"__variable",
-	"_variable"
+	"_variable",
+
+	/* State enumeration statements. */
+	"state enumeration statement",
+		"declared states",
+			"_'s⁇states",
+
+	/* Programs. */
+	"program",
+	"program accumulator",
+	"statement recorder for_"
 Body
 
 /*
@@ -68,7 +78,7 @@ Public "expression type" is a new field atom;
  */
 Public class "abstract expression" extends object
 	with field
-		expression type : ⊤'s type;
+		public expression type : ⊤'s type;
 
 Alias "abstract statement" to $"abstract expression";
 
@@ -128,7 +138,7 @@ Public abstract method "_'s⁇subexpressions" is
  */
 Public explicit class "literal" extends abstract expression
 	with field
-		expression type : any's type;
+		public expression type : any's type;
 
 /**
  * Answer the {@type "any" value} that the specified {@type "literal"} denotes.
@@ -235,9 +245,9 @@ Public macro "scope" is [‘{local, global}ᵀ’];
  */
 Public class "variable" extends abstract expression
 	with fields
-		variable name : nonempty string ("_'s⁇name"),
-		expression type : any's type,
-		variable scope : scope ("_'s⁇scope");
+		public variable name : nonempty string ("_'s⁇name"),
+		public expression type : any's type,
+		public variable scope : scope ("_'s⁇scope");
 
 /**
  * Construct a {@type "variable"} {@type "type"} for the specified {@type
@@ -333,3 +343,130 @@ Semantic restriction "_variable" is
 
 Public method "_'s⁇subexpressions" is [var : variable | <>];
 
+/******************************************************************************
+ *                       State enumeration statements.                        *
+ ******************************************************************************/
+
+Public "declared states" is a new field atom;
+
+/**
+ * A {@type "state enumeration statement"} establishes the publicly available
+ * Blink states. These are transmitted via IR. There must not be more than one
+ * of these per program.
+ *
+ * @type "state enumeration statement"
+ * @supertype "abstract statement"
+ * @field "declared states" "{atom|}"
+ *        All declared states. These are the only valid states for a particular
+ *        program.
+ */
+Public class "state enumeration statement" extends abstract statement
+	with fields
+		public declared states : {atom|} ("_'s⁇states");
+
+/******************************************************************************
+ *                              Blink programs.                               *
+ ******************************************************************************/
+
+/**
+ * A {@type "program" program} comprises {@type "abstract expression"
+ * statements}.
+ *
+ * @type "program"
+ * @returns "literal phrase ⇒ (abstract statement*'s type)"
+ */
+Public macro "program" is [‘abstract statement*’];
+
+/**
+ * The {@type "module"} that implements the entire {@global "program"}.
+ * Currently, a Blink program must not cross Avail {@type "module"} boundaries;
+ * it must reside completely within a single {@type "module"}.
+ *
+ * @global "programModule"
+ */
+programModule : module;
+
+/**
+ * The {@type "program" program} actively undergoing compilation.
+ *
+ * @global "programAccumulator" "program"
+ */
+programAccumulator : program := <>;
+
+/**
+ * Answer the {@type "global" program accumulator}.
+ *
+ * @method "program accumulator"
+ * @returns "program"
+ */
+Public read-only variable programAccumulator is "program accumulator";
+
+/**
+ * Record the specified {@type "module"} as the one containing the entire Blink
+ * {@method "program accumulator" program}. Splitting a Blink program across
+ * {@type "module"}s is currently unsupported.
+ *
+ * @method "Record module_"
+ * @param "mod" "module"
+ * @returns "⊤"
+ */
+Private method "Record module_" is
+[
+	mod : module
+|
+	programModule := mod;
+	After the current module is unloaded, do
+	[
+		programAccumulator := <>;
+		Clear programModule;
+	];
+];
+
+/**
+ * Answer {@type "statement phrase" Avail statements} capable of appending the
+ * specified {@type "abstract expression" statement} onto the {@method
+ * "program accumulator"}. {@method "Reject parse,expected:_" Reject the current
+ * parse} if the {@type "abstract expression" statement} came from a different
+ * {@type "module"} than the previously recorded {@type "abstract expression"
+ * statement}.
+ *
+ * This method must only be called from macros. It cannot be called at runtime.
+ *
+ * @method "statement recorder for_"
+ * @param "expr" "abstract statement"
+ * @returns "statement phrase+"
+ */
+Public method "statement recorder for_" is
+[
+	expr : abstract statement
+|
+	If expr's expression type ≠ ⊤ then
+	[
+		Reject parse, expected:
+			format "expression to be a statement (but it returns “①”)"
+			with expr's expression type
+	];
+	mod ::= current module;
+	stmts : statement phrase+ :=
+	<
+		send $"_++=_" with «<‘↑programAccumulator’, «<‘expr’>»>» : ⊤
+			→ statement phrase
+	>;
+	If programModule is unassigned then
+	[
+		stmts :=
+			<send $"Record module_" with «<‘mod’>» : ⊤ → statement phrase>
+			++ stmts;
+	]
+	else if programModule ≠ mod then
+	[
+		Reject parse, expected:
+			format
+				"the entire Blink program to reside in module “①” (but \
+				\this is module “②”)"
+			with
+				programModule's name,
+				mod's name
+	];
+	stmts
+] : statement phrase+;

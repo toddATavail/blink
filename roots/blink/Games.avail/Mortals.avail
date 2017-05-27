@@ -5,7 +5,8 @@
  */
 
 Module "Mortals"
-Uses "Blink"
+Uses
+	"Blink"
 Body
 
 /*
@@ -60,7 +61,7 @@ To initialize:
 	Change my color to green.
 	Change my lighting mode to constant.
 	My state becomes dead.
-]
+].
 
 "change sides" is a signal.
 On long click, change sides.
