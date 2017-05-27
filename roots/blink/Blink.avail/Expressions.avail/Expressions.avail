@@ -6,6 +6,7 @@
 
 Module "Expressions"
 Extends
+	"Block Expressions",
 	"State Enumeration Statements",
 	"Variable Expressions"
 Body

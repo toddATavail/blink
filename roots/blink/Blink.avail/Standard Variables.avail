@@ -40,7 +40,8 @@ Private macro "Standard variable_is_;" is
 	var ::= a variable with
 		variable name ::= varName,
 		expression type ::= evaluate varTypePhrase,
-		variable scope ::= global;
+		variable scope ::= global,
+		variable mutability ::= mutable;
 	methodName ::= varName ++ " variable";
 	exprs ::=
 	<

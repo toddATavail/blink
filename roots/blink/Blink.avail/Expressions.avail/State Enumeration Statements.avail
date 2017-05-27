@@ -80,11 +80,18 @@ Public macro "(Blink)«_‡,and⁇»is|are a⁇public state|states." is
 	/* Generate the special "state" variable and give it a type which is the
 	 * enumeration of the named states.
 	 */
-	stateSet ::= stripe atomsAndAccessors at 1→set;
+	stateTuple ::= stripe atomsAndAccessors at 1;
+	stateSet ::= stateTuple→set;
+	If |stateTuple| ≠ |stateSet| then
+	[
+		Reject parse, expected:
+			"state names to be unique"
+	];
 	stateVar ::= a variable with
 		variable name ::= "state",
 		expression type ::= enumeration of stateSet,
-		variable scope ::= global;
+		variable scope ::= global,
+		variable mutability ::= mutable;
 	varStmts ::=
 	<
 		send $"Method_is_" with
@@ -95,7 +102,7 @@ Public macro "(Blink)«_‡,and⁇»is|are a⁇public state|states." is
 	>;
 	/* Generate and record a state enumeration statement. */
 	stateEnumExpr ::= a state enumeration statement with
-		declared states ::= stateSet,
+		declared states ::= stateTuple,
 		expression type ::= ⊤;
 	recordStmts ::= statement recorder for stateEnumExpr;
 	stmts ::= accessorStmts ++ varStmts ++ recordStmts;

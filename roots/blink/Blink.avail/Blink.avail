@@ -22,7 +22,16 @@ Extends
 			"«_‡,and⁇»is|are a⁇public state|states.",
 
 		/* Global variable declaration statements. */
-		"(Blink)_is_." → "_is_."
+		"(Blink)_is_." → "_is_.",
+
+		/* Block expressions. */
+		"(Blink)[§«_‡.»]",
+
+		/* Local variable declaration statements. */
+		"(Blink)…" → "…",
+		"(Blink)…::=_" → "…::=_",
+		"(Blink)…:_†:=_" → "…:_†:=_",
+		"(Blink)…:=_" → "…:=_"
 	),
 	"Lighting Modes" =
 	(

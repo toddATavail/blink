@@ -1,0 +1,364 @@
+/*
+ * Block Expressions.avail
+ * Copyright (c) Todd L Smith and Taylor DH Smith, 2017.
+ * All rights reserved.
+ */
+
+Module "Block Expressions"
+Uses
+	"Abstract Syntax Tree",
+	"Avail" =
+	(
+		-"scope map",
+		-"scope map:=_",
+		-"Push scope",
+		-"Pop scope",
+		…
+	)
+Names
+	/* Scope. */
+	"Push scope",
+	"Pop scope",
+	"Introduce variable_",
+	"variable named_",
+	"Require:_does not shadow",
+
+	/* Local variables. */
+	"(Blink)…",
+	"(Blink)…::=_",
+	"(Blink)…:_†:=_",
+	"(Blink)…:=_",
+
+	/* Block construction. */
+	"(Blink)[§«_‡.»]"
+Body
+
+/******************************************************************************
+ *                              Local variables.                              *
+ ******************************************************************************/
+
+"scope map key" is a new atom;
+
+/**
+ * Answer the scope map for the current parse.
+ *
+ * @method "scope map"
+ * @returns "{nonempty string→local variable|}"
+ */
+Private method "scope map" is
+[
+	parse map[scope map key] else [{}]
+];
+
+Semantic restriction "scope map" is
+[
+	{nonempty string→local variable|}
+];
+
+/**
+ * Update the scope map for the current parse, i.e., as the consequence of
+ * a {@method "local"} {@type "variable"} declaration.
+ *
+ * @method "scope map:=_"
+ * @param "newMap" "{nonempty string→local variable|}"
+ * @returns "⊤"
+ */
+Private method "scope map:=_" is
+[
+	newMap : {nonempty string→local variable|}
+|
+	parse map := parse map + scope map key → newMap;
+];
+
+"scope stack key" is a new atom;
+
+/**
+ * Answer the scope stack for the current parse.
+ *
+ * @method "scope stack"
+ * @returns "{nonempty string→local variable|}*"
+ */
+Private method "scope stack" is
+[
+	parse map[scope stack key] else [<scope map>]
+];
+
+Semantic restriction "scope stack" is
+[
+	{nonempty string→local variable|}*
+];
+
+/**
+ * Push a new scope onto the scope stack for the current parse.
+ *
+ * @method "Push scope"
+ * @returns "⊤"
+ */
+Public method "Push scope" is
+[
+	parse map := parse map + scope stack key → scope stack ++ <scope map>;
+];
+
+/**
+ * Pop the active scope from the scope stack from the current parse.
+ *
+ * @method "Pop scope"
+ * @returns "⊤"
+ */
+Public method "Pop scope" is
+[
+	Cast scope stack into
+	[
+		stack : {nonempty string→local variable|}+
+	|
+		parse map := parse map + scope stack key → scope stack[1..|stack|-1];
+		scope map := stack's last;
+	]
+	else [Shouldn't happen ("Pop underflowed the scope stack!")];
+];
+
+/**
+ * Introduce a {@method "local"} {@type "variable"} into the current scope.
+ *
+ * @method "Introduce variable_"
+ * @param "var" "local variable"
+ * @returns "⊤"
+ */
+Public method "Introduce variable_" is
+[
+	var : local variable
+|
+	scope map := scope map + var's name → var;
+];
+
+/**
+ * Answer the {@method "local"} {@type "variable"} whose {@method "_'s⁇name"
+ * name} matches the specified {@type "string"}.
+ *
+ * @method "variable named_"
+ * @param "varName" "string"
+ * @returns "local variable"
+ * @raises "key-not-found exception"
+ *         If {@param "varName"} does not match any {@method "method"} {@type
+ *         "variable"} currently in scope.
+ */
+Public method "variable named_" is
+[
+	varName : string
+|
+	scope map[varName]
+];
+
+/**
+ * Answer the {@method "local"} {@type "variable"} whose {@method "_'s⁇name"
+ * name} matches the specified keyword {@type "token"}'s lexeme.
+ *
+ * @macro "(Blink)…"
+ * @param "varToken" "literal phrase ⇒ token"
+ *        The keyword {@type "token"} that {@method "_'s⁇name" names} the target
+ *        {@type "variable"}.
+ * @returns "literal phrase ⇒ variable"
+ */
+Public macro "(Blink)…" is
+[
+	varToken : literal phrase ⇒ token
+|
+	varName ::= evaluate varToken's lexeme;
+	var ::= scope map[varName] else
+		[
+			Reject parse, expected:
+				format "variable “①” to be in scope" with varName
+		];
+	‘var’
+];
+
+/**
+ * {@method "Reject parse,expected:_" Reject the current parse} if {@param
+ * "varName"} shadows an existing {@method "local"} {@type "variable"}.
+ *
+ * @method "Require:_does not shadow"
+ * @param "varName" "string"
+ * @returns "⊤"
+ */
+Public method "Require:_does not shadow" is
+[
+	varName : string
+|
+	If varName ∈ scope map then
+	[
+		Reject parse, expected:
+			format
+				"definition of local ‘②’ “①” not to shadow another local
+				\|‘②’ (but there is already a local ‘②’ named “①”)"
+			with
+				varName,
+				if scope map[varName] is immutable
+					then ["immutable"]
+					else ["variable"]
+	];
+];
+
+/**
+ * Answer an {@type "assignment statement"} that initializes a new {@method
+ * "immutable"} {@type "variable"} to the specified value.
+ *
+ * @macro "(Blink)…::=_"
+ * @param "varTokenPhrase" "literal phrase ⇒ token"
+ *        The keyword {@type "token"} that {@method "_'s⁇name" names} the new
+ *        {@method "immutable"} {@type "variable"}.
+ * @param "valuePhrase" "expression phrase ⇒ any expression"
+ *         The permanent value of the new {@method "immutable"} {@type
+ *         "variable"}.
+ * @returns "literal phrase⇒<variable declaration statement, assignment statement…|2>"
+ */
+Public macro "(Blink)…::=_" is
+[
+	varTokenPhrase : literal phrase ⇒ token,
+	valuePhrase : expression phrase ⇒ any expression
+|
+	varName ::= evaluate varTokenPhrase's lexeme;
+	Require: varName does not shadow;
+	value ::= evaluate valuePhrase;
+	var ::= a variable with
+		variable name ::= varName,
+		expression type ::= value's type,
+		variable scope ::= local,
+		variable mutability ::= immutable;
+	Introduce variable var;
+	varDeclExpr ::= a variable declaration statement with
+	 	declared variable ::= var,
+	 	expression type ::= ⊤;
+	assignmentExpr ::= an assignment statement with
+		assignment assignee ::= var,
+		expression type ::= ⊤,
+		assignment value ::= value;
+	‘<varDeclExpr, assignmentExpr>’
+];
+
+/**
+ * Answer an {@type "assignment statement"} that initializes a new {@method
+ * "mutable"} {@type "variable"} to the specified value.
+ *
+ * @macro "(Blink)…:_†:=_"
+ * @param "varTokenPhrase" "literal phrase ⇒ token"
+ *        The keyword {@type "token"} that {@method "_'s⁇name" names} the new
+ *        {@type "mutable"} {@type "variable"}.
+ * @param "varTypePhrase" "expression phrase ⇒ (any's type)"
+ *        The declared {@type "any's type" type} of the {@method "mutable"}
+ *        {@type "variable"}.
+ * @param "valuePhrase" "expression phrase ⇒ any expression"
+ *         The initial value of the new {@type "mutable"} {@type "variable"}.
+ * @returns "literal phrase⇒<variable declaration statement, assignment statement…|2>"
+ */
+Public macro "(Blink)…:_†:=_" is
+[
+	varTokenPhrase : literal phrase ⇒ token,
+	varTypePhrase : expression phrase ⇒ (any's type),
+	valuePhrase : expression phrase ⇒ any expression
+|
+	varName ::= evaluate varTokenPhrase's lexeme;
+	Require: varName does not shadow;
+	varType ::= evaluate varTypePhrase;
+	value ::= evaluate valuePhrase;
+	If ¬value's expression type ⊆ varType then
+	[
+		Reject parse, expected:
+			format
+				"a local variable's initial value to conform to its declared \
+				\|type (but “①” is not a subtype of “②”)"
+			with value's expression type, varType
+	];
+	var ::= an variable with
+		variable name ::= varName,
+		expression type ::= varType,
+		variable scope ::= local,
+		variable mutability ::= mutable;
+	Introduce variable var;
+	varDeclExpr ::= a variable declaration statement with
+	 	declared variable ::= var,
+	 	expression type ::= ⊤;
+	assignmentExpr ::= an assignment statement with
+		assignment assignee ::= var,
+		expression type ::= ⊤,
+		assignment value ::= value;
+	‘<varDeclExpr, assignmentExpr>’
+];
+
+/**
+ * Answer an {@type "assignment statement"} that assigns a value to an existing
+ * {@method "mutable"} {@type "variable"}.
+ *
+ * @macro "(Blink)…:=_"
+ * @param "varTokenPhrase" "literal phrase ⇒ token"
+ *        The keyword {@type "token"} that {@method "_'s⁇name" names} the target
+ *        {@type "mutable"} {@type "variable"}.
+ * @param "valuePhrase" "expression phrase ⇒ any expression"
+ *         The new value of the {@type "mutable"} {@type "variable"}.
+ * @returns "literal phrase ⇒ assignment statement"
+ */
+Public macro "(Blink)…:=_" is
+[
+	varTokenPhrase : literal phrase ⇒ token,
+	valuePhrase : expression phrase ⇒ any expression
+|
+	varName ::= evaluate varTokenPhrase's lexeme;
+	var ::= variable named varName;
+	varType ::= var's expression type;
+	value ::= evaluate valuePhrase;
+	If ¬value's expression type ⊆ varType then
+	[
+		Reject parse, expected:
+			format
+				"assignment value to conform to assignee's declared type \
+				\|(but “①” is not a subtype of “②”)"
+			with value's expression type, varType
+	];
+	‘an assignment statement with
+		assignment assignee ::= var,
+		expression type ::= ⊤,
+		assignment value ::= value’
+];
+
+/******************************************************************************
+ *                                  Blocks.                                   *
+ ******************************************************************************/
+
+/**
+ * Answer a {@type "block expression"} that represents the specified sequence
+ * of {@type "abstract statement" statements}. Every block constitutes a new
+ * inner scope.
+ *
+ * @macro "(Blink)[§«_‡.»]"
+ * @param "bodyPhrase" "list phrase ⇒ tuple"
+ *        (Optional) The body of the block. It must comprise statements —
+ *        {@type "abstract expression" expressions} that do not yield values —
+ *        followed by an optional value-producing {@type "any expression"
+ *        expression}.
+ * @returns "literal phrase ⇒ block expression"
+ */
+Public macro "(Blink)[§«_‡.»]" is
+[
+	Push scope;
+],
+[
+	bodyPhrase : list phrase ⇒ tuple
+|
+	Pop scope;
+	limit ::= 0 max (⎣bodyPhrase's semantic type⎦-1);
+	bodyExprs ::= bodyPhrase's expressions;
+	For each stmt of bodyExprs[1..limit] do
+	[
+		t ::= stmt's semantic type ?→ abstract statement's type else
+			[Reject parse, expected: "statement not to produce a value"];
+		Unless t's expression type's instance = ⊤ then
+			[Reject parse, expected: "statement not to produce a value"];
+	];
+	body ::= evaluate bodyPhrase ?→ abstract statement*;
+	last ::=
+		if body is empty then [<>]
+		else [<body[1 max |body|]>];
+	resultType ::= if last is empty then [⊤] else [only last's expression type];
+	‘a block expression with
+		expression type ::= resultType,
+		block body ::= body[1..limit] ++ last’
+];

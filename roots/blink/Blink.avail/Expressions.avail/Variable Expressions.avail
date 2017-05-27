@@ -13,12 +13,12 @@ Uses
 		…
 	)
 Names
-	/* Global variable declaration statements. */
+	/* Variable declaration statements. */
 	"(Blink)_is_."
 Body
 
 /******************************************************************************
- *                  Global variable declaration statements.                   *
+ *                      Variable declaration statements.                      *
  ******************************************************************************/
 
 /**
@@ -40,7 +40,8 @@ Public macro "(Blink)_is_." is
 	var ::= a variable with
 		variable name ::= varName's value,
 		expression type ::= varType,
-		variable scope ::= global;
+		variable scope ::= global,
+		variable mutability ::= mutable;
 	varStmts ::=
 	<
 		send $"Method_is_" with
@@ -49,7 +50,7 @@ Public macro "(Blink)_is_." is
 			«[<‘var’>] : var's type»
 		>» : ⊤ → statement phrase
 	>;
-	varDeclExpr ::= a global variable declaration statement with
+	varDeclExpr ::= a variable declaration statement with
 		declared variable ::= var,
 		expression type ::= ⊤;
 	recordStmts ::= statement recorder for varDeclExpr;

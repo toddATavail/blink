@@ -37,14 +37,20 @@ Names
 			"_'s⁇name",
 		"variable scope",
 			"_'s⁇scope",
+		"variable mutability",
+			"_'s⁇mutability",
 	"scope",
 		"local",
 		"global",
+	"mutability",
+		"immutable",
+		"mutable",
+	"___variable",
 	"__variable",
 	"_variable",
 
-	/* Global variable declaration statements. */
-	"global variable declaration statement",
+	/* Variable declaration statements. */
+	"variable declaration statement",
 		"declared variable",
 			"_'s⁇variable",
 
@@ -52,6 +58,18 @@ Names
 	"state enumeration statement",
 		"declared states",
 			"_'s⁇states",
+
+	/* Assignment statements. */
+	"assignment statement",
+		"assignment assignee",
+			"_'s⁇assignee",
+		"assignment value",
+			/*"_'s⁇value",*/
+
+	/* Block expressions. */
+	"block expression",
+		"block body",
+			"_'s⁇body",
 
 	/* Programs. */
 	"program",
@@ -234,8 +252,34 @@ Public "global" is a new atom;
  */
 Public macro "scope" is [‘{local, global}ᵀ’];
 
+/**
+ * Answer an {@type "atom"} that denotes immutability.
+ *
+ * @method "immutable"
+ * @return "atom"
+ */
+Public "immutable" is a new atom;
+
+/**
+ * Answer an {@type "atom"} that denotes mutability.
+ *
+ * @method "mutable"
+ * @return "atom"
+ */
+Public "mutable" is a new atom;
+
+/**
+ * A {@type "mutability"} denotes the mutability of a {@type "variable"}, either
+ * {@method "immutable"} or {@method "mutable"}.
+ *
+ * @type "mutability"
+ * @alias "{immutable, mutable}ᵀ"
+ */
+Public macro "mutability" is [‘{immutable, mutable}ᵀ’];
+
 "variable name" is a new field atom;
 "variable scope" is a new field atom;
+"variable mutability" is a new field atom;
 
 /**
  * A {@type "variable"} represents a statically typed fundamental storage unit
@@ -249,12 +293,58 @@ Public macro "scope" is [‘{local, global}ᵀ’];
  * @param "variable scope" "scope"
  *        The {@type "scope"} of the {@type "variable"}, either {@method
  *        "local"} or {@type "global"}.
+ * @param "variable mutability" "mutability"
+ *        The mutability of a {@type "variable"}, either {@method "immutable"} or
+ *        {@method "mutable"}.
  */
 Public class "variable" extends abstract expression
 	with fields
 		public variable name : nonempty string ("_'s⁇name"),
 		public expression type : any's type,
-		public variable scope : scope ("_'s⁇scope");
+		public variable scope : scope ("_'s⁇scope"),
+		public variable mutability : mutability ("_'s⁇mutability");
+
+/**
+ * Construct a {@type "variable"} {@type "type"} for the specified {@type
+ * "any's type" type}, {@type "scope"}, and {@type "mutability"}.
+ *
+ * @method "___variable"
+ * @param "varType" "any's type"
+ * @param "scopeType" "scope"
+ * @param "mutabilityType" "mutability"
+ * @returns "variable's type"
+ */
+Public method "___variable" is
+[
+	varType : any's type,
+	scopeType : scope,
+	mutabilityType : mutability
+|
+	extend variable with
+		expression type : (varType's type),
+		variable scope : (scopeType's type),
+		variable mutability : (mutabilityType's type)
+];
+
+/**
+ * Strengthen the {@type "variable"} {@type "type"} at compile time.
+ *
+ * @method "___variable"
+ * @restricts "any's type's type"
+ * @restricts "scope's type"
+ * @restricts "mutability's type"
+ */
+Semantic restriction "___variable" is
+[
+	varMeta : any's type's type,
+	scopeMeta : scope's type,
+	mutabilityMeta : mutability's type
+|
+	(extend variable with
+		expression type : varMeta,
+		variable scope : scopeMeta,
+		variable mutability : mutabilityMeta)'s type
+];
 
 /**
  * Construct a {@type "variable"} {@type "type"} for the specified {@type
@@ -290,6 +380,34 @@ Semantic restriction "__variable" is
 	(extend variable with
 		expression type : varMeta,
 		variable scope : scopeMeta)'s type
+];
+
+/**
+ * Construct a {@type "variable"} {@type "type"} for the specified {@type
+ * "mutability"}.
+ *
+ * @method "_variable"
+ * @param "mutabilityType" "mutability"
+ * @returns "variable's type"
+ */
+Public method "_variable" is
+[
+	mutabilityType : mutability
+|
+	extend variable with variable mutability : (mutabilityType's type)
+];
+
+/**
+ * Strengthen the {@type "variable"} {@type "type"} at compile time.
+ *
+ * @method "_variable"
+ * @restricts "mutability's type"
+ */
+Semantic restriction "_variable" is
+[
+	mutabilityMeta : mutability's type
+|
+	(extend variable with variable mutability : mutabilityMeta)'s type
 ];
 
 /**
@@ -351,27 +469,39 @@ Semantic restriction "_variable" is
 Public method "_'s⁇subexpressions" is [var : variable | <>];
 
 /******************************************************************************
- *                  Global variable declaration statements.                   *
+ *                      Variable declaration statements.                      *
  ******************************************************************************/
 
 Public "declared variable" is a new field atom;
 
 /**
- * A {@type "global variable declaration statement"} declares a {@method
- * "global"} {@type "variable"}.
+ * A {@type "variable declaration statement"} declares a {@type "variable"}.
  *
- * @type "global variable declaration statement"
+ * @type "variable declaration statement"
  * @supertype "abstract statement"
- * @field "declared variable" "global variable"
- *        The {@method "global"} {@type "variable"} declared by the {@type
- *        "global variable declaration statement"}.
+ * @field "declared variable" "variable"
+ *        The {@type "variable"} declared by the {@type
+ *        "variable declaration statement"}.
  */
-Public class "global variable declaration statement" extends abstract statement
+Public class "variable declaration statement" extends abstract statement
  	with field
- 		declared variable : global variable ("_'s⁇variable");
+ 		declared variable : variable ("_'s⁇variable");
 
 Public method "_'s⁇subexpressions" is
-	[stmt : global variable declaration statement | <>];
+	[stmt : variable declaration statement | <>];
+
+Method "“_”" is
+[
+	stmt : variable declaration statement
+|
+	var ::= stmt's variable;
+	format "‘①’ ‘②’ ‘③’ (‘④’ : “⑤”)" with
+		(a|an) “var's mutability's name”,
+		var's scope's name,
+		stmt's type's names→tuple[1],
+		stmt's variable's name,
+		stmt's variable's expression type
+];
 
 /******************************************************************************
  *                       State enumeration statements.                        *
@@ -386,15 +516,77 @@ Public "declared states" is a new field atom;
  *
  * @type "state enumeration statement"
  * @supertype "abstract statement"
- * @field "declared states" "{atom|}"
+ * @field "declared states" "atom*"
  *        All declared states. These are the only valid states for a particular
  *        program.
  */
 Public class "state enumeration statement" extends abstract statement
 	with fields
-		public declared states : {atom|} ("_'s⁇states");
+		public declared states : atom* ("_'s⁇states");
 
 Public method "_'s⁇subexpressions" is [stmt : state enumeration statement | <>];
+
+Method "“_”" is
+[
+	stmt : state enumeration statement
+|
+	format "‘①’ (‘②’)" with
+		(a|an) “stmt's type's names→tuple[1]”,
+		“map each x of stmt's states through [x's name]” (as simple list)
+];
+
+/******************************************************************************
+ *                             Block expressions.                             *
+ ******************************************************************************/
+
+Public "block body" is a new field atom;
+
+/**
+ * A {@type "block expression"} represents a sequence of {@type
+ * "abstract statements"} that reside in their own scope.
+ *
+ * @type "block expression"
+ * @supertype "abstract expression"
+ * @field "block body" "abstract statement*"
+ *        The {@type "abstract statement" statements} that comprise the {@type
+ *        "block expression"}.
+ */
+Public class "block expression" extends abstract expression
+	with field
+		public block body : abstract statement* ("_'s⁇body");
+
+Public method "_'s⁇subexpressions" is [expr : block expression | expr's body];
+
+/******************************************************************************
+ *                          Assignment expressions.                           *
+ ******************************************************************************/
+
+Public "assignment assignee" is a new field atom;
+Public "assignment value" is a new field atom;
+
+/**
+ * An {@type "assignment statement"} assigns a value to a {@type "variable"}.
+ *
+ * @type "assignment expression"
+ * @supertype "abstract statement"
+ * @field "assignment assignee" "variable"
+ *        The {@type "variable"} that is the target of the {@type
+ *        "assignment statement"}.
+ * @field "assignment value" "any expression"
+ *        The value that should be bound to the target {@type "variable"}.
+ */
+Public class "assignment statement" extends abstract statement
+	with fields
+		public assignment assignee : variable ("_'s⁇assignee"),
+		public assignment value : any expression ("_'s⁇value");
+
+Public method "_'s⁇subexpressions" is
+[
+	expr : assignment statement
+|
+	/* Don't include the target variable as a subexpression. */
+	<expr's value>
+];
 
 /******************************************************************************
  *                              Blink programs.                               *
