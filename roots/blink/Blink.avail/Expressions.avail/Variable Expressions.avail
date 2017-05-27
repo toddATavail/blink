@@ -51,8 +51,9 @@ Public macro "(Blink)_is_." is
 		>» : ⊤ → statement phrase
 	>;
 	varDeclExpr ::= a variable declaration statement with
-		declared variable ::= var,
-		expression type ::= ⊤;
+		expression type ::= ⊤,
+		expression scope ::= global,
+		declared variable ::= var;
 	recordStmts ::= statement recorder for varDeclExpr;
 	stmts ::= varStmts ++ recordStmts;
 	seq «stmts»

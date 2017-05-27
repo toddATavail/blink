@@ -226,11 +226,13 @@ Public macro "(Blink)…::=_" is
 		variable mutability ::= immutable;
 	Introduce variable var;
 	varDeclExpr ::= a variable declaration statement with
-	 	declared variable ::= var,
-	 	expression type ::= ⊤;
+	 	expression type ::= ⊤,
+	 	expression scope ::= local,
+	 	declared variable ::= var;
 	assignmentExpr ::= an assignment statement with
-		assignment assignee ::= var,
 		expression type ::= ⊤,
+		expression scope ::= local,
+		assignment assignee ::= var,
 		assignment value ::= value;
 	‘<varDeclExpr, assignmentExpr>’
 ];
@@ -275,11 +277,13 @@ Public macro "(Blink)…:_†:=_" is
 		variable mutability ::= mutable;
 	Introduce variable var;
 	varDeclExpr ::= a variable declaration statement with
-	 	declared variable ::= var,
-	 	expression type ::= ⊤;
-	assignmentExpr ::= an assignment statement with
-		assignment assignee ::= var,
 		expression type ::= ⊤,
+		expression scope ::= local,
+	 	declared variable ::= var;
+	assignmentExpr ::= an assignment statement with
+		expression type ::= ⊤,
+		expression scope ::= local,
+		assignment assignee ::= var,
 		assignment value ::= value;
 	‘<varDeclExpr, assignmentExpr>’
 ];
@@ -314,8 +318,9 @@ Public macro "(Blink)…:=_" is
 			with value's expression type, varType
 	];
 	‘an assignment statement with
-		assignment assignee ::= var,
 		expression type ::= ⊤,
+		expression scope ::= local,
+		assignment assignee ::= var,
 		assignment value ::= value’
 ];
 

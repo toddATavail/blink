@@ -53,8 +53,8 @@ Body
 /* The range type specifies modular arithmetic. */
 "team" is [1..2].
 
-/*
 "initialize" is a signal.
+/*
 When device turns on, initialize.
 To initialize:
 [

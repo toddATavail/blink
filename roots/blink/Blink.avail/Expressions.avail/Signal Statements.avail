@@ -1,0 +1,48 @@
+/*
+ * Signal Statements.avail
+ * Copyright (c) Todd L Smith and Taylor DH Smith, 2017.
+ * All rights reserved.
+ */
+
+Module "Signal Statements"
+Uses
+	"Abstract Syntax Tree",
+	"Avail"
+Names
+	"(Blink)_is a signal."
+Body
+
+/******************************************************************************
+ *                       Signal declaration statements.                       *
+ ******************************************************************************/
+
+/**
+ * Declare a {@type "signal"}.
+ *
+ * @macro "(Blink)_is a signal."
+ * @param "sigNamePhrase" "expression phrase ⇒ nonempty string literal"
+ * @returns "sequence phrase"
+ */
+Public macro "(Blink)_is a signal." is
+[
+	sigNamePhrase : expression phrase ⇒ nonempty string literal
+|
+	sigName ::= evaluate sigNamePhrase;
+	sig ::= a signal with
+		signal name ::= sigName's value,
+		expression type ::= ⊤;
+	sigStmts ::=
+	<
+		send $"Method_is_" with
+		«<
+			‘sig's name’,
+			«[<‘sig’>] : sig's type»
+		>» : ⊤ → statement phrase
+	>;
+	sigDeclExpr ::= a signal declaration statement with
+		expression type ::= ⊤,
+		declared signal ::= sig;
+	recordStmts ::= statement recorder for sigDeclExpr;
+	stmts ::= sigStmts ++ recordStmts;
+	seq «stmts»
+];

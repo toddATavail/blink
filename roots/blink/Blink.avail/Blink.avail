@@ -24,6 +24,9 @@ Extends
 		/* Global variable declaration statements. */
 		"(Blink)_is_." → "_is_.",
 
+		/* Signal declaration statements. */
+		"(Blink)_is a signal." → "_is a signal.",
+
 		/* Block expressions. */
 		"(Blink)[§«_‡.»]",
 

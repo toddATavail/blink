@@ -25,6 +25,8 @@ Names
 
 	/* Abstract statements. */
 	"abstract statement",
+		"expression scope",
+			"_'s⁇scope",
 
 	/* Literals. */
 	"literal",
@@ -36,7 +38,7 @@ Names
 		"variable name",
 			"_'s⁇name",
 		"variable scope",
-			"_'s⁇scope",
+			/*"_'s⁇scope",*/
 		"variable mutability",
 			"_'s⁇mutability",
 	"scope",
@@ -48,11 +50,21 @@ Names
 	"___variable",
 	"__variable",
 	"_variable",
+	
+	/* Signals. */
+	"signal",
+		"signal name",
+			/*"_'s⁇name",*/
 
 	/* Variable declaration statements. */
 	"variable declaration statement",
 		"declared variable",
 			"_'s⁇variable",
+
+	/* Signal declaration statements. */
+	"signal declaration statement",
+		"declared signal",
+			"_'s⁇signal",
 
 	/* State enumeration statements. */
 	"state enumeration statement",
@@ -100,12 +112,12 @@ Public "expression type" is a new field atom;
  * @field "expression type" "⊤'s type"
  *        The static {@type "type"} of the {@type "abstract expression"
  *        expression}.
+ * @field "expression scope" "scope"
+ *        The {@type "scope"} of the {@type "abstract expression" expression}.
  */
 Public class "abstract expression" extends object
 	with field
 		public expression type : ⊤'s type;
-
-Alias "abstract statement" to $"abstract expression";
 
 /**
  * Construct a {@type "abstract expression" Blink expression} {@type "type"} for
@@ -147,6 +159,54 @@ Semantic restriction "_expression" is
  */
 Public abstract method "_'s⁇subexpressions" is
 	[abstract expression]→abstract expression*;
+
+/******************************************************************************
+ *                                   Scope.                                   *
+ ******************************************************************************/
+
+/**
+ * Answer an {@type "atom"} that denotes local scope.
+ *
+ * @method "local"
+ * @returns "atom"
+ */
+Public "local" is a new atom;
+
+/**
+ * Answer an {@type "atom"} that denotes global scope.
+ *
+ * @method "global"
+ * @returns "atom"
+ */
+Public "global" is a new atom;
+
+/**
+ * A {@type "scope"} denotes the scope of a {@type "variable"}, either {@method
+ * "local"} or {@method "global"}.
+ *
+ * @type "scope"
+ * @alias "{local, global}ᵀ"
+ */
+Public macro "scope" is [‘{local, global}ᵀ’];
+
+/******************************************************************************
+ *                            Abstract statements.                            *
+ ******************************************************************************/
+
+Public "expression scope" is a new field atom;
+
+/**
+ * An {@type "abstract statement"} represents any Blink statement. It is always
+ * {@type "⊤"}-valued.
+ *
+ * @type "abstract statement"
+ * @supertype "abstract expression"
+ * @field "expression scope" "scope"
+ *        The {@type "scope"} of the {@type "abstract expression" expression}.
+ */
+Public class "abstract statement" extends abstract expression
+	with field
+		public expression scope : scope ("_'s⁇scope");
 
 /******************************************************************************
  *                                 Literals.                                  *
@@ -226,31 +286,6 @@ Public method "_'s⁇subexpressions" is [lit : literal| <>];
 /******************************************************************************
  *                                 Variables.                                 *
  ******************************************************************************/
-
-/**
- * Answer an {@type "atom"} that denotes local scope.
- *
- * @method "local"
- * @returns "atom"
- */
-Public "local" is a new atom;
-
-/**
- * Answer an {@type "atom"} that denotes global scope.
- *
- * @method "global"
- * @returns "atom"
- */
-Public "global" is a new atom;
-
-/**
- * A {@type "scope"} denotes the scope of a {@type "variable"}, either {@method
- * "local"} or {@method "global"}.
- *
- * @type "scope"
- * @alias "{local, global}ᵀ"
- */
-Public macro "scope" is [‘{local, global}ᵀ’];
 
 /**
  * Answer an {@type "atom"} that denotes immutability.
@@ -469,6 +504,26 @@ Semantic restriction "_variable" is
 Public method "_'s⁇subexpressions" is [var : variable | <>];
 
 /******************************************************************************
+ *                                  Signals.                                  *
+ ******************************************************************************/
+
+Public "signal name" is a new field atom;
+
+/**
+ * A {@type "signal"} is a user-defined event.
+ *
+ * @type "signal"
+ * @supertype "abstract expression"
+ * @field "signal name" "nonempty string"
+ *        The name of the {@type "signal"}.
+ */
+Public class "signal" extends abstract expression
+	with field
+		public signal name : nonempty string ("_'s⁇name");
+
+Public method "_'s⁇subexpressions" is [sig : signal | <>];
+
+/******************************************************************************
  *                      Variable declaration statements.                      *
  ******************************************************************************/
 
@@ -485,7 +540,7 @@ Public "declared variable" is a new field atom;
  */
 Public class "variable declaration statement" extends abstract statement
  	with field
- 		declared variable : variable ("_'s⁇variable");
+ 		public declared variable : variable ("_'s⁇variable");
 
 Public method "_'s⁇subexpressions" is
 	[stmt : variable declaration statement | <>];
@@ -504,6 +559,41 @@ Method "“_”" is
 ];
 
 /******************************************************************************
+ *                       Signal declaration statements.                       *
+ ******************************************************************************/
+
+Public "declared signal" is a new field atom;
+
+/**
+ * A {@type "signal declaration statement"} declares a {@type "signal"}.
+ *
+ * @type "signal declaration statement"
+ * @supertype "abstract statement"
+ * @field "declared signal" "signal"
+ *        The {@type "signal"} declared by the {@type
+ *        "signal declaration statement"}.
+ * @field "expression scope" "global's type"
+ *        A {@type "signal declaration statement"} is always {@type "global"}.
+ */
+Public class "signal declaration statement" extends abstract statement
+	with field
+		public declared signal : signal ("_'s⁇signal"),
+		public expression scope : global's type ("_'s⁇scope");
+
+Public method "_'s⁇subexpressions" is
+	[stmt : signal declaration statement | <>];
+
+Method "“_”" is
+[
+	stmt : signal declaration statement
+|
+	sig ::= stmt's signal;
+	format "‘①’ (‘②’)" with
+		(a|an) “stmt's type's names→tuple[1]”,
+		stmt's signal's name
+];
+
+/******************************************************************************
  *                       State enumeration statements.                        *
  ******************************************************************************/
 
@@ -519,10 +609,13 @@ Public "declared states" is a new field atom;
  * @field "declared states" "atom*"
  *        All declared states. These are the only valid states for a particular
  *        program.
+ * @field "expression scope" "global's type"
+ *        A {@type "state enumeration statement"} is always {@type "global"}.
  */
 Public class "state enumeration statement" extends abstract statement
 	with fields
-		public declared states : atom* ("_'s⁇states");
+		public declared states : atom* ("_'s⁇states"),
+		public expression scope : global's type ("_'s⁇scope");
 
 Public method "_'s⁇subexpressions" is [stmt : state enumeration statement | <>];
 
@@ -664,6 +757,7 @@ Public method "statement recorder for_" is
 [
 	expr : abstract statement
 |
+	Assert: expr's scope = global (format "“①” is not global!" with expr);
 	If expr's expression type ≠ ⊤ then
 	[
 		Reject parse, expected:
