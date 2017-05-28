@@ -1,0 +1,257 @@
+/*
+ * Operator Expressions.avail
+ * Copyright (c) Todd L Smith and Taylor DH Smith, 2017.
+ * All rights reserved.
+ */
+
+Module "Operator Expressions"
+Uses
+	"Abstract Syntax Tree",
+	"Avail"
+Names
+	/* Unary arithmetic operators. */
+	"(Blink)-_",
+
+	/* Binary arithmetic operators. */
+	"(Blink)_+_",
+	"(Blink)_-_",
+	"(Blink)_×_",
+	"(Blink)_÷_",
+	"(Blink)_%_",
+
+	/* Compound binary arithmetic operators. */
+	"(Blink)_+=_",
+	"(Blink)_-=_",
+	"(Blink)_×=_",
+	"(Blink)_÷=_",
+	"(Blink)_%=_",
+
+	/* Unary logical operators. */
+	"(Blink)¬_",
+
+	/* Binary logical operators. */
+	"(Blink)_∧_",
+	"(Blink)_∨_",
+
+	/* Compound binary logical operators. */
+	"(Blink)_∧=_",
+	"(Blink)_∨=_",
+	
+	/* Binary relational operators. */
+	"(Blink)_=_",
+	"(Blink)_≠_",
+	"(Blink)_<_",
+	"(Blink)_≤_",
+	"(Blink)_≥_",
+	"(Blink)_>_"
+Body
+
+/******************************************************************************
+ *                                Declarators.                                *
+ ******************************************************************************/
+
+/**
+ * Declare an {@type "operator expression" operator} with the specified
+ * arity. If the operator is a binary operator, i.e., it has an arity of two,
+ * then generate a fused {@type "assignment statement"} constructor as well as
+ * the {@type "operator expression"} constructor.
+ *
+ * @macro "_is an arity-_operator"
+ * @param "operatorPhrase" "literal phrase ⇒ nonempty string"
+ *        The operator for the expression. This should resemble an Avail
+ *        message, e.g., "_+_".
+ * @param "operandTypesPhrase" "literal phrase ⇒ (any's type*)"
+ *        The {@type "any's type" types} of the supported operands.
+ * @param "resultTypePhrase" "literal phrase ⇒ (any's type)"
+ *        The result {@type "any's type" type} of the {@type
+ *        "operator expression"}.
+ * @returns "sequence phrase"
+ */
+Private macro "Operator__is_;" is
+[
+	operatorPhrase : literal phrase ⇒ nonempty string,
+	operandTypesPhrase : expression phrase ⇒ (any's type*),
+	resultPhrase : expression phrase ⇒ (any's type)
+|
+	operator ::= evaluate operatorPhrase;
+	operandTypes ::= evaluate operandTypesPhrase;
+	resultType ::= evaluate resultPhrase;
+	/* Construct some types that we will need for code generation below. */
+	operandExprTypes ::= map each t of operandTypes through [t expression];
+	operandsType ::=
+		<
+			operandExprTypes,
+			operandExprTypes[|operandExprTypes|] else [⊥]…
+		| |operandExprTypes|'s type>;
+	opExprType ::= extend operator expression with
+		expression type : (resultType's type),
+		expression operator : (operator's type),
+		expression operands : operandsType;
+	/* Generate the operator expression constructor. */
+	opExprStmts ::=
+	[
+		opName ::= "(Blink)" ++ operator;
+		args ::= map each t, i of operandTypes through
+			[arg «`"op" ++ “i”` : expression phrase ⇒ (t expression)»];
+		uses ::= map each arg of args through [«↓arg»];
+		evals ::=
+			map each use, i of uses through
+			[
+				send $"Evaluate|evaluate_"
+					with «<use>» : operandTypes[i] expression
+			];
+		objCon ::=
+			send $"a|an_«with«_«:»?:=_‡,»»" with «<
+				‘operator expression’,
+				«<
+					«<
+						«<
+							‘expression type’,
+							‘true’,
+							‘resultType’
+						>»,
+						«<
+							‘expression operator’,
+							‘true’,
+							‘operator’
+						>»,
+						«<
+							‘expression operands’,
+							‘true’,
+							evals→list phrase
+						>»
+					>»
+				>»
+			>» : opExprType;
+		lit ::= send $"‘_’" with «<objCon>» : literal phrase ⇒ opExprType;
+		bl ::= «[args | <lit>] : literal phrase ⇒ opExprType»;
+		<send $"Macro_is«_,»_"
+			with «<‘opName’, «<>», bl>» : ⊤ → statement phrase>
+	]();
+	/* If the operator is binary and the result type is a subtype of the
+	 * first operand's type (to satisfy the contravariance relation), then also
+	 * generate the fused assignment operator.
+	 */
+	fusedExprStmts ::=
+		if |operandTypes| = 2 ∧ resultType ⊆ operandTypes[1] then
+		[
+			baseName ::= replace all occurrences of "_" in operator with "";
+			opName ::= "(Blink)_" ++ baseName ++ "=_";
+			lhs ::= arg «`"var"`:expression phrase⇒(operandTypes[1] variable)»;
+			rhs ::= arg «`"op"`:expression phrase⇒(operandTypes[2] expression)»;
+			objCon ::=
+				send $"a|an_«with«_«:»?:=_‡,»»" with «<
+					‘operator expression’,
+					«<
+						«<
+							«<
+								‘expression type’,
+								‘true’,
+								‘resultType’
+							>»,
+							«<
+								‘expression operator’,
+								‘true’,
+								‘operator’
+							>»,
+							«<
+								‘expression operands’,
+								‘true’,
+								«<
+									send $"Evaluate|evaluate_" with
+									«<
+										«↓lhs»
+									>» : operandTypes[1] variable,
+									send $"Evaluate|evaluate_" with
+									«<
+										«↓rhs»
+									>» : operandTypes[2] expression
+								>»
+							>»
+						>»
+					>»
+				>» : opExprType;
+			assignType ::= extend assignment statement with
+				expression scope : (local's type),
+				assignment assignee : operandTypes[1] variable,
+				assignment value : opExprType;
+			assign ::=
+				send $"a|an_«with«_«:»?:=_‡,»»" with «<
+					‘assignment statement’,
+					«<
+						«<
+							«<
+								‘expression type’,
+								‘true’,
+								‘⊤’
+							>»,
+							«<
+								‘expression scope’,
+								‘true’,
+								‘local’
+							>»,
+							«<
+								‘assignment assignee’,
+								‘true’,
+								send $"Evaluate|evaluate_" with
+								«<
+									«↓lhs»
+								>» : operandTypes[1] variable
+							>»,
+							«<
+								‘assignment value’,
+								‘true’,
+								objCon
+							>»
+						>»
+					>»
+				>» : assignType;
+			lit ::= send $"‘_’" with «<assign>» : literal phrase ⇒ assignType;
+			bl ::= «[<lhs, rhs> | <lit>] : literal phrase ⇒ assignType»;
+			<send $"Macro_is«_,»_"
+				with «<‘opName’, «<>», bl>» : ⊤ → statement phrase>
+		]
+		else [<>];
+	stmts ::= opExprStmts ++ fusedExprStmts;
+	seq «stmts»
+];
+
+/******************************************************************************
+ *                        Unary arithmetic operators.                         *
+ ******************************************************************************/
+
+Operator "-_" <integer> is integer;
+
+/******************************************************************************
+ *                        Binary arithmetic operators.                        *
+ ******************************************************************************/
+
+Operator "_+_" <integer, integer> is integer;
+Operator "_-_" <integer, integer> is integer;
+Operator "_×_" <integer, integer> is integer;
+Operator "_÷_" <integer, integer> is integer;
+Operator "_%_" <integer, integer> is integer;
+
+/******************************************************************************
+ *                          Unary logical operators.                          *
+ ******************************************************************************/
+
+Operator "¬_" <boolean> is boolean;
+
+/******************************************************************************
+ *                         Binary logical operators.                          *
+ ******************************************************************************/
+
+Operator "_∧_" <boolean, boolean> is boolean;
+Operator "_∨_" <boolean, boolean> is boolean;
+
+/******************************************************************************
+ *                        Binary relational operators.                        *
+ ******************************************************************************/
+
+Operator "_=_" <integer, integer> is boolean;
+Operator "_≠_" <integer, integer> is boolean;
+Operator "_<_" <integer, integer> is boolean;
+Operator "_≤_" <integer, integer> is boolean;
+Operator "_≥_" <integer, integer> is boolean;
+Operator "_>_" <integer, integer> is boolean;

@@ -83,7 +83,7 @@ Private macro "X11 color_is«_‡,»;" is
 				send $"Abstract method_is_" with
 				«<
 					‘name’,
-					‘[[0..|colors|]]→([0..2^32) literal)’
+					‘[[0..|colors|]]→([0..2^24) literal)’
 				>» : ⊤,
 				send $"Export_as a new name" with «<‘name’>» : ⊤
 			>;

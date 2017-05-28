@@ -90,6 +90,11 @@ Names
 		"handler block",
 			"_'s⁇block",
 
+	/* Block expressions. */
+	"block expression",
+		"block body",
+			"_'s⁇body",
+
 	/* Assignment statements. */
 	"assignment statement",
 		"assignment assignee",
@@ -97,10 +102,13 @@ Names
 		"assignment value",
 			/*"_'s⁇value",*/
 
-	/* Block expressions. */
-	"block expression",
-		"block body",
-			"_'s⁇body",
+	/* Operator expressions. */
+	"operator expression",
+		"expression operator",
+			"_'s⁇operator",
+		"expression operands",
+			"_'s⁇operands",
+	"_'s⁇arity",
 
 	/* Programs. */
 	"program",
@@ -584,17 +592,22 @@ Public class "variable declaration statement" extends abstract statement
 Public method "_'s⁇subexpressions" is
 	[stmt : variable declaration statement | <>];
 
+
 Method "“_”" is
 [
 	stmt : variable declaration statement
 |
-	var ::= stmt's variable;
-	format "‘①’ ‘②’ ‘③’ (‘④’ : “⑤”)" with
-		(a|an) “var's mutability's name”,
-		var's scope's name,
-		stmt's type's names→tuple[1],
-		stmt's variable's name,
-		stmt's variable's expression type
+	try
+	[
+		var ::= stmt's variable;
+		format "‘①’ ‘②’ ‘③’ (‘④’ : “⑤”)" with
+			(a|an) “var's mutability's name”,
+			var's scope's name,
+			stmt's type's names→tuple[1],
+			stmt's variable's name,
+			stmt's variable's expression type
+	]
+	else [“(stmt :: any)”]
 ];
 
 /******************************************************************************
@@ -626,10 +639,14 @@ Method "“_”" is
 [
 	stmt : signal declaration statement
 |
-	sig ::= stmt's signal;
-	format "‘①’ (‘②’)" with
-		(a|an) “stmt's type's names→tuple[1]”,
-		stmt's signal's name
+	try
+	[
+		sig ::= stmt's signal;
+		format "‘①’ (‘②’)" with
+			(a|an) “stmt's type's names→tuple[1]”,
+			stmt's signal's name
+	]
+	else [“(stmt :: any)”]
 ];
 
 /******************************************************************************
@@ -660,10 +677,14 @@ Method "“_”" is
 [
 	stmt : timer declaration statement
 |
-	t ::= stmt's timer;
-	format "‘①’ (‘②’)" with
-		(a|an) “stmt's type's names→tuple[1]”,
-		stmt's timer's name
+	try
+	[
+		t ::= stmt's timer;
+		format "‘①’ (‘②’)" with
+			(a|an) “stmt's type's names→tuple[1]”,
+			stmt's timer's name
+	]
+	else [“(stmt :: any)”]
 ];
 
 /******************************************************************************
@@ -696,9 +717,13 @@ Method "“_”" is
 [
 	stmt : state enumeration statement
 |
-	format "‘①’ (‘②’)" with
-		(a|an) “stmt's type's names→tuple[1]”,
-		“map each x of stmt's states through [x's name]” (as simple list)
+	try
+	[
+		format "‘①’ (‘②’)" with
+			(a|an) “stmt's type's names→tuple[1]”,
+			“map each x of stmt's states through [x's name]” (as simple list)
+	]
+	else [“(stmt :: any)”]
 ];
 
 /******************************************************************************
@@ -737,10 +762,14 @@ Method "“_”" is
 [
 	stmt : hardware event handler statement
 |
-	format "‘①’ (‘②’ → ‘③’)" with
-		(a|an) “stmt's type's names→tuple[1]”,
-		stmt's event's name,
-		stmt's signal's name
+	try
+	[
+		format "‘①’ (‘②’ → ‘③’)" with
+			(a|an) “stmt's type's names→tuple[1]”,
+			stmt's event's name,
+			stmt's signal's name
+	]
+	else [“(stmt :: any)”]
 ];
 
 /******************************************************************************
@@ -799,9 +828,13 @@ Method "“_”" is
 [
 	stmt : signal handler statement
 |
-	format "‘①’ (‘②’)" with
-		(a|an) “stmt's type's names→tuple[1]”,
-		stmt's signal's name
+	try
+	[
+		format "‘①’ (‘②’)" with
+			(a|an) “stmt's type's names→tuple[1]”,
+			stmt's signal's name
+	]
+	else [“(stmt :: any)”]
 ];
 
 /******************************************************************************
@@ -833,6 +866,65 @@ Public method "_'s⁇subexpressions" is
 |
 	/* Don't include the target variable as a subexpression. */
 	<expr's value>
+];
+
+/******************************************************************************
+ *                           Operator expressions.                            *
+ ******************************************************************************/
+
+Public "expression operator" is a new field atom;
+Public "expression operands" is a new field atom;
+
+/**
+ * An {@type "operator expression"} performs an operation on zero (0) or more
+ * operands.
+ *
+ * @type "operator expression"
+ * @supertype "abstract expression"
+ * @field "expression type" "any's type"
+ * @field "expression operator" "nonempty string"
+ *        The operator for the expression. This should resemble an Avail
+ *        message, e.g., "_+_".
+ * @field "expression operands" "any expression*"
+ *        The operands.
+ */
+Public class "operator expression" extends any expression
+	with fields
+		public expression operator : nonempty string ("_'s⁇operator"),
+		public expression operands : any expression* ("_'s⁇operands");
+
+/**
+ * Answer the arity of the specified {@type "operator expression"}.
+ *
+ * @method "_'s⁇arity"
+ * @param "expr" "operator expression"
+ * @returns "whole number"
+ */
+Public method "_'s⁇arity" is
+[
+	expr : operator expression
+|
+	|expr' operands|
+];
+
+/**
+ * Strengthen the arity at compile time.
+ *
+ * @method "_'s⁇arity"
+ * @restricts "operator expression's type"
+ */
+Semantic restriction "_'s⁇arity" is
+[
+	exprType : operator expression's type
+|
+	||exprType's operands||
+];
+
+Public method "_'s⁇subexpressions" is
+[
+	expr : operator expression
+|
+	expr's operands
 ];
 
 /******************************************************************************

@@ -42,9 +42,9 @@ To initialize:
 On long click, change sides.
 To change sides:
 [
-/*
 	/* This is modular arithmetic; wrap around is automatic. */
 	team += 1.
+/*
 	If team = 1, change my color to green;
 	else, change my color to purple.
 */

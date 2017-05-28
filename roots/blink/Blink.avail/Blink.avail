@@ -70,7 +70,57 @@ Extends
 		/* Assignment statements. */
 		"(Blink)…:=_" → "…:=_",
 		"(Blink)…:=_" → "Change…to_",
-		"(Blink)Change_to_" → "Change_to_"
+		"(Blink)Change_to_" → "Change_to_",
+
+		/* Unary arithmetic operators. */
+		"(Blink)-_" → "-_",
+
+		/* Binary arithmetic operators. */
+		"(Blink)_+_" → "_+_",
+		"(Blink)_-_" → "_-_",
+		"(Blink)_×_" → "_×_",
+		"(Blink)_×_" → "_*_",
+		"(Blink)_÷_" → "_÷_",
+		"(Blink)_÷_" → "_/_",
+		"(Blink)_%_" → "_%_",
+
+		/* Compound binary arithmetic operators. */
+		"(Blink)_+=_" → "_+=_",
+		"(Blink)_-=_" → "_-=_",
+		"(Blink)_×=_" → "_×=_",
+		"(Blink)_×=_" → "_*=_",
+		"(Blink)_÷=_" → "_÷=_",
+		"(Blink)_÷=_" → "_/=_",
+		"(Blink)_%=_" → "_%=_",
+
+		/* Unary logical operators. */
+		"(Blink)¬_" → "¬_",
+		"(Blink)¬_" → "`!_",
+		"(Blink)¬_" → "not_",
+
+		/* Binary logical operators. */
+		"(Blink)_∧_" → "_∧_",
+		"(Blink)_∧_" → "_&&_",
+		"(Blink)_∧_" → "_and_",
+		"(Blink)_∨_" → "_∨_",
+		"(Blink)_∨_" → "_`|`|_",
+		"(Blink)_∨_" → "_or_",
+
+		/* Compound binary logical operators. */
+		"(Blink)_∧=_" → "_∧=_",
+		"(Blink)_∧=_" → "_&&=_",
+		"(Blink)_∨=_" → "_∨=_",
+		"(Blink)_∨=_" → "_`|`|=_",
+		
+		/* Binary relational operators. */
+		"(Blink)_=_" → "_=_",
+		"(Blink)_≠_" → "_≠_",
+		"(Blink)_<_" → "_<_",
+		"(Blink)_≤_" → "_≤_",
+		"(Blink)_≤_" → "_<=_",
+		"(Blink)_≥_" → "_≥_",
+		"(Blink)_≥_" → "_>=_",
+		"(Blink)_>_" → "_>_"
 	),
 	"Lighting Modes" =
 	(

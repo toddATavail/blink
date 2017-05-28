@@ -57,7 +57,7 @@ Private macro "Standard variable_is_;" is
  *                              State variables.                              *
  ******************************************************************************/
 
-Standard variable "lighting⁇color" is [0..2^32);
+Standard variable "lighting⁇color" is [0..2^24);
 Standard variable "lighting⁇mode" is lighting mode;
 Standard variable "lighting⁇pattern" is lighting pattern;
 Standard variable "lighting⁇pattern duration" is natural number ms;
