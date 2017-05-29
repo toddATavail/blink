@@ -60,14 +60,14 @@ To begin play:
 	Change my state to inactive.
 	Change my lighting mode to pulsing.
 	Change my pattern to sinusoidal.
-/*
 	Change my pattern duration to 2s.
+/*
 	Expire my lifetime in 60s.
 */
 ].
 
 /*
-When I become isolated, my state becomes active.
+When I become isolated, change my state to active.
 
 /* Since I cannot command any other Blinks to do something — I can only
  * advertise my own state and consider my neighbors' advertised states — I must

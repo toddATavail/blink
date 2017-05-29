@@ -67,10 +67,15 @@ Extends
 		/* Ownership expressions. */
 		"(Blink)my_" → "my_",
 
+		/* Dimensioned expressions. */
+		"(Blink)_ms" → "_ms",
+		"(Blink)_s" → "_s",
+
 		/* Assignment statements. */
 		"(Blink)…:=_" → "…:=_",
 		"(Blink)…:=_" → "Change…to_",
 		"(Blink)Change_to_" → "Change_to_",
+		"(Blink)Change_to_" → "_:=_",
 
 		/* Conditional statements. */
 		"(Blink)If|if_,_" → "If|if_,_",

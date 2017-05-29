@@ -1,0 +1,52 @@
+/*
+ * Dimensioned Expressions.avail
+ * Copyright (c) Todd L Smith and Taylor DH Smith, 2017.
+ * All rights reserved.
+ */
+
+Module "Dimensioned Expressions"
+Uses
+	"Abstract Syntax Tree",
+	"Avail",
+	"Dimensional Analysis"
+Names
+	/* Unit construction. */
+	"(Blink)_ms",
+	"(Blink)_s"
+Body
+
+/******************************************************************************
+ *                          Dimensioned Expressions.                          *
+ ******************************************************************************/
+
+/**
+ * Construct an {@type "integral"} {@type "literal"} that measured in {@type
+ * "millisecond"}s.
+ *
+ * @macro "(Blink)_ms"
+ * @param "extentPhrase" "expression phrase ⇒ integer literal"
+ * @returns "literal phrase ⇒ integer millisecond literal"
+ */
+Public macro "(Blink)_ms" is
+[
+	extentPhrase : expression phrase ⇒ integer literal
+|
+	extent ::= evaluate extentPhrase;
+	‘a literal with expression type ::= extent's value ms's type’
+];
+
+/**
+ * Construct an {@type "integral"} {@type "literal"} that measured in {@type
+ * "second"}s.
+ *
+ * @macro "(Blink)_s"
+ * @param "extentPhrase" "expression phrase ⇒ integer literal"
+ * @returns "literal phrase ⇒ integer millisecond literal"
+ */
+Public macro "(Blink)_s" is
+[
+	extentPhrase : expression phrase ⇒ integer literal
+|
+	extent ::= evaluate extentPhrase;
+	‘a literal with expression type ::= (extent's value × 1000) ms's type’
+];

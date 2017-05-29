@@ -335,7 +335,7 @@ Public macro "(Blink)…:=_" is
 	var ::= variable named varName;
 	varType ::= var's expression type;
 	value ::= evaluate valuePhrase;
-	If ¬value's expression type ⊆ varType then
+	If value's expression type ∩ varType = ⊥ then
 	[
 		Reject parse, expected:
 			format
@@ -370,7 +370,7 @@ Public macro "(Blink)Change_to_" is
 	var ::= evaluate varPhrase;
 	varType ::= var's expression type;
 	value ::= evaluate valuePhrase;
-	If ¬value's expression type ⊆ varType then
+	If value's expression type ∩ varType = ⊥ then
 	[
 		Reject parse, expected:
 			format

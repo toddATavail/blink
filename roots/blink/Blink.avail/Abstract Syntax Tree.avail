@@ -85,16 +85,16 @@ Names
 			"_'s⁇event",
 		"fired signal",
 			/*"_'s⁇signal",*/
+	"software event handler statement",
+		/*"handled event",*/
+			/*"_'s⁇event",*/
+		"handler block",
+			"_'s⁇block",
 	"signal handler statement",
 		"handled signal",
 			/*"_'s⁇signal",*/
-		"handler block",
-			"_'s⁇block",
-
-	/* Block expressions. */
-	"block expression",
-		"block body",
-			"_'s⁇body",
+		/*"handler block",*/
+			/*"_'s⁇block",*/
 
 	/* Assignment statements. */
 	"assignment statement",
@@ -102,6 +102,11 @@ Names
 			"_'s⁇assignee",
 		"assignment value",
 			/*"_'s⁇value",*/
+
+	/* Block expressions. */
+	"block expression",
+		"block body",
+			"_'s⁇body",
 
 	/* Conditional expressions. */
 	"conditional statement",
@@ -770,6 +775,28 @@ Method "“_”" is
 ];
 
 /******************************************************************************
+ *                             Block expressions.                             *
+ ******************************************************************************/
+
+Public "block body" is a new field atom;
+
+/**
+ * A {@type "block expression"} represents a sequence of {@type
+ * "abstract statements"} that reside in their own scope.
+ *
+ * @type "block expression"
+ * @supertype "abstract expression"
+ * @field "block body" "abstract expression*"
+ *        The {@type "abstract statement" statements} that comprise the {@type
+ *        "block expression"}.
+ */
+Public class "block expression" extends abstract expression
+	with field
+		public block body : abstract expression* ("_'s⁇body");
+
+Public method "_'s⁇subexpressions" is [expr : block expression | expr's body];
+
+/******************************************************************************
  *                         Event handler statements.                          *
  ******************************************************************************/
 
@@ -815,34 +842,52 @@ Method "“_”" is
 	else [“(stmt :: any)”]
 ];
 
-/******************************************************************************
- *                             Block expressions.                             *
- ******************************************************************************/
-
-Public "block body" is a new field atom;
+Public "handler block" is a new field atom;
 
 /**
- * A {@type "block expression"} represents a sequence of {@type
- * "abstract statements"} that reside in their own scope.
+ * A {@type "software event handler statement"} establishes that a particular
+ * {@type "software event"} will execute a specific {@type "block expression"
+ * block of code}.
  *
- * @type "block expression"
- * @supertype "abstract expression"
- * @field "block body" "abstract expression*"
- *        The {@type "abstract statement" statements} that comprise the {@type
- *        "block expression"}.
+ * @type "software event handler statement"
+ * @supertype "abstract statement"
+ * @field "statement scope" "global's type"
+ *        A {@type "software event handler statement"} is always {@type
+ *        "global"}.
+ * @field "handled event" "software event"
+ *        The {@type "software event"} handled by the {@type
+ *        "software event handler statement"}.
+ * @field "handler block" "block expression"
+ *        The {@type "block expression" block of code} that implements the logic
+ *        of the {@type "software event handler statement"}.
  */
-Public class "block expression" extends abstract expression
+Public class "software event handler statement" extends abstract statement
 	with field
-		public block body : abstract expression* ("_'s⁇body");
+		public statement scope : global's type ("_'s⁇scope"),
+		public handled event : software event ("_'s⁇event"),
+		public handler block : block expression ("_'s⁇block");
 
-Public method "_'s⁇subexpressions" is [expr : block expression | expr's body];
+Public method "_'s⁇subexpressions" is
+	[stmt : software event handler statement | <stmt's block>];
+
+Method "“_”" is
+[
+	stmt : software event handler statement
+|
+	try
+	[
+		format "‘①’ (‘②’)" with
+			(a|an) “stmt's type's names→tuple[1]”,
+			stmt's event's name
+	]
+	else [“(stmt :: any)”]
+];
 
 /******************************************************************************
  *                         Signal handler statements.                         *
  ******************************************************************************/
 
 Public "handled signal" is a new field atom;
-Public "handler block" is a new field atom;
 
 /**
  * A {@type "signal handler statement"} establishes that a particular {@type
@@ -865,7 +910,8 @@ Public class "signal handler statement" extends abstract statement
 		public handled signal : signal ("_'s⁇signal"),
 		public handler block : block expression ("_'s⁇block");
 
-Public method "_'s⁇subexpressions" is [stmt : signal handler statement | <>];
+Public method "_'s⁇subexpressions" is
+	[stmt : signal handler statement | <stmt's block>];
 
 Method "“_”" is
 [

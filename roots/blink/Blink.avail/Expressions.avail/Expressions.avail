@@ -8,6 +8,7 @@ Module "Expressions"
 Extends
 	"Block Expressions",
 	"Conditional Expressions",
+	"Dimensioned Expressions",
 	"Handler Statements",
 	"Operator Expressions",
 	"Signal Statements",
