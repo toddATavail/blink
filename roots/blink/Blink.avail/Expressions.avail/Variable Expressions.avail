@@ -55,7 +55,7 @@ Public macro "(Blink)_is_." is
 	>;
 	varDeclExpr ::= a variable declaration statement with
 		expression type ::= ⊤,
-		expression scope ::= global,
+		statement scope ::= global,
 		declared variable ::= var;
 	recordStmts ::= statement recorder for varDeclExpr;
 	stmts ::= varStmts ++ recordStmts;

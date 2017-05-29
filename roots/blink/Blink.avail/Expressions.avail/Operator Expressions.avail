@@ -172,7 +172,7 @@ Private macro "Operator__is_;" is
 					>»
 				>» : opExprType;
 			assignType ::= extend assignment statement with
-				expression scope : (local's type),
+				statement scope : (local's type),
 				assignment assignee : operandTypes[1] variable,
 				assignment value : opExprType;
 			assign ::=
@@ -186,7 +186,7 @@ Private macro "Operator__is_;" is
 								‘⊤’
 							>»,
 							«<
-								‘expression scope’,
+								‘statement scope’,
 								‘true’,
 								‘local’
 							>»,

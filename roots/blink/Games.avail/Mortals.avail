@@ -44,10 +44,9 @@ To change sides:
 [
 	/* This is modular arithmetic; wrap around is automatic. */
 	team += 1.
-/*
-	If team = 1, change my color to green;
-	else, change my color to purple.
-*/
+	Change my color to
+		if team = 1, green;
+		else, purple.
 ].
 
 "lifetime" is a timer.
@@ -80,12 +79,9 @@ When I join any neighbors:
 	 * a parenthetical clause like (called "cluster") — by anaphor (i.e.,
 	 * "these neighbors") should work very well for simple cases.
 	 */
-	If any of these neighbors are active,
-		shorten my lifetime by 5s;
-	else if my state is active:
-	[
-		Extend my lifetime by 5s × count of these neighbors.
-	].
+	Adjust my lifetime by
+		if any of these neighbors are active, -5s;
+		else, 5s × count of these neighbors.
 ].
 
 When my lifetime has 10s remaining, change my pulse duration to 500ms.

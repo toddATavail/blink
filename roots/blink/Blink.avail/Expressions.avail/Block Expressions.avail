@@ -248,11 +248,11 @@ Public macro "(Blink)…::=_" is
 	Introduce variable var;
 	varDeclExpr ::= a variable declaration statement with
 	 	expression type ::= ⊤,
-	 	expression scope ::= local,
+	 	statement scope ::= local,
 	 	declared variable ::= var;
 	assignmentExpr ::= an assignment statement with
 		expression type ::= ⊤,
-		expression scope ::= local,
+		statement scope ::= local,
 		assignment assignee ::= var,
 		assignment value ::= value;
 	‘<varDeclExpr, assignmentExpr>’
@@ -299,11 +299,11 @@ Public macro "(Blink)…:_†:=_" is
 	Introduce variable var;
 	varDeclExpr ::= a variable declaration statement with
 		expression type ::= ⊤,
-		expression scope ::= local,
+		statement scope ::= local,
 	 	declared variable ::= var;
 	assignmentExpr ::= an assignment statement with
 		expression type ::= ⊤,
-		expression scope ::= local,
+		statement scope ::= local,
 		assignment assignee ::= var,
 		assignment value ::= value;
 	‘<varDeclExpr, assignmentExpr>’
@@ -345,7 +345,7 @@ Public macro "(Blink)…:=_" is
 	];
 	‘an assignment statement with
 		expression type ::= ⊤,
-		expression scope ::= local,
+		statement scope ::= local,
 		assignment assignee ::= var,
 		assignment value ::= value’
 ];
@@ -380,7 +380,7 @@ Public macro "(Blink)Change_to_" is
 	];
 	‘an assignment statement with
 		expression type ::= ⊤,
-		expression scope ::= local,
+		statement scope ::= local,
 		assignment assignee ::= var,
 		assignment value ::= value’
 ];
@@ -419,7 +419,8 @@ Public macro "(Blink)[§«_‡.».⁇]" is
 		Unless t's expression type's instance = ⊤ then
 			[Reject parse, expected: "statement not to produce a value"];
 	];
-	body ::= evaluate bodyPhrase ?→ abstract statement*;
+	body ::= evaluate bodyPhrase ?→ local statement* else
+		[Reject parse, expected: "block body to comprise local statements"];
 	last ::=
 		if body is empty then [<>]
 		else [<body[1 max |body|]>];

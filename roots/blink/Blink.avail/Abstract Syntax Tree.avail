@@ -22,8 +22,9 @@ Names
 
 	/* Abstract statements. */
 	"abstract statement",
-		"expression scope",
+		"statement scope",
 			"_'s⁇scope",
+	"_statement",
 
 	/* Literals. */
 	"literal",
@@ -102,6 +103,20 @@ Names
 		"assignment value",
 			/*"_'s⁇value",*/
 
+	/* Conditional expressions. */
+	"conditional statement",
+		"conditional predicate",
+			"_'s⁇predicate",
+		"positive block",
+			"_'s⁇positive block",
+	"conditional expression",
+		/*"conditional predicate",*/
+			/*"_'s⁇predicate",*/
+		/*"positive block",*/
+			/*"_'s⁇positive block",*/
+		"negative block",
+			"_'s⁇negative block",
+
 	/* Operator expressions. */
 	"operator expression",
 		"expression operator",
@@ -139,7 +154,7 @@ Public "expression type" is a new field atom;
  * @field "expression type" "⊤'s type"
  *        The static {@type "type"} of the {@type "abstract expression"
  *        expression}.
- * @field "expression scope" "scope"
+ * @field "statement scope" "scope"
  *        The {@type "scope"} of the {@type "abstract expression" expression}.
  */
 Public class "abstract expression" extends object
@@ -220,7 +235,7 @@ Public macro "scope" is [‘{local, global}ᵀ’];
  *                            Abstract statements.                            *
  ******************************************************************************/
 
-Public "expression scope" is a new field atom;
+Public "statement scope" is a new field atom;
 
 /**
  * An {@type "abstract statement"} represents any Blink statement. It is always
@@ -228,12 +243,41 @@ Public "expression scope" is a new field atom;
  *
  * @type "abstract statement"
  * @supertype "abstract expression"
- * @field "expression scope" "scope"
+ * @field "statement scope" "scope"
  *        The {@type "scope"} of the {@type "abstract expression" expression}.
  */
 Public class "abstract statement" extends abstract expression
 	with field
-		public expression scope : scope ("_'s⁇scope");
+		public statement scope : scope ("_'s⁇scope");
+
+/**
+ * Construct a {@type "abstract statement" Blink statement} {@type "type"} for
+ * the specified {@type "scope"}.
+ *
+ * @method "_statement"
+ * @param "sc" "scope"
+ * @returns "abstract statement's type"
+ */
+Public method "_statement" is
+[
+	sc : scope
+|
+	extend abstract statement with statement scope : (sc's type)
+];
+
+/**
+ * Strengthen the {@type "abstract statement" Blink statement} {@type "type"}
+ * at compile time.
+ *
+ * @method "_statement"
+ * @restricts "scope's type"
+ */
+Semantic restriction "_statement" is
+[
+	scType : scope's type
+|
+	(extend abstract statement with statement scope : scType)'s type
+];
 
 /******************************************************************************
  *                                 Literals.                                  *
@@ -592,7 +636,6 @@ Public class "variable declaration statement" extends abstract statement
 Public method "_'s⁇subexpressions" is
 	[stmt : variable declaration statement | <>];
 
-
 Method "“_”" is
 [
 	stmt : variable declaration statement
@@ -624,13 +667,13 @@ Public "declared signal" is a new field atom;
  * @field "declared signal" "signal"
  *        The {@type "signal"} declared by the {@type
  *        "signal declaration statement"}.
- * @field "expression scope" "global's type"
+ * @field "statement scope" "global's type"
  *        A {@type "signal declaration statement"} is always {@type "global"}.
  */
 Public class "signal declaration statement" extends abstract statement
 	with field
 		public declared signal : signal ("_'s⁇signal"),
-		public expression scope : global's type ("_'s⁇scope");
+		public statement scope : global's type ("_'s⁇scope");
 
 Public method "_'s⁇subexpressions" is
 	[stmt : signal declaration statement | <>];
@@ -663,13 +706,13 @@ Public "declared timer" is a new field atom;
  * @field "declared timer" "timer"
  *        The {@type "timer"} declared by the {@type
  *        "timer declaration statement"}.
- * @field "expression scope" "global's type"
+ * @field "statement scope" "global's type"
  *        A {@type "timer declaration statement"} is always {@type "global"}.
  */
 Public class "timer declaration statement" extends abstract statement
 	with field
 		public declared timer : timer ("_'s⁇timer"),
-		public expression scope : global's type ("_'s⁇scope");
+		public statement scope : global's type ("_'s⁇scope");
 
 Public method "_'s⁇subexpressions" is [stmt : timer declaration statement | <>];
 
@@ -703,13 +746,13 @@ Public "declared states" is a new field atom;
  * @field "declared states" "atom*"
  *        All declared states. These are the only valid states for a particular
  *        program.
- * @field "expression scope" "global's type"
+ * @field "statement scope" "global's type"
  *        A {@type "state enumeration statement"} is always {@type "global"}.
  */
 Public class "state enumeration statement" extends abstract statement
 	with fields
 		public declared states : atom* ("_'s⁇states"),
-		public expression scope : global's type ("_'s⁇scope");
+		public statement scope : global's type ("_'s⁇scope");
 
 Public method "_'s⁇subexpressions" is [stmt : state enumeration statement | <>];
 
@@ -739,7 +782,7 @@ Public "fired signal" is a new field atom;
  *
  * @type "hardware event handler statement"
  * @supertype "abstract statement"
- * @field "expression scope" "global's type"
+ * @field "statement scope" "global's type"
  *        A {@type "hardware event handler statement"} is always {@type
  *        "global"}.
  * @field "handled event" "hardware event"
@@ -751,7 +794,7 @@ Public "fired signal" is a new field atom;
  */
 Public class "hardware event handler statement" extends abstract statement
 	with field
-		public expression scope : global's type ("_'s⁇scope"),
+		public statement scope : global's type ("_'s⁇scope"),
 		public handled event : hardware event ("_'s⁇event"),
 		public fired signal : signal ("_'s⁇signal");
 
@@ -784,13 +827,13 @@ Public "block body" is a new field atom;
  *
  * @type "block expression"
  * @supertype "abstract expression"
- * @field "block body" "abstract statement*"
+ * @field "block body" "abstract expression*"
  *        The {@type "abstract statement" statements} that comprise the {@type
  *        "block expression"}.
  */
 Public class "block expression" extends abstract expression
 	with field
-		public block body : abstract statement* ("_'s⁇body");
+		public block body : abstract expression* ("_'s⁇body");
 
 Public method "_'s⁇subexpressions" is [expr : block expression | expr's body];
 
@@ -807,7 +850,7 @@ Public "handler block" is a new field atom;
  *
  * @type "signal handler statement"
  * @supertype "abstract statement"
- * @field "expression scope" "global's type"
+ * @field "statement scope" "global's type"
  *        A {@type "signal handler statement"} is always {@type "global"}.
  * @field "handled signal" "signal"
  *        The {@type "signal"} handled by the {@type
@@ -818,7 +861,7 @@ Public "handler block" is a new field atom;
  */
 Public class "signal handler statement" extends abstract statement
 	with fields
-		public expression scope : global's type ("_'s⁇scope"),
+		public statement scope : global's type ("_'s⁇scope"),
 		public handled signal : signal ("_'s⁇signal"),
 		public handler block : block expression ("_'s⁇block");
 
@@ -838,7 +881,7 @@ Method "“_”" is
 ];
 
 /******************************************************************************
- *                          Assignment expressions.                           *
+ *                           Assignment statements.                           *
  ******************************************************************************/
 
 Public "assignment assignee" is a new field atom;
@@ -866,6 +909,68 @@ Public method "_'s⁇subexpressions" is
 |
 	/* Don't include the target variable as a subexpression. */
 	<expr's value>
+];
+
+/******************************************************************************
+ *                          Conditional expressions.                          *
+ ******************************************************************************/
+
+Public "conditional predicate" is a new field atom;
+Public "positive block" is a new field atom;
+Public "negative block" is a new field atom;
+
+/**
+ * A {@type "conditional statement"} evaluates a {@type "block expression"} iff
+ * the predicate is {@method "true"}.
+ *
+ * @type "conditional statement"
+ * @supertype "abstract statement"
+ * @field "conditional predicate" "boolean expression"
+ *        The predicate.
+ * @field "positive block" "block expression"
+ *        A {@type "block expression"} that is only evaluated iff the predicate
+ *        is {@method "true"}. Must not produce a value.
+ */
+Public class "conditional statement" extends abstract statement
+	with fields
+		public statement scope : local's type ("_'s⁇scope"),
+		public conditional predicate : boolean expression ("_'s⁇predicate"),
+		public positive block : block expression;
+
+Public method "_'s⁇subexpressions" is
+[
+	expr : conditional statement
+|
+	<expr's predicate, expr's positive block>
+];
+
+/**
+ * A {@type "conditional expression"} evaluates a predicate and answers the
+ * result of the first {@type "block expression"} if the predicate is {@method
+ * "true"} and the second if the predicate is {@method "false"}.
+ *
+ * @type "conditional expression"
+ * @supertype "abstract expression"
+ * @field "conditional predicate" "boolean expression"
+ *        The predicate.
+ * @field "positive block" "block expression"
+ *        The {@type "block expression"} to evaluate iff the predicate is
+ *        {@method "true"}.
+ * @field "negative block" "block expression"
+ *        The {@type "block expression"} to evaluate iff the predicate is
+ *        {@method "false"}.
+ */
+Public class "conditional expression" extends abstract expression
+	with fields
+		public conditional predicate : boolean expression ("_'s⁇predicate"),
+		public positive block : block expression,
+		public negative block : block expression;
+
+Public method "_'s⁇subexpressions" is
+[
+	expr : conditional expression
+|
+	<expr's predicate, expr's positive block, expr's negative block>
 ];
 
 /******************************************************************************

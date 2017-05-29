@@ -1,0 +1,223 @@
+/*
+ * Conditional Expressions.avail
+ * Copyright (c) Todd L Smith and Taylor DH Smith, 2017.
+ * All rights reserved.
+ */
+
+Module "Conditional Expressions"
+Uses
+	"Abstract Syntax Tree",
+	"Avail"
+Names
+	/* Conditional statements. */
+	"(Blink)If|if_,_",
+	"(Blink)If|if_:_",
+
+	/* Conditional expressions. */
+	"(Blink)If|if_,_;else,_",
+	"(Blink)If|if_:_;else,_",
+	"(Blink)If|if_,_;else:_",
+	"(Blink)If|if_:_;else:_"
+Body
+
+/******************************************************************************
+ *                          Conditional statements.                           *
+ ******************************************************************************/
+
+/**
+ * Construct a {@type "conditional statement"} that governs a single {@method
+ * "_'s⁇positive block" positive} {@type "abstract statement" statement}.
+ *
+ * @macro "(Blink)If|if_,_"
+ * @param "predPhrase" "expression phrase ⇒ boolean expression"
+ * @param "posPhrase" "expression phrase ⇒ local statement"
+ * @returns "literal phrase ⇒ conditional statement"
+ */
+Public macro "(Blink)If|if_,_" is
+[
+	predPhrase : expression phrase ⇒ boolean expression,
+	posPhrase : expression phrase ⇒ local statement
+|
+	‘a conditional statement with
+		expression type ::= ⊤,
+		conditional predicate ::= evaluate predPhrase,
+		positive block ::= a block expression with
+			expression type ::= ⊤,
+			block body ::= <evaluate posPhrase>’
+];
+
+/**
+ * Construct a {@type "conditional statement"} that governs a {@method
+ * "_'s⁇positive block" positive} {@type "block expression"}.
+ *
+ * @macro "(Blink)If|if_:_"
+ * @param "predPhrase" "expression phrase ⇒ boolean expression"
+ * @param "posPhrase" "expression phrase ⇒ block expression"
+ * @returns "literal phrase ⇒ conditional statement"
+ */
+Public macro "(Blink)If|if_:_" is
+[
+	predPhrase : expression phrase ⇒ boolean expression,
+	posPhrase : expression phrase ⇒ block expression
+|
+	‘a conditional statement with
+		expression type ::= ⊤,
+		conditional predicate ::= evaluate predPhrase,
+		positive block ::= evaluate posPhrase’
+];
+
+/******************************************************************************
+ *                          Conditional expressions.                          *
+ ******************************************************************************/
+
+/**
+ * Construct a {@type "conditional expression"}.
+ *
+ * @macro "(Blink)If|if_,_;else,_"
+ * @param "predPhrase" "expression phrase ⇒ boolean expression"
+ * @param "posPhrase" "expression phrase ⇒ abstract expression"
+ * @param "negPhrase" "expression phrase ⇒ abstract expression"
+ * @returns "literal phrase ⇒ conditional expression"
+ */
+Public macro "(Blink)If|if_,_;else,_" is
+[
+	predPhrase : expression phrase ⇒ boolean expression,
+	posPhrase : expression phrase ⇒ abstract expression,
+	negPhrase : expression phrase ⇒ abstract expression
+|
+	pred ::= evaluate predPhrase;
+	pos ::= evaluate posPhrase;
+	If pos ∈ block expression then
+	[
+		Reject parse, expected:
+			"positive expression to be simple expression \
+			\|(use colon [:] instead of comma [,] for block expressions)"
+	];
+	neg ::= evaluate negPhrase;
+	If neg ∈ block expression then
+	[
+		Reject parse, expected:
+			"positive expression to be simple expression \
+			\|(use colon [:] instead of comma [,] for block expressions)"
+	];
+	‘a conditional expression with
+		expression type ::= pos's expression type ∪ neg's expression type,
+		conditional predicate ::= pred,
+		positive block ::= a block expression with
+			expression type ::= pos's expression type,
+			block body ::= <pos>,
+		negative block ::= a block expression with
+			expression type ::= neg's expression type,
+			block body ::= <neg>’
+];
+
+/**
+ * Construct a {@type "conditional expression"}.
+ *
+ * @macro "(Blink)If|if_:_;else,_"
+ * @param "predPhrase" "expression phrase ⇒ boolean expression"
+ * @param "posPhrase" "expression phrase ⇒ abstract expression"
+ * @param "negPhrase" "expression phrase ⇒ abstract expression"
+ * @returns "literal phrase ⇒ conditional expression"
+ */
+Public macro "(Blink)If|if_:_;else,_" is
+[
+	predPhrase : expression phrase ⇒ boolean expression,
+	posPhrase : expression phrase ⇒ abstract expression,
+	negPhrase : expression phrase ⇒ abstract expression
+|
+	pred ::= evaluate predPhrase;
+	pos ::= evaluate posPhrase ?→ block expression else
+	[
+		Reject parse, expected:
+			"positive expression to be block expression \
+			\|(use comma [,] instead of colon [:] for simple expressions)"
+	];
+	neg ::= evaluate negPhrase;
+	If neg ∈ block expression then
+	[
+		Reject parse, expected:
+			"positive expression to be simple expression \
+			\|(use colon [:] instead of comma [,] for block expressions)"
+	];
+	‘a conditional expression with
+		expression type ::= pos's expression type ∪ neg's expression type,
+		conditional predicate ::= pred,
+		positive block ::= pos,
+		negative block ::= a block expression with
+			expression type ::= neg's expression type,
+			block body ::= <neg>’
+];
+
+/**
+ * Construct a {@type "conditional expression"}.
+ *
+ * @macro "(Blink)If|if_,_;else:_"
+ * @param "predPhrase" "expression phrase ⇒ boolean expression"
+ * @param "posPhrase" "expression phrase ⇒ abstract expression"
+ * @param "negPhrase" "expression phrase ⇒ abstract expression"
+ * @returns "literal phrase ⇒ conditional expression"
+ */
+Public macro "(Blink)If|if_,_;else:_" is
+[
+	predPhrase : expression phrase ⇒ boolean expression,
+	posPhrase : expression phrase ⇒ abstract expression,
+	negPhrase : expression phrase ⇒ abstract expression
+|
+	pred ::= evaluate predPhrase;
+	pos ::= evaluate posPhrase;
+	If pos ∈ block expression then
+	[
+		Reject parse, expected:
+			"positive expression to be simple expression \
+			\|(use colon [:] instead of comma [,] for block expressions)"
+	];
+	neg ::= evaluate negPhrase ?→ block expression else
+	[
+		Reject parse, expected:
+			"positive expression to be block expression \
+			\|(use comma [,] instead of colon [:] for simple expressions)"
+	];
+	‘a conditional expression with
+		expression type ::= pos's expression type ∪ neg's expression type,
+		conditional predicate ::= pred,
+		positive block ::= a block expression with
+			expression type ::= pos's expression type,
+			block body ::= <pos>,
+		negative block ::= neg’
+];
+
+/**
+ * Construct a {@type "conditional expression"}.
+ *
+ * @macro "(Blink)If|if_:_;else:_"
+ * @param "predPhrase" "expression phrase ⇒ boolean expression"
+ * @param "posPhrase" "expression phrase ⇒ abstract expression"
+ * @param "negPhrase" "expression phrase ⇒ abstract expression"
+ * @returns "literal phrase ⇒ conditional expression"
+ */
+Public macro "(Blink)If|if_:_;else:_" is
+[
+	predPhrase : expression phrase ⇒ boolean expression,
+	posPhrase : expression phrase ⇒ abstract expression,
+	negPhrase : expression phrase ⇒ abstract expression
+|
+	pred ::= evaluate predPhrase;
+	pos ::= evaluate posPhrase ?→ block expression else
+	[
+		Reject parse, expected:
+			"positive expression to be block expression \
+			\|(use comma [,] instead of colon [:] for simple expressions)"
+	];
+	neg ::= evaluate negPhrase ?→ block expression else
+	[
+		Reject parse, expected:
+			"positive expression to be block expression \
+			\|(use comma [,] instead of colon [:] for simple expressions)"
+	];
+	‘a conditional expression with
+		expression type ::= pos's expression type ∪ neg's expression type,
+		conditional predicate ::= pred,
+		positive block ::= pos,
+		negative block ::= neg’
+];

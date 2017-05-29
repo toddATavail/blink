@@ -9,6 +9,7 @@ Uses
 	"Abstract Syntax Tree",
 	"Avail"
 Names
+	/* Signal declaration statements. */
 	"(Blink)_is a signal."
 Body
 

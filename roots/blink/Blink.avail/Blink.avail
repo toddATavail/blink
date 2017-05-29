@@ -72,6 +72,16 @@ Extends
 		"(Blink)…:=_" → "Change…to_",
 		"(Blink)Change_to_" → "Change_to_",
 
+		/* Conditional statements. */
+		"(Blink)If|if_,_" → "If|if_,_",
+		"(Blink)If|if_:_" → "If|if_:_",
+
+		/* Conditional expressions. */
+		"(Blink)If|if_,_;else,_" → "If|if_,_;else,_",
+		"(Blink)If|if_:_;else,_" → "If|if_:_;else,_",
+		"(Blink)If|if_,_;else:_" → "If|if_,_;else:_",
+		"(Blink)If|if_:_;else:_" → "If|if_:_;else:_",
+
 		/* Unary arithmetic operators. */
 		"(Blink)-_" → "-_",
 
