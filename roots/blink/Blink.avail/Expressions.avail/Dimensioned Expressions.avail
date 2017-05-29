@@ -10,7 +10,7 @@ Uses
 	"Avail",
 	"Dimensional Analysis"
 Names
-	/* Unit construction. */
+	/* Dimensioned expressions. */
 	"(Blink)_ms",
 	"(Blink)_s"
 Body

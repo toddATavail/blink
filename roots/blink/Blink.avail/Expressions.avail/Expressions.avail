@@ -13,6 +13,6 @@ Extends
 	"Operator Expressions",
 	"Signal Statements",
 	"State Enumeration Statements",
-	"Timer Statements",
+	"Timer Expressions",
 	"Variable Expressions"
 Body

@@ -32,7 +32,7 @@ Names
 
 	/* Assignment statements. */
 	"(Blink)…:=_",
-	"(Blink)Change_to_",
+	"(Blink)Change|change_to_",
 
 	/* Block construction. */
 	"(Blink)[§«_‡.».⁇]"
@@ -354,7 +354,7 @@ Public macro "(Blink)…:=_" is
  * Answer an {@type "assignment statement"} that assigns a value to an existing
  * {@method "global"} {@method "mutable"} {@type "variable"}.
  *
- * @macro "(Blink)Change_to_"
+ * @macro "(Blink)Change|change_to_"
  * @param "varPhrase" "expression phrase ⇒ any global mutable variable"
  *        The target {@method "global"} {@mutable "mutable"} {@type "variable"}.
  * @param "valuePhrase" "expression phrase ⇒ any expression"
@@ -362,7 +362,7 @@ Public macro "(Blink)…:=_" is
  *         "variable"}.
  * @returns "literal phrase ⇒ assignment statement"
  */
-Public macro "(Blink)Change_to_" is
+Public macro "(Blink)Change|change_to_" is
 [
 	varPhrase : expression phrase ⇒ any global mutable variable,
 	valuePhrase : expression phrase ⇒ any expression

@@ -17,14 +17,14 @@ Names
 	"(Blink)_-_",
 	"(Blink)_×_",
 	"(Blink)_÷_",
-	"(Blink)_%_",
+	"(Blink)_\\_",
 
 	/* Compound binary arithmetic operators. */
 	"(Blink)_+=_",
 	"(Blink)_-=_",
 	"(Blink)_×=_",
 	"(Blink)_÷=_",
-	"(Blink)_%=_",
+	"(Blink)_\\=_",
 
 	/* Unary logical operators. */
 	"(Blink)¬_",
@@ -230,7 +230,7 @@ Operator "_+_" <integer, integer> is integer;
 Operator "_-_" <integer, integer> is integer;
 Operator "_×_" <integer, integer> is integer;
 Operator "_÷_" <integer, integer> is integer;
-Operator "_%_" <integer, integer> is integer;
+Operator "_\\_" <integer, integer> is integer;
 
 /******************************************************************************
  *                          Unary logical operators.                          *

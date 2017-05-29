@@ -11,6 +11,9 @@ Extends
 		/* Numeric literals (for integer range type construction). */
 		"…#",
 
+		/* Parentheses (for grouping). */
+		"(_)",
+
 		/* Integer range type construction. */
 		"[_.._]"
 	),
@@ -73,9 +76,9 @@ Extends
 
 		/* Assignment statements. */
 		"(Blink)…:=_" → "…:=_",
-		"(Blink)…:=_" → "Change…to_",
-		"(Blink)Change_to_" → "Change_to_",
-		"(Blink)Change_to_" → "_:=_",
+		"(Blink)…:=_" → "Change|change…to_",
+		"(Blink)Change|change_to_" → "Change|change_to_",
+		"(Blink)Change|change_to_" → "_:=_",
 
 		/* Conditional statements. */
 		"(Blink)If|if_,_" → "If|if_,_",
@@ -87,6 +90,13 @@ Extends
 		"(Blink)If|if_,_;else:_" → "If|if_,_;else:_",
 		"(Blink)If|if_:_;else:_" → "If|if_:_;else:_",
 
+		/* Timer query expressions. */
+		"(Blink)_'s⁇remaining time" → "_'s⁇remaining time",
+
+		/* Timer manipulation expressions. */
+		"(Blink)Expire|expire_in_" → "Expire|expire_in_",
+		"(Blink)Adjust|adjust_by_" → "Adjust|adjust_by_",
+
 		/* Unary arithmetic operators. */
 		"(Blink)-_" → "-_",
 
@@ -97,7 +107,7 @@ Extends
 		"(Blink)_×_" → "_*_",
 		"(Blink)_÷_" → "_÷_",
 		"(Blink)_÷_" → "_/_",
-		"(Blink)_%_" → "_%_",
+		"(Blink)_\\_" → "_\\_",
 
 		/* Compound binary arithmetic operators. */
 		"(Blink)_+=_" → "_+=_",
@@ -106,7 +116,7 @@ Extends
 		"(Blink)_×=_" → "_*=_",
 		"(Blink)_÷=_" → "_÷=_",
 		"(Blink)_÷=_" → "_/=_",
-		"(Blink)_%=_" → "_%=_",
+		"(Blink)_\\=_" → "_\\=_",
 
 		/* Unary logical operators. */
 		"(Blink)¬_" → "¬_",

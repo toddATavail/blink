@@ -61,9 +61,7 @@ To begin play:
 	Change my lighting mode to pulsing.
 	Change my pattern to sinusoidal.
 	Change my pattern duration to 2s.
-/*
 	Expire my lifetime in 60s.
-*/
 ].
 
 /*

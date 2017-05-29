@@ -9,7 +9,7 @@ Uses
 	"Abstract Syntax Tree",
 	"Avail",
 	"Colors",
-	"Dimensional Analysis",
+	"Dimensional Analysis" = ("__", "ms"),
 	"Lighting Modes",
 	"Lighting Patterns"
 Names

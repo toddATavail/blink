@@ -6,11 +6,8 @@
 
 Module "Abstract Syntax Tree"
 Uses
-	"Avail" =
-	(
-		"variable" → "Avail variable",
-		…
-	),
+	"Avail" = ("variable" → "Avail variable", …),
+	"Dimensional Analysis" = ("__", "ms"),
 	"Events"
 Names
 	/* Abstract expressions. */
@@ -129,6 +126,21 @@ Names
 		"expression operands",
 			"_'s⁇operands",
 	"_'s⁇arity",
+
+	/* Timer expressions. */
+	"timer query expression",
+		"target timer",
+			/*"_'s⁇timer",*/
+	"timer set statement",
+		/*"target timer",*/
+			/*"_'s⁇timer",*/
+		"timer value",
+			/*"_'s⁇value",*/
+	"timer update statement",
+		/*"target timer",*/
+			/*"_'s⁇timer",*/
+		/*"timer value",*/
+			/*"_'s⁇value",*/
 
 	/* Programs. */
 	"program",
@@ -1077,6 +1089,74 @@ Public method "_'s⁇subexpressions" is
 |
 	expr's operands
 ];
+
+/******************************************************************************
+ *                             Timer expressions.                             *
+ ******************************************************************************/
+
+Public "target timer" is a new field atom;
+
+/**
+ * A {@type "timer query expression"} obtains time remaining until expiration
+ * for a particular {@type "timer"}.
+ *
+ * @type "timer query expression"
+ * @supertype "abstract expression"
+ * @field "expression type" "whole number ms's type"
+ * @field "target timer" "timer"
+ *        The {@type "timer"} to query.
+ */
+Public class "timer query expression" extends abstract expression
+	with field
+		public expression type : whole number ms's type,
+		public target timer : timer ("_'s⁇timer");
+
+Public method "_'s⁇subexpressions" is
+	[expr : timer query expression | <>];
+
+Public "timer value" is a new field atom;
+
+/**
+ * A {@type "timer set statement"} directs a {@type "timer"} to expire in a
+ * specified number of {@type "ms" milliseconds}.
+ *
+ * @type "timer set statement"
+ * @supertype "abstract statement"
+ * @field "statement scope" "local's type"
+ * @field "target timer" "timer"
+ *        The {@type "timer"} to set.
+ * @field "timer value" "whole number ms expression"
+ *        How many {@type "ms" milliseconds} to expire the {@type "timer"} in.
+ */
+Public explicit class "timer set statement" extends abstract statement
+	with field
+		public statement scope : local's type ("_'s⁇scope"),
+		public target timer : timer ("_'s⁇timer"),
+		public timer value : whole number ms expression ("_'s⁇value");
+
+Public method "_'s⁇subexpressions" is
+	[stmt : timer set statement | <stmt's value>];
+
+/**
+ * A {@type "timer update statement"} adjusts a {@type "timer"}'s expiration
+ * time by the specified number of {@type "ms" milliseconds}.
+ *
+ * @type "timer update statement"
+ * @supertype "abstract statement"
+ * @field "statement scope" "local's type"
+ * @field "target timer" "timer"
+ *        The {@type "timer"} to update.
+ * @field "timer value" "whole number ms expression"
+ *        How many {@type "ms" milliseconds} to adjust the {@type "timer"} by.
+ */
+Public explicit class "timer update statement" extends abstract statement
+	with field
+		public statement scope : local's type ("_'s⁇scope"),
+		public target timer : timer ("_'s⁇timer"),
+		public timer value : integer ms expression ("_'s⁇value");
+
+Public method "_'s⁇subexpressions" is
+	[stmt : timer update statement | <stmt's value>];
 
 /******************************************************************************
  *                              Blink programs.                               *

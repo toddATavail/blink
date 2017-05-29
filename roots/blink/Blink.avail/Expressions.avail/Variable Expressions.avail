@@ -7,11 +7,7 @@
 Module "Variable Expressions"
 Uses
 	"Abstract Syntax Tree",
-	"Avail" =
-	(
-		"variable" → "Avail variable",
-		…
-	)
+	"Avail" = ("variable" → "Avail variable", …)
 Names
 	/* Variable declaration statements. */
 	"(Blink)_is_.",
@@ -88,3 +84,21 @@ Semantic restriction "(Blink)my_" is
 |
 	varType
 ];
+
+/**
+ * Answer the specified {@type "timer"}. An ownership expression is a bit of
+ * syntactic sugar to make the NL-style syntax nicer.
+ *
+ * @method "(Blink)my_"
+ * @param "t" "timer"
+ * @returns {@param "t"}.
+ */
+Public method "(Blink)my_" is [t : timer | t];
+
+/**
+ * Strengthen the ownership expression to the exact {@type "timer"}.
+ *
+ * @method "(Blink)my_"
+ * @restricts "timer's type"
+ */
+Semantic restriction "(Blink)my_" is [tType : timer's type | tType];

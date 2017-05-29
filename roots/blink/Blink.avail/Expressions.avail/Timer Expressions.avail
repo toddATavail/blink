@@ -1,0 +1,121 @@
+/*
+ * Timer Expressions.avail
+ * Copyright (c) Todd L Smith and Taylor DH Smith, 2017.
+ * All rights reserved.
+ */
+
+Module "Timer Expressions"
+Uses
+	"Abstract Syntax Tree",
+	"Avail",
+	"Dimensional Analysis" = ("__", "ms")
+Names
+	/* Timer declaration statements. */
+	"(Blink)_is a timer.",
+
+	/* Timer query expressions. */
+	"(Blink)_'s⁇remaining time",
+
+	/* Timer manipulation expressions. */
+	"(Blink)Expire|expire_in_",
+	"(Blink)Adjust|adjust_by_"
+Body
+
+/******************************************************************************
+ *                       Timer declaration statements.                       *
+ ******************************************************************************/
+
+/**
+ * Declare a {@type "timer"}.
+ *
+ * @macro "(Blink)_is a timer."
+ * @param "tNamePhrase" "expression phrase ⇒ nonempty string literal"
+ * @returns "sequence phrase"
+ */
+Public macro "(Blink)_is a timer." is
+[
+	tNamePhrase : expression phrase ⇒ nonempty string literal
+|
+	tName ::= evaluate tNamePhrase;
+	t ::= a timer with
+		timer name ::= tName's value,
+		expression type ::= ⊤;
+	tStmts ::=
+	<
+		send $"Method_is_" with
+		«<
+			‘t's name’,
+			«[<‘t’>] : t's type»
+		>» : ⊤ → statement phrase
+	>;
+	tDeclExpr ::= a timer declaration statement with
+		expression type ::= ⊤,
+		declared timer ::= t;
+	recordStmts ::= statement recorder for tDeclExpr;
+	stmts ::= tStmts ++ recordStmts;
+	seq «stmts»
+];
+
+/******************************************************************************
+ *                          Timer query expressions.                          *
+ ******************************************************************************/
+
+/**
+ * Construct a {@type "timer query expression"} for the specified {@type
+ * "timer"}.
+ *
+ * @macro "(Blink)_'s⁇remaining time"
+ * @param "tPhrase" "expression phrase ⇒ timer"
+ * @returns "literal phrase ⇒ timer query expression"
+ */
+Public macro "(Blink)_'s⁇remaining time" is
+[
+	tPhrase : expression phrase ⇒ timer
+|
+	‘a timer query expression with
+		expression type ::= whole number ms,
+		target timer ::= evaluate tPhrase’
+];
+
+/******************************************************************************
+ *                       Timer manipulation statements.                       *
+ ******************************************************************************/
+
+/**
+ * Construct a {@type "timer set statement"} for the specified {@type "timer"}.
+ *
+ * @macro "(Blink)Expire|expire_in_"
+ * @param "tPhrase" "expression phrase ⇒ timer"
+ * @param "valuePhrase" "expression phrase ⇒ whole number ms expression"
+ * @returns "literal phrase ⇒ timer set expression"
+ */
+Public macro "(Blink)Expire|expire_in_" is
+[
+	tPhrase : expression phrase ⇒ timer,
+	valuePhrase : expression phrase ⇒ whole number ms expression
+|
+	‘a timer set statement with
+		expression type ::= ⊤,
+		target timer ::= evaluate tPhrase,
+		timer value ::= evaluate valuePhrase’
+];
+
+/**
+ * Construct a {@type "timer update statement"} for the specified {@type
+ * "timer"}.
+ *
+ * @macro "(Blink)Adjust|adjust_by_"
+ * @param "tPhrase" "expression phrase ⇒ timer"
+ * @param "valuePhrase" "expression phrase ⇒ integer ms expression"
+ * @returns "literal phrase ⇒ timer update expression"
+ */
+Public macro "(Blink)Adjust|adjust_by_" is
+[
+	tPhrase : expression phrase ⇒ timer,
+	valuePhrase : expression phrase ⇒ integer ms expression
+|
+	‘a timer update statement with
+		expression type ::= ⊤,
+		target timer ::= evaluate tPhrase,
+		timer value ::= evaluate valuePhrase’
+];
