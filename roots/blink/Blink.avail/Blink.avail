@@ -5,6 +5,29 @@
  */
 
 Module "Blink"
+Uses
+	/* We need to import certain facilities locally in order to tighten up the
+	 * Blink grammar. In particular, we need to establish the precedence and
+	 * associativity of certain operators.
+	 */
+	"Avail" =
+	(
+		/* Top-level statements. */
+		"_!;",
+
+		/* String literals. */
+		"…$",
+
+		/* Grammatical restrictions. */
+		"Grammatical restriction_is_",
+
+		/* Sets. */
+		"{«_‡,»}",
+		"∅",
+
+		/* Tuples. */
+		"<«_‡,»>"
+	)
 Extends
 	"Avail" =
 	(
@@ -27,13 +50,7 @@ Extends
 		"click",
 		"double click",
 		"triple click",
-		"long click",
-
-		/* Software events. */
-		"heartbeat",
-		"neighborhood occupancy changed",
-		"neighborhood state changed",
-		"timer expired"
+		"long click"
 	),
 	"Expressions" =
 	(
@@ -52,6 +69,28 @@ Extends
 
 		/* Event handler statements. */
 		"(Blink)On_,_." → "On_,_.",
+
+		/* State changed handler statements. */
+		"(Blink)When I change from_§to_§,_." → "When I change from_§to_§,_.",
+		"(Blink)When I change from_§to_§:_." → "When I change from_§to_§:_.",
+
+		/* Neighbor state changed handler statements. */
+		"(Blink)When any_§neighbor becomes_§,_." →
+			"When any_§neighbor becomes_§,_.",
+		"(Blink)When any_§neighbor becomes_§:_." →
+			"When any_§neighbor becomes_§:_.",
+
+		/* Isolation handler statements. */
+		"(Blink)When I become isolated,_." → "When I become isolated,_.",
+		"(Blink)When I become isolated:_." → "When I become isolated:_.",
+
+		/* Timer threshold event handler statements. */
+		"(Blink)When_has_remaining,_." → "When_has_remaining,_.",
+		"(Blink)When_has_remaining:_." → "When_has_remaining:_.",
+
+		/* Timer expired event handler statements. */
+		"(Blink)When_expires,_." → "When_expires,_.",
+		"(Blink)When_expires:_." → "When_expires:_.",
 
 		/* Signal handler statements. */
 		"(Blink)To_,_." → "To_,_.",
@@ -89,6 +128,9 @@ Extends
 		"(Blink)If|if_:_;else,_" → "If|if_:_;else,_",
 		"(Blink)If|if_,_;else:_" → "If|if_,_;else:_",
 		"(Blink)If|if_:_;else:_" → "If|if_:_;else:_",
+
+		/* Fire signal statements. */
+		"(Blink)Now|now_" → "Now|now_",
 
 		/* Timer query expressions. */
 		"(Blink)_'s⁇remaining time" → "_'s⁇remaining time",
@@ -139,13 +181,21 @@ Extends
 		
 		/* Binary relational operators. */
 		"(Blink)_=_" → "_=_",
+		"(Blink)_=_" → "_is_",
 		"(Blink)_≠_" → "_≠_",
+		"(Blink)_≠_" → "_is not_",
+		"(Blink)_≠_" → "_isn't_",
 		"(Blink)_<_" → "_<_",
 		"(Blink)_≤_" → "_≤_",
 		"(Blink)_≤_" → "_<=_",
 		"(Blink)_≥_" → "_≥_",
 		"(Blink)_≥_" → "_>=_",
-		"(Blink)_>_" → "_>_"
+		"(Blink)_>_" → "_>_",
+
+		/* Tuple operators. */
+		"(Blink)`|_`|" → "`|_`|",
+		"(Blink)`|_`|" → "count of_",
+		"(Blink)`|_`|" → "size of_"
 	),
 	"Lighting Modes" =
 	(
@@ -170,3 +220,32 @@ Extends
 		"lighting⁇pattern duration variable" → "lighting⁇pattern duration"
 	)
 Body
+
+/* Establish that negation has higher precedence than other arithmetic
+ * operators, and forbid negation from nesting (without intervening
+ * parentheses).
+ */
+Grammatical restriction "-_" is
+	<{"-_", "_+_", "_-_", "_×_", "_*_", "_÷_", "_/_", "_\\_"}>;
+
+/* Establish that addition and subtraction are left associative. */
+Grammatical restriction {"_+_", "_-_"} is <∅, {"_+_", "_-_"}>;
+
+/* Establish that multiplication, division, and modulus have higher precedence
+ * than addition and subtraction and are left associative.
+ */
+Grammatical restriction {"_×_", "_*_", "_÷_", "_/_", "_\\_"} is
+	<{"_+_", "_-_"}, {"_+_", "_-_", "_×_", "_*_", "_÷_", "_/_", "_\\_"}>;
+
+/* Establish that negation has higher precedence than other logical
+ * operators.
+ */
+Grammatical restriction {"¬_", "`!_", "not_"} is
+	<{"¬_", "`!_", "not_", "_∧_", "_&&_", "_and_", "_∨_", "_`|`|_", "_or_"}>;
+
+/* Establish that equality and inequality are left associative. */
+Grammatical restriction {"_=_", "_is_", "_≠_", "_is not_", "_isn't_"} is
+	<∅, {"_=_", "_is_", "_≠_", "_is not_", "_isn't_"}>;
+
+/* Prefer "(x) is not (y)" to "x is (not y)". */
+Grammatical restriction {"_is_"} is <∅, {"not_"}>;

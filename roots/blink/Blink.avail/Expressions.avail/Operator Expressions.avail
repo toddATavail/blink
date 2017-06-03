@@ -43,7 +43,10 @@ Names
 	"(Blink)_<_",
 	"(Blink)_≤_",
 	"(Blink)_≥_",
-	"(Blink)_>_"
+	"(Blink)_>_",
+
+	/* Tuple operators. */
+	"(Blink)`|_`|"
 Body
 
 /******************************************************************************
@@ -250,8 +253,18 @@ Operator "_∨_" <boolean, boolean> is boolean;
  ******************************************************************************/
 
 Operator "_=_" <integer, integer> is boolean;
+Operator "_=_" <boolean, boolean> is boolean;
+Operator "_=_" <atom, atom> is boolean;
 Operator "_≠_" <integer, integer> is boolean;
+Operator "_≠_" <boolean, boolean> is boolean;
+Operator "_≠_" <atom, atom> is boolean;
 Operator "_<_" <integer, integer> is boolean;
 Operator "_≤_" <integer, integer> is boolean;
 Operator "_≥_" <integer, integer> is boolean;
 Operator "_>_" <integer, integer> is boolean;
+
+/******************************************************************************
+ *                              Tuple operators.                              *
+ ******************************************************************************/
+
+Operator "`|_`|" <tuple> is whole number;

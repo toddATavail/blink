@@ -51,22 +51,20 @@ onIsolated(() => {
 });
 
 onJoinNeighbors((neighbors) => {
-    if (neighbors.any(n => n.state === "active"))
-    {
-        this.lifetime -= 5 * Time.SECOND;
-    }
-    else if (this.state === "active")
-    {
-        this.lifetime += (5 * neighbors.length * Time.SECOND);
-    }
+	this.lifetime = this.lifetime + (
+		neighbors.any(n => n.state === "active")
+			? (-(5 * Time.SECOND))
+			: ((this.state === "active")
+				? (5 * neighbors.length * Time.SECOND)
+				: (0 * Time.SECOND)));
 });
 
-whenTimer("lifetime", 10 * Time.SECOND, () => {
+whenTimerThreshold("lifetime", 10 * Time.SECOND, () => {
     this.light.frequency = 0.5 * Time.SECOND;
 });
 
 // probably just an alias for whenTimer(name, 0, fn)
 whenTimerExpires("lifetime", () => {
     this.light.mode = Light.modes.constant;
-    this.light.color = Color.brightness(Color.WHITE, 0.5);
+    this.light.color = Color.GRAY;
 });

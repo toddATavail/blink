@@ -16,7 +16,7 @@ Body
 "team" is [1..2].
 
 "initialize" is a signal.
-On boot, initialize.
+On boot, now initialize.
 To initialize:
 [
 	/* Note that "_:=_" is equivalent to "Change_to_", and "my_" is always
@@ -39,7 +39,7 @@ To initialize:
 ].
 
 "change sides" is a signal.
-On long click, change sides.
+On long click, now change sides.
 To change sides:
 [
 	/* This is modular arithmetic; wrap around is automatic. */
@@ -51,10 +51,8 @@ To change sides:
 
 "lifetime" is a timer.
 "begin play" is a signal.
-On triple click, begin play.
-/*
-When any dead neighbor becomes inactive, begin play.
-*/
+On triple click, now begin play.
+When any dead neighbor becomes inactive, now begin play.
 To begin play:
 [
 	Change my state to inactive.
@@ -64,13 +62,13 @@ To begin play:
 	Expire my lifetime in 60s.
 ].
 
-/*
 When I become isolated, change my state to active.
 
-/* Since I cannot command any other Blinks to do something — I can only
+/* Since I cannot command any other Blinks to do anything — I can only
  * advertise my own state and consider my neighbors' advertised states — I must
  * decide independently what to do based on what I know.
  */
+/*
 When I join any neighbors:
 [
 	/* It should be possible to give a name to the joined neighbors — maybe via
@@ -79,14 +77,15 @@ When I join any neighbors:
 	 */
 	Adjust my lifetime by
 		if any of these neighbors are active, -5s;
-		else, 5s × count of these neighbors.
+		else, if my state is active, 5s × count of these neighbors;
+		else, 0s.
 ].
+*/
 
-When my lifetime has 10s remaining, change my pulse duration to 500ms.
+When my lifetime has 10s remaining, change my pattern duration to 500ms.
 
 When my lifetime expires:
 [
 	Change my lighting mode to constant.
-	Change my color to 50% white.
+	Change my color to gray.
 ].
-*/

@@ -10,7 +10,11 @@ Uses
 	"Avail"
 Names
 	/* State enumeration statements. */
-	"(Blink)«_‡,and⁇»is|are a⁇public state|states."
+	"(Blink)«_‡,and⁇»is|are a⁇public state|states.",
+
+	/* Compiler support. */
+	"\"state\"",
+	"state type"
 Body
 
 /******************************************************************************
@@ -88,8 +92,20 @@ Public macro "(Blink)«_‡,and⁇»is|are a⁇public state|states." is
 		Reject parse, expected:
 			"state names to be unique"
 	];
+	stateEnum ::= enumeration of stateSet;
+	enumStmts ::=
+	<
+		/* Give this method an untypable name so that it doesn't pollute the
+		 * Blink program's namespace.
+		 */
+		send $"Method_is_" with
+		«<
+			‘$"\"state\""’,
+			«[<‘stateEnum’>] : stateEnum's type»
+		>» : ⊤ → statement phrase
+	>;
 	stateVar ::= a variable with
-		expression type ::= enumeration of stateSet,
+		expression type ::= stateEnum,
 		variable name ::= "state",
 		variable scope ::= global,
 		variable mutability ::= mutable;
@@ -106,6 +122,24 @@ Public macro "(Blink)«_‡,and⁇»is|are a⁇public state|states." is
 		declared states ::= stateTuple,
 		expression type ::= ⊤;
 	recordStmts ::= statement recorder for stateEnumExpr;
-	stmts ::= accessorStmts ++ varStmts ++ recordStmts;
+	stmts ::= accessorStmts ++ enumStmts ++ varStmts ++ recordStmts;
 	seq «stmts»
+];
+
+/******************************************************************************
+ *                             Compiler support.                              *
+ ******************************************************************************/
+
+/**
+ * Answer the type of the generated standard state variable {@code "state"}.
+ * This macro can only be invoked after a {@type "state enumeration statement"}
+ * has been parsed, and should be used by the compiler to restrict the values
+ * passed to generic macros that must work with the generated state type.
+ *
+ * @macro "state type"
+ * @returns "send phrase ⇒ atom's type"
+ */
+Public macro "state type" is
+[
+	send $"\"state\"" with «<>» : atom's type
 ];

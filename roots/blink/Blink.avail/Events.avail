@@ -21,7 +21,10 @@ Names
 		"software event",
 			"heartbeat",
 			"neighborhood occupancy changed",
+			"isolated",
+			"state changed",
 			"neighborhood state changed",
+			"timer threshold",
 			"timer expired"
 Body
 
@@ -132,6 +135,24 @@ Public "heartbeat" is a new atom;
 Public "neighborhood occupancy changed" is a new atom;
 
 /**
+ * An {@type "atom"} that denotes that a Blink has become isolated from all
+ * other Blinks.
+ *
+ * @method "isolated"
+ * @returns "atom"
+ */
+Public "isolated" is a new atom;
+
+/**
+ * An {@type "atom"} that denotes that a Blink's own {@code "state"} variable
+ * has changed its value.
+ *
+ * @method "state changed"
+ * @returns "atom"
+ */
+Public "state changed" is a new atom;
+
+/**
  * An {@type "atom"} that denotes that neighbors have changed their logical
  * state, i.e., the value of their program-specific {@code "state"} variable.
  *
@@ -139,6 +160,15 @@ Public "neighborhood occupancy changed" is a new atom;
  * @returns "atom"
  */
 Public "neighborhood state changed" is a new atom;
+
+/**
+ * An {@type "atom"} that denotes that a timer has reached (or crossed) a
+ * timing threshold.
+ *
+ * @method "timer threshold"
+ * @returns "atom"
+ */
+Public "timer threshold" is a new atom;
 
 /**
  * An {@type "atom"} that denotes that a timer has expired.
@@ -160,7 +190,10 @@ Public macro "software event" is
 	‘{
 		heartbeat,
 		neighborhood occupancy changed,
+		isolated,
+		state changed,
 		neighborhood state changed,
+		timer threshold,
 		timer expired
 	}ᵀ’
 ];
@@ -188,7 +221,10 @@ Public macro "event" is
 		long click,
 		heartbeat,
 		neighborhood occupancy changed,
+		isolated,
+		state changed,
 		neighborhood state changed,
+		timer threshold,
 		timer expired
 	}ᵀ’
 ];

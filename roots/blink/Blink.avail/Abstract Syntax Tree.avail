@@ -50,7 +50,7 @@ Names
 	"signal",
 		"signal name",
 			/*"_'s⁇name",*/
-	
+
 	/* Timers. */
 	"timer",
 		"timer name",
@@ -77,16 +77,35 @@ Names
 			"_'s⁇states",
 
 	/* Handler statements. */
-	"hardware event handler statement",
+	"event handler statement",
 		"handled event",
 			"_'s⁇event",
-		"fired signal",
-			/*"_'s⁇signal",*/
-	"software event handler statement",
-		/*"handled event",*/
-			/*"_'s⁇event",*/
 		"handler block",
 			"_'s⁇block",
+	"state changed event handler statement",
+		"previous state",
+			"_'s⁇previous state",
+		"next state",
+			"_'s⁇next state",
+		/*"handler block",*/
+			/*"_'s⁇block",*/
+	"neighborhood state changed event handler statement",
+		/*"previous state",*/
+			/*"_'s⁇previous state",*/
+		/*"next state",*/
+			/*"_'s⁇next state",*/
+		/*"handler block",*/
+			/*"_'s⁇block",*/
+	"timer threshold event handler statement",
+		"handled timer",
+			/*"_'s⁇timer",*/
+		"declared timer threshold",
+			"_'s⁇threshold",
+	"timer expired event handler statement",
+		/*"handled timer",*/
+			/*"_'s⁇timer",*/
+		/*"handler block",*/
+			/*"_'s⁇block",*/
 	"signal handler statement",
 		"handled signal",
 			/*"_'s⁇signal",*/
@@ -126,6 +145,11 @@ Names
 		"expression operands",
 			"_'s⁇operands",
 	"_'s⁇arity",
+
+	/* Signal expressions. */
+	"fire signal statement",
+		"fired signal",
+			/*"_'s⁇signal",*/
 
 	/* Timer expressions. */
 	"timer query expression",
@@ -611,6 +635,7 @@ Public class "signal" extends abstract expression
 
 Public method "_'s⁇subexpressions" is [sig : signal | <>];
 
+
 /******************************************************************************
  *                                 Timers.                                    *
  ******************************************************************************/
@@ -813,84 +838,175 @@ Public method "_'s⁇subexpressions" is [expr : block expression | expr's body];
  ******************************************************************************/
 
 Public "handled event" is a new field atom;
-Public "fired signal" is a new field atom;
-
-/**
- * A {@type "hardware event handler statement"} establishes that a particular
- * {@type "hardware event"} will fire a specific {@type "signal"}.
- *
- * @type "hardware event handler statement"
- * @supertype "abstract statement"
- * @field "statement scope" "global's type"
- *        A {@type "hardware event handler statement"} is always {@type
- *        "global"}.
- * @field "handled event" "hardware event"
- *        The {@type "hardware event"} handled by the {@type
- *        "hardware event handler statement"}.
- * @field "fired signal" "signal"
- *        The {@type "signal"} that is automatically fired upon receipt of the
- *        {@type "hardware event"}.
- */
-Public class "hardware event handler statement" extends abstract statement
-	with field
-		public statement scope : global's type ("_'s⁇scope"),
-		public handled event : hardware event ("_'s⁇event"),
-		public fired signal : signal ("_'s⁇signal");
-
-Public method "_'s⁇subexpressions" is
-	[expr : hardware event handler statement | <>];
-
-Method "“_”" is
-[
-	stmt : hardware event handler statement
-|
-	try
-	[
-		format "‘①’ (‘②’ → ‘③’)" with
-			(a|an) “stmt's type's names→tuple[1]”,
-			stmt's event's name,
-			stmt's signal's name
-	]
-	else [“(stmt :: any)”]
-];
-
 Public "handler block" is a new field atom;
 
 /**
- * A {@type "software event handler statement"} establishes that a particular
- * {@type "software event"} will execute a specific {@type "block expression"
- * block of code}.
+ * An {@type "event handler statement"} establishes that a particular {@type
+ * "event"} will execute a specific {@type "block expression" block of code}.
  *
- * @type "software event handler statement"
+ * @type "event handler statement"
  * @supertype "abstract statement"
  * @field "statement scope" "global's type"
- *        A {@type "software event handler statement"} is always {@type
- *        "global"}.
- * @field "handled event" "software event"
- *        The {@type "software event"} handled by the {@type
- *        "software event handler statement"}.
+ *        An {@type "event handler statement"} is always {@type "global"}.
+ * @field "handled event" "event"
+ *        The {@type "event"} handled by the {@type "event handler statement"}.
  * @field "handler block" "block expression"
  *        The {@type "block expression" block of code} that implements the logic
- *        of the {@type "software event handler statement"}.
+ *        of the {@type "event handler statement"}.
  */
-Public class "software event handler statement" extends abstract statement
+Public class "event handler statement" extends abstract statement
 	with field
 		public statement scope : global's type ("_'s⁇scope"),
-		public handled event : software event ("_'s⁇event"),
+		public handled event : event ("_'s⁇event"),
 		public handler block : block expression ("_'s⁇block");
 
 Public method "_'s⁇subexpressions" is
-	[stmt : software event handler statement | <stmt's block>];
+	[expr : event handler statement | <>];
 
 Method "“_”" is
 [
-	stmt : software event handler statement
+	stmt : event handler statement
 |
 	try
 	[
 		format "‘①’ (‘②’)" with
 			(a|an) “stmt's type's names→tuple[1]”,
 			stmt's event's name
+	]
+	else [“(stmt :: any)”]
+];
+
+Public "previous state" is a new field atom;
+Public "next state" is a new field atom;
+
+/**
+ * A {@type "state changed event handler statement"} establishes how to handle a
+ * transition of a Blink's own {@code "state"} variable.
+ *
+ * @type "state changed event handler statement"
+ * @supertype "event handler statement"
+ * @field "handled event" "state changed's type"
+ * @field "previous state" "atom"
+ *        The state being transitioned away from.
+ * @field "next state" "atom"
+ *        The state being transitioned to.
+ */
+Public class "state changed event handler statement"
+	extends event handler statement
+	with fields
+		public handled event : state changed's type ("_'s⁇event"),
+		public previous state : atom,
+		public next state : atom;
+
+Method "“_”" is
+[
+	stmt : state changed event handler statement
+|
+	try
+	[
+		format "‘①’ (‘②’ → ‘③’)" with
+			(a|an) “stmt's type's names→tuple[1]”,
+			stmt's previous state's name,
+			stmt's next state's name
+	]
+	else [“(stmt :: any)”]
+];
+
+/**
+ * A {@type "neighborhood state changed event handler statement"} establishes
+ * how to handle a transition of the {@code "state"} variable of one or more
+ * neighboring Blinks.
+ *
+ * @type "neighborhood state changed event handler statement"
+ * @supertype "event handler statement"
+ * @field "handled event" "neighborhood state changed's type"
+ * @field "previous state" "atom"
+ *        The state being transitioned away from.
+ * @field "next state" "atom"
+ *        The state being transitioned to.
+ */
+Public class "neighborhood state changed event handler statement"
+	extends event handler statement
+	with fields
+		public handled event : neighborhood state changed's type ("_'s⁇event"),
+		public previous state : atom,
+		public next state : atom;
+
+Method "“_”" is
+[
+	stmt : neighborhood state changed event handler statement
+|
+	try
+	[
+		format "‘①’ (‘②’ → ‘③’)" with
+			(a|an) “stmt's type's names→tuple[1]”,
+			stmt's previous state's name,
+			stmt's next state's name
+	]
+	else [“(stmt :: any)”]
+];
+
+Public "handled timer" is a new field atom;
+Public "declared timer threshold" is a new field atom;
+
+/**
+ * A {@type "timer threshold event handler statement"} establishes how to handle
+ * a {@type "timer"} reaching a particular threshold of time remaining.
+ *
+ * @type "timer threshold event handler statement"
+ * @supertype "event handler statement"
+ * @field "handled event" "timer threshold's type"
+ * @field "handled timer" "timer"
+ *        The {@type "timer"}.
+ * @field "declared timer threshold" "whole number ms"
+ *        The threshold of time remaining.
+ */
+Public class "timer threshold event handler statement"
+	extends event handler statement
+	with fields
+		public handled event : timer threshold's type ("_'s⁇event"),
+		public handled timer : timer ("_'s⁇timer"),
+		public declared timer threshold : whole number ms ("_'s⁇threshold");
+
+Method "“_”" is
+[
+	stmt : timer threshold event handler statement
+|
+	try
+	[
+		format "‘①’ (‘②’ : “③”)" with
+			(a|an) “stmt's type's names→tuple[1]”,
+			stmt's timer's name,
+			stmt's threshold
+	]
+	else [“(stmt :: any)”]
+];
+
+/**
+ * A {@type "timer expired event handler statement"} establishes how to handle
+ * the expiration of a particular {@type "timer"}.
+ *
+ * @type "timer expired event handler statement"
+ * @supertype "event handler statement"
+ * @field "handled event" "timer expired's type"
+ * @field "handled timer" "timer"
+ *        The expired {@type "timer"}.
+ */
+Public class "timer expired event handler statement"
+	extends event handler statement
+	with fields
+		public handled event : timer expired's type ("_'s⁇event"),
+		public handled timer : timer ("_'s⁇timer");
+
+Method "“_”" is
+[
+	stmt : timer expired event handler statement
+|
+	try
+	[
+		format "‘①’ (‘②’)" with
+			(a|an) “stmt's type's names→tuple[1]”,
+			stmt's timer's name
 	]
 	else [“(stmt :: any)”]
 ];
@@ -1091,6 +1207,29 @@ Public method "_'s⁇subexpressions" is
 ];
 
 /******************************************************************************
+ *                            Signal expressions.                             *
+ ******************************************************************************/
+
+Public "fired signal" is a new field atom;
+
+/**
+ * A {@type "fire signal statement"} causes a {@type "signal"} to be fired and
+ * therefore subsequently handled by an applicable handler.
+ *
+ * @type "fire signal statement"
+ * @supertype "abstract statement"
+ * @field "statement scope" "local's type"
+ * @field "fired signal" "signal"
+ *        The {@type "signal"} to fire.
+ */
+Public class "fire signal statement" extends abstract statement
+	with field
+		public statement scope : local's type ("_'s⁇scope"),
+		public fired signal : signal ("_'s⁇signal");
+
+Public method "_'s⁇subexpressions" is [stmt : fire signal statement | <>];
+
+/******************************************************************************
  *                             Timer expressions.                             *
  ******************************************************************************/
 
@@ -1196,13 +1335,41 @@ programAccumulator : program := <>;
 Public read-only variable programAccumulator is "program accumulator";
 
 /**
- * The handled {@type "hardware event"}s. Registration of {@type
- * "hardware events"} supports uniqueness of handlers, permitting the compiler
- * to reject attempts to define conflicting handlers.
+ * The handled {@type "event"}s. Registration of {@type "events"} supports
+ * uniqueness of handlers, permitting the compiler to reject attempts to define
+ * conflicting handlers.
  *
- * @global "handledHardwareEvents" "{hardware event|}"
+ * @global "handledEvents" "{event|}"
  */
-handledHardwareEvents : {hardware event|} := ∅;
+handledEvents : {event|} := ∅;
+
+/**
+ * The handled {@type "state changed"} {@type "event"}s. Registration of these
+ * events supports uniqueness of handlers, permitting the compiler to reject
+ * attempts to define conflicting handlers.
+ */
+handledStateChangeEvents : {<atom…|2>|} := ∅;
+
+/**
+ * The handled {@type "neighborhood state changed"} {@type "event"}s.
+ * Registration of these events supports uniqueness of handlers, permitting the
+ * compiler to reject attempts to define conflicting handlers.
+ */
+handledNeighborhoodStateChangeEvents : {<atom…|2>|} := ∅;
+
+/**
+ * The handled {@type "timer expired"} {@type "event"}s. Registration of these
+ * events supports uniqueness of handlers, permitting the compiler to reject
+ * attempts to define conflicting handlers.
+ */
+handledTimerExpirationEvents : {timer|} := ∅;
+
+/**
+ * The handled {@type "timer threshold"} {@type "event"}s. Registration of these
+ * events supports uniqueness of handlers, permitting the compiler to reject
+ * attempts to define conflicting handlers.
+ */
+handledTimerThresholdEvents : {<timer, whole number ms…|2>|} := ∅;
 
 /**
  * The handled {@type "signal"}s. Registration of {@type "signal"}s supports
@@ -1230,24 +1397,95 @@ Private method "Record module_" is
 	After the current module is unloaded, do
 	[
 		programAccumulator := <>;
-		handledHardwareEvents := ∅;
+		handledEvents := ∅;
+		handledStateChangeEvents := ∅;
+		handledNeighborhoodStateChangeEvents := ∅;
+		handledTimerThresholdEvents := ∅;
+		handledTimerExpirationEvents := ∅;
 		handledSignals := ∅;
 		Clear programModule;
 	];
 ];
 
 /**
- * Register that a handler exists for the specified {@type "hardware event"}.
+ * Register that a handler exists for the specified {@type "event"}.
  *
- * @method "Register hardware event handler for_"
- * @param "ev" "hardware event"
+ * @method "Register event handler for_"
+ * @param "ev" "event"
  * @returns "⊤"
  */
-Private method "Register hardware event handler for_" is
+Private method "Register event handler for_" is
 [
-	ev : hardware event
+	ev : event
 |
-	handledHardwareEvents := handledHardwareEvents + ev;
+	handledEvents := handledEvents + ev;
+];
+
+/**
+ * Register that a handler exists for personal transitions from one state to
+ * another.
+ *
+ * @method "Register state changed from_to_handler"
+ * @param "old" "atom"
+ * @param "new" "atom"
+ * @returns "⊤"
+ */
+Private method "Register state changed from_to_handler" is
+[
+	old : atom,
+	new : atom
+|
+	handledStateChangeEvents := handledStateChangeEvents + <old, new>;
+];
+
+/**
+ * Register that a handler exists for neighborhood transitions from one state to
+ * another.
+ *
+ * @method "Register neighborhood state changed from_to_handler"
+ * @param "old" "atom"
+ * @param "new" "atom"
+ * @returns "⊤"
+ */
+Private method "Register neighborhood state changed from_to_handler" is
+[
+	old : atom,
+	new : atom
+|
+	handledNeighborhoodStateChangeEvents :=
+		handledNeighborhoodStateChangeEvents + <old, new>;
+];
+
+/**
+ * Register that a handler exists for the specified {@type "timer"} reaching a
+ * particular threshold.
+ *
+ * @method "Register timer threshold handler for_at_"
+ * @param "t" "timer"
+ * @param "th" "whole number ms"
+ * @returns "⊤"
+ */
+Private method "Register timer threshold handler for_at_" is
+[
+	t : timer,
+	th : whole number ms
+|
+	handledTimerThresholdEvents := handledTimerThresholdEvents + <t, th>;
+];
+
+/**
+ * Register that a handler exists for the expiration of the specified {@type
+ * "timer"}.
+ *
+ * @method "Register timer expiration handler for_"
+ * @param "t" "timer"
+ * @returns "⊤"
+ */
+Private method "Register timer expiration handler for_" is
+[
+	t : timer
+|
+	handledTimerExpirationEvents := handledTimerExpirationEvents + t;
 ];
 
 /**
@@ -1313,20 +1551,102 @@ Public method "statement recorder for_" is
 	];
 	Cast expr into
 	[
-		h : hardware event handler statement
+		h : state changed event handler statement
 	|
-		ev ::= h's event;
-		If h's event ∈ handledHardwareEvents then
+		old ::= h's previous state;
+		new ::= h's next state;
+		If <old, new> ∈ handledStateChangeEvents then
 		[
 			Reject parse, expected:
 				format
-					"each hardware event handler to be unique (but there is \
-					\|already a handler for ‘①’)"
+					"each state changed event handler to be unique (but there \
+					\|is already a handler for ‘①’ → ‘②’)"
+				with
+					old's name,
+					new's name
+		];
+		stmts ++=
+			<send $"Register state changed from_to_handler"
+				with «<‘old’, ‘new’>» : ⊤ → statement phrase>;
+	]
+	else [/* Nothing. */];
+	Cast expr into
+	[
+		h : neighborhood state changed event handler statement
+	|
+		old ::= h's previous state;
+		new ::= h's next state;
+		If <old, new> ∈ handledNeighborhoodStateChangeEvents then
+		[
+			Reject parse, expected:
+				format
+					"each neighborhood state changed event handler to be \
+					\|unique (but there is already a handler for ‘①’ → ‘②’)"
+				with
+					old's name,
+					new's name
+		];
+		stmts ++=
+			<send $"Register neighborhood state changed from_to_handler"
+				with «<‘old’, ‘new’>» : ⊤ → statement phrase>;
+	]
+	else [/* Nothing. */];
+	Cast expr into
+	[
+		h : timer threshold event handler statement
+	|
+		t ::= h's timer;
+		th ::= h's threshold;
+		If <t, th> ∈ handledTimerThresholdEvents then
+		[
+			Reject parse, expected:
+				format
+					"each timer theshold handler to be unique (but there \
+					\|is already a handler for ‘①’ at “②”)"
+				with
+					t's name,
+					th
+		];
+		stmts ++=
+			<send $"Register timer threshold handler for_at_"
+				with «<‘t’, ‘th’>» : ⊤ → statement phrase>;
+	]
+	else [/* Nothing. */];
+	Cast expr into
+	[
+		h : timer expired event handler statement
+	|
+		t ::= h's timer;
+		If t ∈ handledTimerExpirationEvents then
+		[
+			Reject parse, expected:
+				format
+					"each timer expiration handler to be unique (but there \
+					\|is already a handler for ‘①’)"
+				with
+					t's name
+		];
+		stmts ++=
+			<send $"Register timer expiration handler for_"
+				with «<‘t’>» : ⊤ → statement phrase>;
+	]
+	else [/* Nothing. */];
+	Cast expr into
+	[
+		h : event handler statement
+	|
+		ev ::= h's event;
+		If h's event ∈ handledEvents then
+		[
+			Reject parse, expected:
+				format
+					"each event handler to be unique (but there is already a \
+					\|handler for ‘①’)"
 				with
 					ev's name
 		];
 		stmts ++=
-			<send $"Register hardware event handler for_"
+			<send $"Register event handler for_"
 				with «<‘ev’>» : ⊤ → statement phrase>;
 	]
 	else [/* Nothing. */];

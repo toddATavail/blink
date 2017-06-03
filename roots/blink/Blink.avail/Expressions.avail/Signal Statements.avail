@@ -10,7 +10,10 @@ Uses
 	"Avail"
 Names
 	/* Signal declaration statements. */
-	"(Blink)_is a signal."
+	"(Blink)_is a signal.",
+
+	/* Fire signal statements. */
+	"(Blink)Now|now_"
 Body
 
 /******************************************************************************
@@ -46,4 +49,25 @@ Public macro "(Blink)_is a signal." is
 	recordStmts ::= statement recorder for sigDeclExpr;
 	stmts ::= sigStmts ++ recordStmts;
 	seq «stmts»
+];
+
+/******************************************************************************
+ *                          Fire signal statements.                           *
+ ******************************************************************************/
+
+/**
+ * Construct a {@type "fire signal statement"} for the specified {@type
+ * "signal"}.
+ *
+ * @macro "(Blink)Now|now_"
+ * @param "sigPhrase" "expression phrase ⇒ signal"
+ * @returns "literal phrase ⇒ fire signal statement"
+ */
+Public macro "(Blink)Now|now_" is
+[
+	sigPhrase : expression phrase ⇒ signal
+|
+	‘a fire signal statement with
+		expression type ::= ⊤,
+		fired signal ::= evaluate sigPhrase’
 ];

@@ -8,10 +8,32 @@ Module "Handler Statements"
 Uses
 	"Abstract Syntax Tree",
 	"Avail",
-	"Events"
+	"Dimensional Analysis" = ("__", "ms"),
+	"Events",
+	"State Enumeration Statements" = ("state type")
 Names
 	/* Event handler statements. */
 	"(Blink)On_,_.",
+
+	/* State changed handler statements. */
+	"(Blink)When I change from_§to_§,_.",
+	"(Blink)When I change from_§to_§:_.",
+
+	/* Neighbor state changed handler statements. */
+	"(Blink)When any_§neighbor becomes_§,_.",
+	"(Blink)When any_§neighbor becomes_§:_.",
+
+	/* Isolation handler statements. */
+	"(Blink)When I become isolated,_.",
+	"(Blink)When I become isolated:_.",
+
+	/* Timer threshold event handler statements. */
+	"(Blink)When_has_remaining,_.",
+	"(Blink)When_has_remaining:_.",
+
+	/* Timer expired event handler statements. */
+	"(Blink)When_expires,_.",
+	"(Blink)When_expires:_.",
 
 	/* Signal handler statements. */
 	"(Blink)To_,_.",
@@ -23,26 +45,450 @@ Body
  ******************************************************************************/
 
 /**
- * Declare an event handler that translates a {@type "hardware event"} into a
+ * Declare an event handler that translates an {@type "event"} into a
  * {@type "signal"}.
  *
  * @macro "(Blink)On_,_."
  * @param "evPhrase" "expression phrase ⇒ hardware event"
- * @param "sigPhrase" "expression phrase ⇒ signal"
+ * @param "stmtPhrase" "expression phrase ⇒ fire signal statement"
  * @returns "sequence phrase"
  */
 Public macro "(Blink)On_,_." is
 [
 	evPhrase : expression phrase ⇒ hardware event,
-	sigPhrase : expression phrase ⇒ signal
+	stmtPhrase : expression phrase ⇒ fire signal statement
 |
 	ev ::= evaluate evPhrase;
-	sig ::= evaluate sigPhrase;
-	handlerDeclExpr ::= a hardware event handler statement with
+	stmt ::= evaluate stmtPhrase;
+	handlerDeclExpr ::= an event handler statement with
 		expression type ::= ⊤,
 		handled event ::= ev,
-		fired signal ::= sig;
+		handler block ::= a block expression with
+			expression type ::= ⊤,
+			block body ::= <stmt>;
 	stmts ::= statement recorder for handlerDeclExpr;
+	seq «stmts»
+];
+
+/******************************************************************************
+ *                     State changed handler statements.                      *
+ ******************************************************************************/
+
+/**
+ * Declare a {@type "state changed event handler statement" state changed event
+ * handler} for transitions from {@param "oldPhrase" one state} to {@param
+ * "newPhrase" another}.
+ *
+ * @macro "(Blink)When I change from_§to_§,_."
+ * @param "oldPhrase" "expression phrase ⇒ (atom literal)"
+ * @param "newPhrase" "expression phrase ⇒ (atom literal)"
+ * @param "stmtPhrase" "expression phrase ⇒ abstract statement"
+ * @returns "sequence phrase"
+ */
+Public macro "(Blink)When I change from_§to_§,_." is
+[
+	oldPhrase : expression phrase ⇒ (atom literal)
+|
+	old ::= evaluate oldPhrase's value;
+	stateType ::= state type;
+	If ¬old ∈ state type then
+	[
+		Reject parse, expected:
+			format
+				"\"from\" argument of state changed handler to be a declared \
+				\|state (but ‘①’ isn't among ‘②’)"
+			with
+				old's name,
+				“map each x of stateType's instances through [x's name]”
+					(as disjunctive list with serial comma)
+	];
+],
+[
+	oldPhrase : expression phrase ⇒ (atom literal),
+	newPhrase : expression phrase ⇒ (atom literal)
+|
+	new ::= evaluate newPhrase's value;
+	stateType ::= state type;
+	If ¬new ∈ stateType then
+	[
+		Reject parse, expected:
+			format
+				"\"to\" argument of state changed handler to be a declared \
+				\|state (but ‘①’ isn't among ‘②’)"
+			with
+				new's name,
+				“map each x of stateType's instances through [x's name]”
+					(as disjunctive list with serial comma)
+	];
+],
+[
+	oldPhrase : expression phrase ⇒ (atom literal),
+	newPhrase : expression phrase ⇒ (atom literal),
+	stmtPhrase : expression phrase ⇒ abstract statement
+|
+	old ::= evaluate oldPhrase's value;
+	new ::= evaluate newPhrase's value;
+	stmt ::= evaluate stmtPhrase;
+	evDeclExpr ::= a state changed event handler statement with
+		expression type ::= ⊤,
+		previous state ::= old,
+		next state ::= new,
+		handler block ::= a block expression with
+			expression type ::= ⊤,
+			block body ::= <stmt>;
+	stmts ::= statement recorder for evDeclExpr;
+	seq «stmts»
+];
+
+/**
+ * Declare a {@type "state changed event handler statement" state changed event
+ * handler} for transitions from {@param "oldPhrase" one state} to {@param
+ * "newPhrase" another}.
+ *
+ * @macro "(Blink)When I change from_§to_§:_."
+ * @param "oldPhrase" "expression phrase ⇒ (atom literal)"
+ * @param "newPhrase" "expression phrase ⇒ (atom literal)"
+ * @param "blockPhrase" "expression phrase ⇒ block expression"
+ * @returns "sequence phrase"
+ */
+Public macro "(Blink)When I change from_§to_§:_." is
+[
+	oldPhrase : expression phrase ⇒ (atom literal)
+|
+	old ::= evaluate oldPhrase's value;
+	stateType ::= state type;
+	If ¬old ∈ state type then
+	[
+		Reject parse, expected:
+			format
+				"\"from\" argument of state changed handler to be a declared \
+				\|state (but ‘①’ isn't among ‘②’)"
+			with
+				old's name,
+				“map each x of stateType's instances through [x's name]”
+					(as disjunctive list with serial comma)
+	];
+],
+[
+	oldPhrase : expression phrase ⇒ (atom literal),
+	newPhrase : expression phrase ⇒ (atom literal)
+|
+	new ::= evaluate newPhrase's value;
+	stateType ::= state type;
+	If ¬new ∈ stateType then
+	[
+		Reject parse, expected:
+			format
+				"\"to\" argument of state changed handler to be a declared \
+				\|state (but ‘①’ isn't among ‘②’)"
+			with
+				new's name,
+				“map each x of stateType's instances through [x's name]”
+					(as disjunctive list with serial comma)
+	];
+],
+[
+	oldPhrase : expression phrase ⇒ (atom literal),
+	newPhrase : expression phrase ⇒ (atom literal),
+	blockPhrase : expression phrase ⇒ block expression
+|
+	old ::= evaluate oldPhrase's value;
+	new ::= evaluate newPhrase's value;
+	block ::= evaluate blockPhrase;
+	evDeclExpr ::= a state changed event handler statement with
+		expression type ::= ⊤,
+		previous state ::= old,
+		next state ::= new,
+		handler block ::= block;
+	stmts ::= statement recorder for evDeclExpr;
+	seq «stmts»
+];
+
+/******************************************************************************
+ *               Neighborhood state changed handler statements.               *
+ ******************************************************************************/
+
+/**
+ * Declare a {@type "neighborhood state changed event handler statement"
+ * neighborhood state changed event handler} for transitions from {@param
+ * "oldPhrase" one state} to {@param "newPhrase" another}.
+ *
+ * @macro "(Blink)When any_§neighbor becomes_§,_."
+ * @param "oldPhrase" "expression phrase ⇒ (atom literal)"
+ * @param "newPhrase" "expression phrase ⇒ (atom literal)"
+ * @param "stmtPhrase" "expression phrase ⇒ abstract statement"
+ * @returns "sequence phrase"
+ */
+Public macro "(Blink)When any_§neighbor becomes_§,_." is
+[
+	oldPhrase : expression phrase ⇒ (atom literal)
+|
+	old ::= evaluate oldPhrase's value;
+	stateType ::= state type;
+	If ¬old ∈ state type then
+	[
+		Reject parse, expected:
+			format
+				"\"from\" argument of neighborhood state changed handler to be \
+				\|a declared state (but ‘①’ isn't among ‘②’)"
+			with
+				old's name,
+				“map each x of stateType's instances through [x's name]”
+					(as disjunctive list with serial comma)
+	];
+],
+[
+	oldPhrase : expression phrase ⇒ (atom literal),
+	newPhrase : expression phrase ⇒ (atom literal)
+|
+	new ::= evaluate newPhrase's value;
+	stateType ::= state type;
+	If ¬new ∈ stateType then
+	[
+		Reject parse, expected:
+			format
+				"\"to\" argument of neighborhood state changed handler to be a \
+				\|declared state (but ‘①’ isn't among ‘②’)"
+			with
+				new's name,
+				“map each x of stateType's instances through [x's name]”
+					(as disjunctive list with serial comma)
+	];
+	/* TODO: [TLS] Make available a local variable for the changed neighbors. */
+],
+[
+	oldPhrase : expression phrase ⇒ (atom literal),
+	newPhrase : expression phrase ⇒ (atom literal),
+	stmtPhrase : expression phrase ⇒ abstract statement
+|
+	old ::= evaluate oldPhrase's value;
+	new ::= evaluate newPhrase's value;
+	stmt ::= evaluate stmtPhrase;
+	evDeclExpr ::= a neighborhood state changed event handler statement with
+		expression type ::= ⊤,
+		previous state ::= old,
+		next state ::= new,
+		handler block ::= a block expression with
+			expression type ::= ⊤,
+			block body ::= <stmt>;
+	stmts ::= statement recorder for evDeclExpr;
+	seq «stmts»
+];
+
+/**
+ * Declare a {@type "neighborhood state changed event handler statement"
+ * neighborhood state changed event handler} for transitions from {@param
+ * "oldPhrase" one state} to {@param "newPhrase" another}.
+ *
+ * @macro "(Blink)When any_§neighbor becomes_§:_."
+ * @param "oldPhrase" "expression phrase ⇒ (atom literal)"
+ * @param "newPhrase" "expression phrase ⇒ (atom literal)"
+ * @param "blockPhrase" "expression phrase ⇒ block expression"
+ * @returns "sequence phrase"
+ */
+Public macro "(Blink)When any_§neighbor becomes_§:_." is
+[
+	oldPhrase : expression phrase ⇒ (atom literal)
+|
+	old ::= evaluate oldPhrase's value;
+	stateType ::= state type;
+	If ¬old ∈ state type then
+	[
+		Reject parse, expected:
+			format
+				"\"from\" argument of neighborhood state changed handler to be \
+				\|a declared state (but ‘①’ isn't among ‘②’)"
+			with
+				old's name,
+				“map each x of stateType's instances through [x's name]”
+					(as disjunctive list with serial comma)
+	];
+],
+[
+	oldPhrase : expression phrase ⇒ (atom literal),
+	newPhrase : expression phrase ⇒ (atom literal)
+|
+	new ::= evaluate newPhrase's value;
+	stateType ::= state type;
+	If ¬new ∈ stateType then
+	[
+		Reject parse, expected:
+			format
+				"\"to\" argument of neighborhood state changed handler to be a \
+				\|declared state (but ‘①’ isn't among ‘②’)"
+			with
+				new's name,
+				“map each x of stateType's instances through [x's name]”
+					(as disjunctive list with serial comma)
+	];
+	/* TODO: [TLS] Make available a local variable for the changed neighbors. */
+],
+[
+	oldPhrase : expression phrase ⇒ (atom literal),
+	newPhrase : expression phrase ⇒ (atom literal),
+	blockPhrase : expression phrase ⇒ block expression
+|
+	old ::= evaluate oldPhrase's value;
+	new ::= evaluate newPhrase's value;
+	block ::= evaluate blockPhrase;
+	evDeclExpr ::= a neighborhood state changed event handler statement with
+		expression type ::= ⊤,
+		previous state ::= old,
+		next state ::= new,
+		handler block ::= block;
+	stmts ::= statement recorder for evDeclExpr;
+	seq «stmts»
+];
+
+/******************************************************************************
+ *                       Isolation handler statements.                        *
+ ******************************************************************************/
+
+/**
+ * Declare an {@method "isolated" isolation} {@type "event handler statement"
+ * event handler}.
+ *
+ * @macro "(Blink)When I become isolated,_."
+ * @param "stmtPhrase" "expression phrase ⇒ abstract statement"
+ * @returns "sequence phrase"
+ */
+Public macro "(Blink)When I become isolated,_." is
+[
+	stmtPhrase : expression phrase ⇒ abstract statement
+|
+	evDeclExpr ::= an event handler statement with
+		expression type ::= ⊤,
+		handled event ::= isolated,
+		handler block ::= a block expression with
+			expression type ::= ⊤,
+			block body ::= <evaluate stmtPhrase>;
+	stmts ::= statement recorder for evDeclExpr;
+	seq «stmts»
+];
+
+/**
+ * Declare an {@method "isolated" isolation} {@type "event handler statement"
+ * event handler}.
+ *
+ * @macro "(Blink)When I become isolated,_."
+ * @param "blockPhrase" "expression phrase ⇒ block expression"
+ * @returns "sequence phrase"
+ */
+Public macro "(Blink)When I become isolated:_." is
+[
+	blockPhrase : expression phrase ⇒ block expression
+|
+	evDeclExpr ::= an event handler statement with
+		expression type ::= ⊤,
+		handled event ::= isolated,
+		handler block ::= evaluate blockPhrase;
+	stmts ::= statement recorder for evDeclExpr;
+	seq «stmts»
+];
+
+/******************************************************************************
+ *                    Timer threshold handler statements.                     *
+ ******************************************************************************/
+
+/**
+ * Declare a {@method "timer threshold"} {@type
+ * "timer threshold event handler statement" event handler}.
+ *
+ * @macro "(Blink)When_has_remaining,_."
+ * @param "tPhrase" "expression phrase ⇒ timer"
+ * @param "thPhrase" "expression phrase ⇒ (whole number ms literal)"
+ * @param "stmtPhrase" "expression phrase ⇒ abstract statement"
+ * @returns "sequence phrase"
+ */
+Public macro "(Blink)When_has_remaining,_." is
+[
+	tPhrase : expression phrase ⇒ timer,
+	thPhrase : expression phrase ⇒ (whole number ms literal),
+	stmtPhrase : expression phrase ⇒ abstract statement
+|
+	tDeclExpr ::= a timer threshold event handler statement with
+		expression type ::= ⊤,
+		handled timer ::= evaluate tPhrase,
+		declared timer threshold ::= evaluate thPhrase's value,
+		handler block ::= a block expression with
+			expression type ::= ⊤,
+			block body ::= <evaluate stmtPhrase>;
+	stmts ::= statement recorder for tDeclExpr;
+	seq «stmts»
+];
+
+/**
+ * Declare a {@method "timer threshold"} {@type
+ * "timer threshold event handler statement" event handler}.
+ *
+ * @macro "(Blink)When_has_remaining:_."
+ * @param "tPhrase" "expression phrase ⇒ timer"
+ * @param "thPhrase" "expression phrase ⇒ (whole number ms literal)"
+ * @param "blockPhrase" "expression phrase ⇒ block expression"
+ * @returns "sequence phrase"
+ */
+Public macro "(Blink)When_has_remaining:_." is
+[
+	tPhrase : expression phrase ⇒ timer,
+	thPhrase : expression phrase ⇒ (whole number ms literal),
+	blockPhrase : expression phrase ⇒ block expression
+|
+	tDeclExpr ::= a timer threshold event handler statement with
+		expression type ::= ⊤,
+		handled timer ::= evaluate tPhrase,
+		declared timer threshold ::= evaluate thPhrase's value,
+		handler block ::= evaluate blockPhrase;
+	stmts ::= statement recorder for tDeclExpr;
+	seq «stmts»
+];
+
+/******************************************************************************
+ *                    Timer expiration handler statements.                    *
+ ******************************************************************************/
+
+/**
+ * Declare a {@method "timer expired"} {@type
+ * "timer expired event handler statement" event handler}.
+ *
+ * @macro "(Blink)When_expires,_."
+ * @param "tPhrase" "expression phrase ⇒ timer"
+ * @param "stmtPhrase" "expression phrase ⇒ abstract statement"
+ * @returns "sequence phrase"
+ */
+Public macro "(Blink)When_expires,_." is
+[
+	tPhrase : expression phrase ⇒ timer,
+	stmtPhrase : expression phrase ⇒ abstract statement
+|
+	tDeclExpr ::= a timer expired event handler statement with
+		expression type ::= ⊤,
+		handled timer ::= evaluate tPhrase,
+		handler block ::= a block expression with
+			expression type ::= ⊤,
+			block body ::= <evaluate stmtPhrase>;
+	stmts ::= statement recorder for tDeclExpr;
+	seq «stmts»
+];
+
+/**
+ * Declare a {@method "timer expired"} {@type
+ * "timer expired event handler statement" event handler}.
+ *
+ * @macro "(Blink)When_expires:_."
+ * @param "tPhrase" "expression phrase ⇒ timer"
+ * @param "blockPhrase" "expression phrase ⇒ block expression"
+ * @returns "sequence phrase"
+ */
+Public macro "(Blink)When_expires:_." is
+[
+	tPhrase : expression phrase ⇒ timer,
+	blockPhrase : expression phrase ⇒ block expression
+|
+	tDeclExpr ::= a timer expired event handler statement with
+		expression type ::= ⊤,
+		handled timer ::= evaluate tPhrase,
+		handler block ::= evaluate blockPhrase;
+	stmts ::= statement recorder for tDeclExpr;
 	seq «stmts»
 ];
 
