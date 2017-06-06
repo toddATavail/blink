@@ -43,6 +43,11 @@ function Blink (sideLength, snapgrid) {
     this.add(this.hex);
     this.add(this.light);
 
+    this.executor = new BlinkExecutor(this);
+    this.executor.setProgram("deviceOn(() => { alert('starting!'); console.log(this); });");
+    this.executor.turnOn();
+    console.info(this.executor);
+
     this.addEventListener("dragEnd", () => {
         const hexTarget = snapgrid.nearestHex(this.position);
         // console.log(hexTarget);
@@ -69,6 +74,7 @@ function HexCoordinates (side) {
     this.v_y = Math.sqrt(3) * side;
     this.ne_y = this.v_y / 2;
     this.ne_x = 3 * side / 2;
+    this.slots = {};
 }
 HexCoordinates.prototype = {
     constructor: HexCoordinates,
@@ -98,6 +104,24 @@ HexCoordinates.prototype = {
         );
         const i = distanceTo.indexOf(Math.min(...distanceTo));
         return possibles[i];
+    },
+    getIndex: function (vector) {
+        return vector.x + ":" + vector.y;
+    },
+    set: function (vector, item) {
+        this.slots[this.getIndex(vector)] = item;
+    },
+    get: function (vector) {
+        return this.slots[this.getIndex(vector)];
+    },
+    remove: function (vector) {
+        var i = this.getIndex(vector);
+        var result = this.slots[i];
+        delete this.slots[i];
+        return result;
+    },
+    move: function (vector1, vector2) {
+        this.set(vector2, this.remove(vector1));
     }
 }
 
