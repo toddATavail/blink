@@ -1,4 +1,7 @@
-
+var options = {
+    multiClickThreshold: 500,
+    longHoldDuration: 1500
+};
 
 function createBlinkGeometry (side, thickness, bevel) {
     thickness = thickness || (side / 4);
@@ -44,28 +47,73 @@ function Blink (sideLength, snapgrid) {
     this.add(this.light);
 
     this.executor = new BlinkExecutor(this);
-    this.executor.setProgram("deviceOn(() => { alert('starting!'); console.log(this); });");
+    this.executor.setProgram("onDoubleClick(() => { this.light.color = Color.NEON_GREEN; });");
     this.executor.turnOn();
     console.info(this.executor);
 
+    this.addEventListener("dragSelect", () => {
+        this.add(this.outline);
+    });
+    this.addEventListener("dragUnselect", () => {
+        this.remove(this.outline);
+    });
+
+    this.clickCount = 0;
+    this.clickTimer = null;
+    this.addEventListener("click", (clickEvent) => {
+        this.clickCount += 1;
+        if (this.clickTimer) {
+            clearTimeout(this.clickTimer);
+        }
+        if (clickEvent.duration > options.longHoldDuration) {
+            this.executor.dispatchEvent({type: "longClick"});
+            return;
+        }
+        this.clickTimer = setTimeout(() => {
+            console.log(this.clickCount, this.clickEvent());
+            this.executor.dispatchEvent(this.clickEvent());
+            this.clickCount = 0;
+            this.clickTimer = null;
+        }, options.multiClickThreshold);
+    });
+
+    this.addEventListener("drag", (dragEvent) => {
+        this.position.copy(dragEvent.position);
+        this.position.z = 0.2;
+    });
     this.addEventListener("dragEnd", () => {
         const hexTarget = snapgrid.nearestHex(this.position);
-        // console.log(hexTarget);
         const snapTarget = snapgrid.toPosition(hexTarget);
-        // console.log(snapTarget);
+
         this.position.x = snapTarget.x;
         this.position.y = snapTarget.y;
-        console.log(this.position);
+        this.position.z = 0;
+        // console.log(this.position);
     });
 }
 
 Blink.prototype = Object.assign( Object.create(THREE.Group.prototype), {
     constructor: Blink,
-    selectForDrag: function () {
-        this.add(this.outline);
+    clickEvent: function () {
+        switch (this.clickCount) {
+            case 0:
+                throw new Error("Click event with 0 clicks!");
+            case 1:
+                return {type: "singleClick"};
+            case 2:
+                return {type: "doubleClick"};
+            case 3:
+                return {type: "tripleClick"};
+            default:
+                return {type: "multiClick", count: this.clickCount};
+        }
     },
-    unselectForDrag: function () {
-        this.remove(this.outline);
+    render: function () {
+        if (this.executor.light instanceof LightInterface)
+        {
+            // this.light.color = this.executor.light.color;
+            this.hex.material.color = this.executor.light.color.clone().multiplyScalar(0.6);
+        }
     }
 });
 
@@ -197,16 +245,16 @@ var dragControls = new dragGroup(blinks.map(b => b.hex), draggingPlane, camera, 
 var ambient = new THREE.AmbientLight(0xf0f0f0, 0.5)
 scene.add( ambient );
 
-var options = {
+Object.assign(options, {
     resetCamera: cameraControls.reset,
-}
+});
 
 function initGUI () {
-    console.log(blinks[0]);
-        var gui = new dat.GUI({width: 512});
-        gui.add(ambient, 'intensity').min(0).max(1);
-        gui.add(options, 'resetCamera');
-        gui.addColor(blinks[0], 'color');
+    var gui = new dat.GUI({width: 512});
+    gui.add(ambient, 'intensity').min(0).max(1).name("Ambient light level");
+    gui.add(options, 'resetCamera').name("Reset camera position");
+    gui.add(options, "longHoldDuration").min(0).max(2000).name("Duration of long click (ms)");
+    gui.add(options, "multiClickThreshold").min(0).max(1000).name("Max double-/triple-click spacing (ms)");
 };
 
 function onWindowResize() {
@@ -219,6 +267,7 @@ window.addEventListener( 'resize', onWindowResize, false );
 
 var render = function () {
     requestAnimationFrame( render );
+    blinks.forEach(blink => blink.render());
     renderer.render(scene, camera);
 };
 

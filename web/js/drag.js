@@ -1,11 +1,21 @@
 "use strict";
 
+const DragState = {
+    None: 0,
+    FreePlay: 1,
+    Drag: 2
+}
+
+const FREE_PLAY_THRESHOLD = 0.05;
+
 function dragGroup(_targets, _plane, _camera, _domElement, _cameraControls) {
-    var dragging = false;
-    var draggedObjects = [];
-    var intersects = [];
-    // var enabled = true;
+    var state = DragState.None;
+    var selected = [];
+
+    var dragStartPosition;
+    var dragStartTime;
     var cachedCameraState;
+    // var enabled = true;
     
 	var mouse = new THREE.Vector2();
     function updateMouse (event) {
@@ -16,55 +26,82 @@ function dragGroup(_targets, _plane, _camera, _domElement, _cameraControls) {
 
     var raycaster = new THREE.Raycaster();
 
-    function onDocumentMouseMove(event) {
-        updateMouse(event);
-        raycaster.setFromCamera(mouse, _camera);
-        if (dragging)
-        {
-            draggedObjects.forEach((obj) => {
-                var moveTarget = raycaster.ray.intersectPlane(_plane);
-                if (moveTarget)
-                {
-                    obj.position.copy(moveTarget);
-                }
-            });
-        }
+    function deselectAll () {
+        selected.forEach(s => s.object.dispatchEvent({type: "dragUnselect"}));
+        selected = [];
     }
+
+    function select (target) {
+        selected.push({
+            object: target,
+            initial: target.position.clone()
+        });
+        target.dispatchEvent({type: "dragSelect"});
+    }
+
     function onDocumentMouseDown(event) {
         event.preventDefault();
+        updateMouse(event);
         raycaster.setFromCamera(mouse, _camera);
-        intersects = raycaster.intersectObjects(_targets);
-        console.log("found intersections:", intersects);
+        const intersectedObjects = raycaster.intersectObjects(_targets);
 
-        if (intersects.length > 0)
-        {
-            dragging = true;
-            var dragTarget = intersects[0].object;
-            while (dragTarget.dragParent && dragTarget.parent)
-            {
+        if (intersectedObjects.length > 0) {
+            var dragTarget = intersectedObjects[0].object;
+            while (dragTarget.dragParent && dragTarget.parent) {
                 dragTarget = dragTarget.parent;
             }
-            if (event.shiftKey)
-            {
-                draggedObjects.push(dragTarget);
+
+            var alreadySelected = !!selected.find(o => (o.object === dragTarget));
+            if (event.shiftKey) {
+                if (!alreadySelected) {
+                    select(dragTarget);
+                }
+            } else { // no shift key
+                if (!alreadySelected) {
+                    deselectAll();
+                    select(dragTarget);            
+                }
+                state = DragState.FreePlay;
+                dragStartPosition = raycaster.ray.intersectPlane(_plane);
+                dragStartTime = Date.now();
             }
-            else
-            {
-                draggedObjects.forEach((o) => o.unselectForDrag());
-                draggedObjects = [dragTarget];
-            }
-            dragTarget.selectForDrag();
             cachedCameraState = _cameraControls.enabled;
             _cameraControls.enabled = false;
+        } else { // no intersected blink
+            deselectAll();
+        }
+    }
+    function onDocumentMouseMove(event) {
+        if (state === DragState.None)
+        {
+            return;
+        }
+        updateMouse(event);
+        raycaster.setFromCamera(mouse, _camera);
+        var moveTarget = raycaster.ray.intersectPlane(_plane);
+        var delta = moveTarget.sub(dragStartPosition);
+        if (state === DragState.FreePlay) {
+            if (delta.length() > FREE_PLAY_THRESHOLD) {
+                state = DragState.Drag;
+            }
+        }
+        if (state === DragState.Drag) {
+            selected.forEach(s => {
+                s.object.dispatchEvent({type: "drag", position: s.initial.clone().add(delta)});
+            });
         }
     }
     function onDocumentMouseUp(event) {
         event.preventDefault();
-        dragging = false;
-        draggedObjects.forEach(
-            obj => obj.dispatchEvent({type: "dragEnd"}));
-        // draggedObjects.forEach((o) => o.unselectForDrag());
-        // draggedObjects = [];
+        if (state === DragState.FreePlay) {
+            selected.forEach(s => s.object.dispatchEvent(
+                {type: "click", duration: (Date.now() - dragStartTime)}
+            ));
+        } else if (state === DragState.Drag) {
+            selected.forEach(s => s.object.dispatchEvent({type: "dragEnd"}));
+            deselectAll();
+        }
+        state = DragState.None;
         _cameraControls.enabled = cachedCameraState;
     }
 
