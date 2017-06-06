@@ -26,45 +26,92 @@ function createBlinkGeometry (side, thickness, bevel) {
     );
 }
 
-function Blink (side) {
-    this.side = side;
-    this.geometry = createBlinkGeometry(side);
-    this.material = new THREE.MeshPhongMaterial( { color: 0x999999} );
-    this.mesh = new THREE.Mesh( this.geometry, this.material );
-    this.mesh.dragParent = true;
+function Blink (sideLength, snapgrid) {
+    THREE.Group.call(this);
+    const hexGeometry = createBlinkGeometry(sideLength);
+    const hexMaterial = new THREE.MeshPhongMaterial( {color: 0x999999} );
+    this.hex = new THREE.Mesh( hexGeometry, hexMaterial );
+    this.hex.dragParent = true;
+
+    const outlineMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.BackSide });
+    this.outline = new THREE.Mesh( hexGeometry, outlineMaterial );
+    this.outline.scale.multiplyScalar(1.05);
+
     this.light = new THREE.PointLight( 0xffffff, 0.5, 0, 2);
     this.light.position.z = 1;
-    this.group = new THREE.Group();
-    this.group.add(this.mesh);
-    this.group.add(this.light);
 
-    this.outlineMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.BackSide});
-    this.outlineMesh = new THREE.Mesh(this.geometry, this.outlineMaterial);
-    this.outlineMesh.scale.multiplyScalar(1.05);
+    this.add(this.hex);
+    this.add(this.light);
 
-    this.group.material = this.material;
-
-    Object.defineProperty(this.group, "color", {
-        get: () => {return this.material.color.getStyle()},
-        set: (c) => {console.log(c); this.material.color.setStyle(c)}
+    this.addEventListener("dragEnd", () => {
+        const hexTarget = snapgrid.nearestHex(this.position);
+        // console.log(hexTarget);
+        const snapTarget = snapgrid.toPosition(hexTarget);
+        // console.log(snapTarget);
+        this.position.x = snapTarget.x;
+        this.position.y = snapTarget.y;
+        console.log(this.position);
     });
-    this.group.mesh = this.mesh;
-
-    this.group.selectForDrag = () => this.group.add(this.outlineMesh);
-    this.group.unselectForDrag = () =>this.group.remove(this.outlineMesh);
-    
-    return this.group;
 }
+
+Blink.prototype = Object.assign( Object.create(THREE.Group.prototype), {
+    constructor: Blink,
+    selectForDrag: function () {
+        this.add(this.outline);
+    },
+    unselectForDrag: function () {
+        this.remove(this.outline);
+    }
+});
 
 function HexCoordinates (side) {
     side = side || 1;
     this.v_y = Math.sqrt(3) * side;
     this.ne_y = this.v_y / 2;
     this.ne_x = 3 * side / 2;
-    return {
-        toPosition : (v, ne) => new THREE.Vector2(ne * this.ne_x, v * this.v_y + ne * this.ne_y ),
-        fromPosition : () => {throw new Error("Unimplemented")}
+}
+HexCoordinates.prototype = {
+    constructor: HexCoordinates,
+    toPosition : function (vector) {
+        const v = vector.x;
+        const ne = vector.y;
+        return new THREE.Vector2(ne * this.ne_x, v * this.v_y + ne * this.ne_y )
+    },
+    fromPosition : function (vector) {
+        const ne = vector.x / this.ne_x;
+        const y = vector.y - ne * this.ne_y;
+        const v = y / this.v_y;
+        return new THREE.Vector2(v, ne);
+    },
+    nearestHex : function (vector) {
+        const hex = this.fromPosition(vector);
+        const v = hex.x;
+        const ne = hex.y;
+        const possibles = [
+            new THREE.Vector2(Math.floor(v), Math.floor(ne)),
+            new THREE.Vector2(Math.floor(v), Math.ceil(ne)),
+            new THREE.Vector2(Math.ceil(v),  Math.floor(ne)),
+            new THREE.Vector2(Math.ceil(v),  Math.ceil(ne))
+        ];
+        const distanceTo = possibles.map(
+            (hex) => truncateToXY(vector).distanceTo(this.toPosition(hex))
+        );
+        const i = distanceTo.indexOf(Math.min(...distanceTo));
+        return possibles[i];
     }
+}
+
+function truncateToXY (vector) {
+    if (vector instanceof THREE.Vector2)
+    {
+        return vector;
+    }
+    if (!(vector instanceof THREE.Vector3) && !(vector instanceof THREE.Vector4))
+    {
+        console.error(vector);
+        throw new Error("Can only truncate Vector3 or Vector4");
+    }
+    return new THREE.Vector2(vector.x, vector.y);
 }
 
 
@@ -94,14 +141,15 @@ var bColors = [
 ]
 
 var hexgrid = new HexCoordinates(1);
+console.log(hexgrid.nearestHex(new THREE.Vector2(0.2, 0.5)));
 
 for (let i = 0; i < 4; i++)
 {
     // var geometry = createBlinkGeometry(1);
     // var material = new THREE.MeshPhongMaterial( { color: bColors[i]} );
-    var blink = new Blink(1);
+    var blink = new Blink(1, hexgrid);
 
-    var p = hexgrid.toPosition((i > 1) * -1, i);
+    var p = hexgrid.toPosition(new THREE.Vector2((i > 1) * -1, i));
     blink.position.x = p.x;
     blink.position.y = p.y;
     blink.color = bColors[i];
@@ -118,7 +166,9 @@ scene.add( helper );
 var draggingPlane = new THREE.Plane();
 draggingPlane.setComponents(0, 0, 1, 0);
 
-var dragControls = new dragGroup(blinks.map(b => b.mesh), draggingPlane, camera, renderer.domElement, cameraControls);
+const dragTargets = blinks.map(b => b.hex);
+console.info(dragTargets);
+var dragControls = new dragGroup(blinks.map(b => b.hex), draggingPlane, camera, renderer.domElement, cameraControls);
 
 var ambient = new THREE.AmbientLight(0xf0f0f0, 0.5)
 scene.add( ambient );

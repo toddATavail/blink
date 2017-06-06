@@ -25,7 +25,6 @@ function dragGroup(_targets, _plane, _camera, _domElement, _cameraControls) {
                 var moveTarget = raycaster.ray.intersectPlane(_plane);
                 if (moveTarget)
                 {
-                    console.log(obj, obj.position);
                     obj.position.copy(moveTarget);
                 }
             });
@@ -62,6 +61,8 @@ function dragGroup(_targets, _plane, _camera, _domElement, _cameraControls) {
     function onDocumentMouseUp(event) {
         event.preventDefault();
         dragging = false;
+        draggedObjects.forEach(
+            obj => obj.dispatchEvent({type: "dragEnd"}));
         // draggedObjects.forEach((o) => o.unselectForDrag());
         // draggedObjects = [];
         _cameraControls.enabled = cachedCameraState;
