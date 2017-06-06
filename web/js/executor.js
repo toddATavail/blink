@@ -78,17 +78,15 @@ function BlinkExecutor (blink, initialProgram) {
 
     this._allowedStates = [];
     Object.defineProperty(this, "state", {
-        set: function (state) {
+        set: (state) => {
             if (this._allowedStates.indexOf(state) === -1)
             {
                 throw new Error("State " + state + " not one of the predefined states!");
             }
             this._state = state;
-            this.dispatchEvent({event: "stateChange"});
+            this.dispatchEvent({type: "stateChange", value: state});
         },
-        get: function () {
-            return this._state;
-        },
+        get: () => this._state,
         configurable: false
     });
 
@@ -123,7 +121,7 @@ BlinkExecutor.prototype = {
     },
     
     setProgram: function (program) {
-        // note that API functions must be callbacks here
+        // note that API functions must be anonymous functions here to bind correctly
         const signal = (signalName) => this.dispatchEvent({type: "signal", name: signalName});
         const signals = (signalNames) =>
             signalNames.forEach(
@@ -139,6 +137,11 @@ BlinkExecutor.prototype = {
         }
 
         const publicStates = (stateNames) => this._allowedStates = stateNames;
+        const advanceState = () => {
+            var i = this._allowedStates.indexOf(this.state);
+            i = (i + 1) % this._allowedStates.length;
+            this.state = this._allowedStates[i];
+        }
 
         const timer = (timerName) => {
             const mech = new BlinkTimer();
@@ -163,10 +166,15 @@ BlinkExecutor.prototype = {
         const onTripleClick = (cb) => this.addEventListener("tripleClick", cb);
         const onLongClick = (cb) => this.addEventListener("longClick", cb);
 
-        const UNIMPL = (name) => (() => console.info(name + " is not yet implemented!"));
+        const UNIMPL = (name) => (() => console.info(name + "() is not yet implemented!"));
         const rangedInteger = UNIMPL("rangedInteger");
         
         eval(program); // CAUTION
+
+        this.validateProgram();
+    },
+    validateProgram: function () {
+        // nothing for now
     }
 };
 

@@ -3,6 +3,15 @@ var options = {
     longHoldDuration: 1500
 };
 
+const DEFAULT_PROGRAM = `
+    publicStates(['green', 'purple']);
+    onDoubleClick(() => { 
+        console.log('double click');
+        advanceState();
+        this.light.color = (this.state === 'green') ? Color.NEON_GREEN : Color.PURPLE; 
+    });
+`; // TODO: use a loader
+
 function createBlinkGeometry (side, thickness, bevel) {
     thickness = thickness || (side / 4);
     bevel = bevel || 0.1;
@@ -46,8 +55,11 @@ function Blink (sideLength, snapgrid) {
     this.add(this.hex);
     this.add(this.light);
 
+    this.stateDebugText;
+    this.debugTextActivated = false;
+
     this.executor = new BlinkExecutor(this);
-    this.executor.setProgram("onDoubleClick(() => { this.light.color = Color.NEON_GREEN; });");
+    this.executor.setProgram(DEFAULT_PROGRAM);
     this.executor.turnOn();
     console.info(this.executor);
 
@@ -70,7 +82,6 @@ function Blink (sideLength, snapgrid) {
             return;
         }
         this.clickTimer = setTimeout(() => {
-            console.log(this.clickCount, this.clickEvent());
             this.executor.dispatchEvent(this.clickEvent());
             this.clickCount = 0;
             this.clickTimer = null;
@@ -90,6 +101,11 @@ function Blink (sideLength, snapgrid) {
         this.position.z = 0;
         // console.log(this.position);
     });
+
+    this.executor.addEventListener("stateChange", (e) => {
+        console.log(e);
+        this.writeDebugText(e.value);
+    })
 }
 
 Blink.prototype = Object.assign( Object.create(THREE.Group.prototype), {
@@ -114,8 +130,34 @@ Blink.prototype = Object.assign( Object.create(THREE.Group.prototype), {
             // this.light.color = this.executor.light.color;
             this.hex.material.color = this.executor.light.color.clone().multiplyScalar(0.6);
         }
+    },
+    writeDebugText: function (msg) {
+        if (droidFont === null) {
+            console.warn("Font not yet ready for text", msg);
+            return;
+        }
+        this.remove(this.stateDebugText);
+        var debugTextGeometry = new THREE.TextGeometry(msg, {
+            font: droidFont,
+            size: 0.2,
+            height: 0.1
+        });
+        this.stateDebugText = new THREE.Mesh( debugTextGeometry, new THREE.MeshBasicMaterial());
+        this.stateDebugText.position.z = 0.25;
+        debugTextGeometry.computeBoundingBox();
+        var textWidth = debugTextGeometry.boundingBox.max.x - debugTextGeometry.boundingBox.min.x
+        this.stateDebugText.position.x -= textWidth/2;
+        this.stateDebugText.position.y = -0.1;
+        this.add(this.stateDebugText);
     }
 });
+
+var droidFont = null;
+var loader = new THREE.FontLoader();
+loader.load(
+    'node_modules/three/examples/fonts/droid/droid_sans_mono_regular.typeface.json',
+    (font) => droidFont = font
+);
 
 function HexCoordinates (side) {
     side = side || 1;
@@ -239,7 +281,6 @@ var draggingPlane = new THREE.Plane();
 draggingPlane.setComponents(0, 0, 1, 0);
 
 const dragTargets = blinks.map(b => b.hex);
-console.info(dragTargets);
 var dragControls = new dragGroup(blinks.map(b => b.hex), draggingPlane, camera, renderer.domElement, cameraControls);
 
 var ambient = new THREE.AmbientLight(0xf0f0f0, 0.5)
