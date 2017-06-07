@@ -1,163 +1,56 @@
 var options = {
     multiClickThreshold: 500,
-    longHoldDuration: 1500
+    longHoldDuration: 1500,
+    debugTextActivated: false
 };
 
-const DEFAULT_PROGRAM = `
-    publicStates(['green', 'purple']);
-    onDoubleClick(() => { 
-        console.log('double click');
-        advanceState();
-        this.light.color = (this.state === 'green') ? Color.NEON_GREEN : Color.PURPLE; 
-    });
-`; // TODO: use a loader
-
-function createBlinkGeometry (side, thickness, bevel) {
-    thickness = thickness || (side / 4);
-    bevel = bevel || 0.1;
-    var r = side - bevel;
-    var shape = new THREE.Shape();
-    var angle = Math.PI / 3;
-    shape.moveTo( Math.cos(0) * r, Math.sin(0) * r );
-    shape.lineTo( Math.cos(angle) * r, Math.sin(angle) * r );
-    shape.lineTo( Math.cos(2*angle) * r, Math.sin(2*angle) * r );
-    shape.lineTo( Math.cos(3*angle) * r, Math.sin(3*angle) * r );
-    shape.lineTo( Math.cos(4*angle) * r, Math.sin(4*angle) * r );
-    shape.lineTo( Math.cos(5*angle) * r, Math.sin(5*angle) * r );
-    shape.lineTo( Math.cos(0) * r, Math.sin(0) * r );
-    return new THREE.ExtrudeGeometry(
-        shape,
-        {
-            steps: 1,
-            amount: thickness,
-            bevelEnabled: true,
-            bevelThickness: bevel / 2,
-            bevelSize: bevel,
-            bevelSegments: 10
-        }
-    );
+Number.prototype.mod = function (n) {
+    return ((this % n) + n) % n;
 }
 
-function Blink (sideLength, snapgrid) {
-    THREE.Group.call(this);
-    const hexGeometry = createBlinkGeometry(sideLength);
-    const hexMaterial = new THREE.MeshPhongMaterial( {color: 0x999999} );
-    this.hex = new THREE.Mesh( hexGeometry, hexMaterial );
-    this.hex.dragParent = true;
-
-    const outlineMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.BackSide });
-    this.outline = new THREE.Mesh( hexGeometry, outlineMaterial );
-    this.outline.scale.multiplyScalar(1.05);
-
-    this.light = new THREE.PointLight( 0xffffff, 0.5, 0, 2);
-    this.light.position.z = 1;
-
-    this.add(this.hex);
-    this.add(this.light);
-
-    this.stateDebugText;
-    this.debugTextActivated = false;
-
-    this.executor = new BlinkExecutor(this);
-    this.executor.setProgram(DEFAULT_PROGRAM);
-    this.executor.turnOn();
-    console.info(this.executor);
-
-    this.addEventListener("dragSelect", () => {
-        this.add(this.outline);
-    });
-    this.addEventListener("dragUnselect", () => {
-        this.remove(this.outline);
-    });
-
-    this.clickCount = 0;
-    this.clickTimer = null;
-    this.addEventListener("click", (clickEvent) => {
-        this.clickCount += 1;
-        if (this.clickTimer) {
-            clearTimeout(this.clickTimer);
-        }
-        if (clickEvent.duration > options.longHoldDuration) {
-            this.executor.dispatchEvent({type: "longClick"});
-            return;
-        }
-        this.clickTimer = setTimeout(() => {
-            this.executor.dispatchEvent(this.clickEvent());
-            this.clickCount = 0;
-            this.clickTimer = null;
-        }, options.multiClickThreshold);
-    });
-
-    this.addEventListener("drag", (dragEvent) => {
-        this.position.copy(dragEvent.position);
-        this.position.z = 0.2;
-    });
-    this.addEventListener("dragEnd", () => {
-        const hexTarget = snapgrid.nearestHex(this.position);
-        const snapTarget = snapgrid.toPosition(hexTarget);
-
-        this.position.x = snapTarget.x;
-        this.position.y = snapTarget.y;
-        this.position.z = 0;
-        // console.log(this.position);
-    });
-
-    this.executor.addEventListener("stateChange", (e) => {
-        console.log(e);
-        this.writeDebugText(e.value);
-    })
-}
-
-Blink.prototype = Object.assign( Object.create(THREE.Group.prototype), {
-    constructor: Blink,
-    clickEvent: function () {
-        switch (this.clickCount) {
-            case 0:
-                throw new Error("Click event with 0 clicks!");
-            case 1:
-                return {type: "singleClick"};
-            case 2:
-                return {type: "doubleClick"};
-            case 3:
-                return {type: "tripleClick"};
-            default:
-                return {type: "multiClick", count: this.clickCount};
-        }
-    },
-    render: function () {
-        if (this.executor.light instanceof LightInterface)
-        {
-            // this.light.color = this.executor.light.color;
-            this.hex.material.color = this.executor.light.color.clone().multiplyScalar(0.6);
-        }
-    },
-    writeDebugText: function (msg) {
-        if (droidFont === null) {
-            console.warn("Font not yet ready for text", msg);
-            return;
-        }
-        this.remove(this.stateDebugText);
-        var debugTextGeometry = new THREE.TextGeometry(msg, {
-            font: droidFont,
-            size: 0.2,
-            height: 0.1
-        });
-        this.stateDebugText = new THREE.Mesh( debugTextGeometry, new THREE.MeshBasicMaterial());
-        this.stateDebugText.position.z = 0.25;
-        debugTextGeometry.computeBoundingBox();
-        var textWidth = debugTextGeometry.boundingBox.max.x - debugTextGeometry.boundingBox.min.x
-        this.stateDebugText.position.x -= textWidth/2;
-        this.stateDebugText.position.y = -0.1;
-        this.add(this.stateDebugText);
+const Arrangements = {
+    TwoByOne: function (i) {
+        return new THREE.Vector2(
+            Math.floor(j/3) * -1,
+            (j.mod(3)) + 2*Math.floor(j/3) - 1
+        );
     }
-});
+}
 
-var droidFont = null;
-var loader = new THREE.FontLoader();
-loader.load(
-    'node_modules/three/examples/fonts/droid/droid_sans_mono_regular.typeface.json',
-    (font) => droidFont = font
-);
+const DEFAULT_PROGRAM = `
+    publicStates(['init', 'alone', 'friends']);
+    const teamColor = () => {
+        if (this.team === 0) {
+            return Color.NEON_GREEN;
+        }
+        return Color.PURPLE;
+    }
+    deviceOn(() => {
+        this.state = 'init';
+        this.team = 0;
+        this.light.color = teamColor();
+    })
+    onDoubleClick(() => { 
+        this.team = (this.team + 1) % 2;
+        this.log("chaning to team " + this.team);
+        this.light.color = teamColor();
+    });
+    onIsolated(() => {
+        this.state = 'alone';
+        this.light.color = Color.GRAY;
+    });
+    onJoinNeighbors((nbrs) => {
+        if (this.state === 'alone') {
+            this.state = 'friends';
+        }
+        let alone = nbrs.filter(n => n.state === 'alone');
+        if (alone.length > 0) {
+            this.state = 'friends';
+            this.team = alone[0].team; // THIS IS ILLEGAL IN GENERATED CODE
+        }
+        this.light.color = teamColor();
+    })
+`; // TODO: use a loader
 
 function HexCoordinates (side) {
     side = side || 1;
@@ -204,14 +97,30 @@ HexCoordinates.prototype = {
     get: function (vector) {
         return this.slots[this.getIndex(vector)];
     },
-    remove: function (vector) {
+    remove: function (vector, compare) {
         var i = this.getIndex(vector);
         var result = this.slots[i];
+        if (compare && compare !== result) {
+            return;
+        }
         delete this.slots[i];
         return result;
     },
     move: function (vector1, vector2) {
         this.set(vector2, this.remove(vector1));
+    },
+    neighborhood: [
+        new THREE.Vector2(-1, 0),
+        new THREE.Vector2(-1, 1),
+        new THREE.Vector2(0, -1),
+        new THREE.Vector2(0, 1),
+        new THREE.Vector2(1, -1),
+        new THREE.Vector2(1, 0)
+    ],
+    neighbors: function (vector) {
+        const neighborVectors =
+            this.neighborhood.map(v => vector.clone().add(v));
+        return neighborVectors.map(n => this.get(n)).filter(n => !!n);
     }
 }
 
@@ -247,30 +156,26 @@ var cameraControls = new THREE.OrbitControls( camera, renderer.domElement );
 cameraControls.mouseButtons =  { ORBIT: THREE.MOUSE.RIGHT, ZOOM: THREE.MOUSE.MIDDLE, PAN: THREE.MOUSE.LEFT };
 
 var blinks = [];
-var bColors = [
-    0x4060d0,
-    0xd04060,
-    0x60d040,
-    0xa0a0a0
-]
 
 var hexgrid = new HexCoordinates(1);
-console.log(hexgrid.nearestHex(new THREE.Vector2(0.2, 0.5)));
 
-for (let i = 0; i < 4; i++)
-{
-    // var geometry = createBlinkGeometry(1);
-    // var material = new THREE.MeshPhongMaterial( { color: bColors[i]} );
-    var blink = new Blink(1, hexgrid);
-
-    var p = hexgrid.toPosition(new THREE.Vector2((i > 1) * -1, i));
-    blink.position.x = p.x;
-    blink.position.y = p.y;
-    blink.color = bColors[i];
-
+for (let i = 0; i < 6; i++) {
+    var j = i - 1; 
+    var hex = Arrangements.TwoByOne(j);
+    console.log(hex);
+    var blink = new Blink(1, hexgrid, hex);
     scene.add( blink );
     blinks.push( blink );
 }
+
+var programLoader = new THREE.FileLoader();
+programLoader.load(
+    "../reference/Mortals.js",
+    function (program) {
+        console.log("Loaded program:", program.substring(0, 20));
+        blinks.forEach(b => b.resetProgram(program));
+    }
+)
 
 var helper = new THREE.GridHelper( 20, 20 );
 helper.rotateX( - Math.PI / 2);
@@ -280,8 +185,8 @@ scene.add( helper );
 var draggingPlane = new THREE.Plane();
 draggingPlane.setComponents(0, 0, 1, 0);
 
-const dragTargets = blinks.map(b => b.hex);
-var dragControls = new dragGroup(blinks.map(b => b.hex), draggingPlane, camera, renderer.domElement, cameraControls);
+const dragTargets = blinks.map(b => b.primaryMesh);
+var dragControls = new dragGroup(blinks.map(b => b.primaryMesh), draggingPlane, camera, renderer.domElement, cameraControls);
 
 var ambient = new THREE.AmbientLight(0xf0f0f0, 0.5)
 scene.add( ambient );
@@ -296,6 +201,15 @@ function initGUI () {
     gui.add(options, 'resetCamera').name("Reset camera position");
     gui.add(options, "longHoldDuration").min(0).max(2000).name("Duration of long click (ms)");
     gui.add(options, "multiClickThreshold").min(0).max(1000).name("Max double-/triple-click spacing (ms)");
+    gui.add(options, "debugTextActivated")
+        .name("Display blink state names?")
+        .onFinishChange(function (textActive) {
+            if (textActive) {
+                blinks.forEach(blink => blink.writeDebugText(blink.executor.state));
+            } else {
+                blinks.forEach(blink => blink.clearDebugText());
+            }
+        });
 };
 
 function onWindowResize() {

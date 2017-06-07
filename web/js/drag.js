@@ -83,6 +83,9 @@ function dragGroup(_targets, _plane, _camera, _domElement, _cameraControls) {
         if (state === DragState.FreePlay) {
             if (delta.length() > FREE_PLAY_THRESHOLD) {
                 state = DragState.Drag;
+                selected.forEach(s => {
+                    s.object.dispatchEvent({type: "dragStart", selected: selected});
+                });
             }
         }
         if (state === DragState.Drag) {

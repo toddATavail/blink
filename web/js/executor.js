@@ -2,79 +2,16 @@ function randomID () {
     return Math.random().toString(36).substring(2,12);
 }
 
-function BlinkTimer () {
-    this.value = 0;
-    this.running = false;
-    this.thresholds = [];
-    this.runNewExpiredCallbacks = false;
-    this.runBypassedCallbacks = true;
-}
-
-BlinkTimer.prototype = {
-    set: function (value) {
-        this.value = value;
-        this.thresholds.forEach(threshold => {
-            if (threshold.timer !== null) {
-                clearTimeout(threshold.timer);
-                threshold.timer = null;
-                if (value < threshold.time) {
-                    if (this.runBypassedCallbacks) {
-                        threshold.callback();
-                    }
-                } else {
-                    this.scheduleThreshold(threshold);
-                }
-            } else if (value > threshold.time) {
-                this.scheduleThreshold(threshold);
-            }
-        });
-    },
-    at: function (time, callback) {
-        var threshold = {time: time, callback: callback, timer: null};
-        if (!this.thresholds.length || time < this.thresholds[0].time) {
-            this.thresholds.unshift(threshold);
-        } else {
-            for (let i = 0; i < this.thresholds.length; i++) {
-                if (time > this.thresholds[i].time) {
-                    break;
-                }
-            }
-            this.thresholds.splice(i, 0, threshold);
-        }
-
-        if (this.runNewExpiredCallbacks && time > this.value) {
-            callback();
-        } else {
-            this.scheduleThreshold(threshold);
-        }
-    },
-    scheduleThreshold: function (threshold) {
-        threshold.timer = setTimeout(() => {
-            threshold.timer = null;
-            threshold.callback();
-        }, this.value - threshold.time);
-    }
-}
-
-function LightInterface () {
-    // this._value = new THREE.Color(0xffffff);
-    this.color = new THREE.Color(0xffffff);
-}
-LightInterface.prototype = {
-    constructor: LightInterface
-}
-
-const Color = {
-    GREEN: new THREE.Color("green"),
-    NEON_GREEN: new THREE.Color(0x00ff00),
-    PURPLE: new THREE.Color("purple"),
-    WHITE: new THREE.Color("white"),
+var globalID = 0;
+function issueID () {
+    return globalID++;
 }
 
 function BlinkExecutor (blink, initialProgram) {
     this.blink = blink;
     this.on = false;
-    this.uniqueID = randomID();
+    this.uniqueID = issueID();
+    this._logEvents = true;
 
     this._allowedStates = [];
     Object.defineProperty(this, "state", {
@@ -84,7 +21,7 @@ function BlinkExecutor (blink, initialProgram) {
                 throw new Error("State " + state + " not one of the predefined states!");
             }
             this._state = state;
-            this.dispatchEvent({type: "stateChange", value: state});
+            this.dispatch({type: "stateChange", value: state});
         },
         get: () => this._state,
         configurable: false
@@ -99,7 +36,13 @@ function BlinkExecutor (blink, initialProgram) {
         this._signalHandlers.get(signal.name)();
     });
 
+    this._timers = new BlinkTimer();
+
     this.light = new LightInterface();
+
+    if (initialProgram) {
+        this.setProgram(initialProgram);
+    }
 } 
 
 BlinkExecutor.prototype = {
@@ -111,18 +54,27 @@ BlinkExecutor.prototype = {
         if (this.on && !force) {
             this.log("Already on. Use restart instead.");
         } else {
-            this.log("turning on");
             this.on = true;
-            this.dispatchEvent({type: "deviceOn"});
+            this.dispatch({type: "deviceOn"});
         }
     },
     restart: function () {
         this.turnOn(true);
     },
+    dispatch: function (event) {
+        if (!this.on) {
+            return;
+        }
+        if (this._logEvents) {
+            console.log("[Device " + this.uniqueID + " event]", event);
+        }
+        this.dispatchEvent(event);
+    },
     
     setProgram: function (program) {
         // note that API functions must be anonymous functions here to bind correctly
-        const signal = (signalName) => this.dispatchEvent({type: "signal", name: signalName});
+        const signal = 
+            (signalName) => this.dispatch({type: "signal", name: signalName});
         const signals = (signalNames) =>
             signalNames.forEach(
                 signalName => this._signalHandlers.set(signalName, null));
@@ -158,18 +110,26 @@ BlinkExecutor.prototype = {
             }
             this._timers.get(timerName).at(time, callback);
         }
-        const whenTimerExpires = (timerName, callback) => whenTimerThreshold(timerName, 0, callback);
+        const whenTimerExpires =
+            (timerName, callback) => whenTimerThreshold(timerName, 0, callback);
 
         const deviceOn = (cb) => this.addEventListener("deviceOn", cb);
         const onSingleClick = (cb) => this.addEventListener("singleClick", cb);
         const onDoubleClick = (cb) => this.addEventListener("doubleClick", cb);
         const onTripleClick = (cb) => this.addEventListener("tripleClick", cb);
         const onLongClick = (cb) => this.addEventListener("longClick", cb);
+        const onJoinNeighbors = (cb) => this.addEventListener("joinNeighbors", (event) => cb(event.contexts));
+        const onIsolated = (cb) => this.addEventListener("isolated", cb);
 
         const UNIMPL = (name) => (() => console.info(name + "() is not yet implemented!"));
         const rangedInteger = UNIMPL("rangedInteger");
         
-        eval(program); // CAUTION
+        try {
+            eval(program); // CAUTION
+        } catch (e) {
+            console.error("There was an error while attempting to load the program!");
+            console.error(e);
+        }
 
         this.validateProgram();
     },
