@@ -166,6 +166,13 @@ Names
 		/*"timer value",*/
 			/*"_'s⁇value",*/
 
+	/* Neighborhood filtration expressions. */
+	"neighborhood filtration expression",
+		"unfiltered neighbors",
+			"_'s⁇neighbors",
+		"accepted states",
+			/*"_'s⁇states",*/
+
 	/* Programs. */
 	"program",
 	"program accumulator",
@@ -394,6 +401,13 @@ Semantic restriction "_literal" is
 ];
 
 Public method "_'s⁇subexpressions" is [lit : literal| <>];
+
+Method "“_”" is
+[
+	litType : literal's type
+|
+	“litType's expression type” ++ " literal"
+] : string;
 
 /******************************************************************************
  *                                 Variables.                                 *
@@ -1296,6 +1310,49 @@ Public explicit class "timer update statement" extends abstract statement
 
 Public method "_'s⁇subexpressions" is
 	[stmt : timer update statement | <stmt's value>];
+
+/******************************************************************************
+ *                    Neighborhood filtration expressions.                    *
+ ******************************************************************************/
+
+Public "unfiltered neighbors" is a new field atom;
+Public "accepted states" is a new field atom;
+
+/**
+ * A {@type "neighborhood filtration expression"} filters to obtain only those
+ * neighbors that match accepted states.
+ *
+ * @type "neighborhood filtration expression"
+ * @supertype "abstract expression"
+ * @field "expression type" "atom* expression"
+ * @field "unfiltered neighbors" "atom* expression"
+ *        An {@type "abstract expression" expression} that produces the
+ *        neighbors to be filtered.
+ * @field "accepted states" "{atom|}"
+ *        The states that should pass the filter (and therefore be present in
+ *        the result).
+ */
+Public class "neighborhood filtration expression" extends atom* expression
+	with field
+		public unfiltered neighbors : atom* expression ("_'s⁇neighbors"),
+		public accepted states : {atom|} ("_'s⁇states");
+
+/**
+ * Strengthen neighborhood filtration to only those state {@type "atom"}s that
+ * appear in the accepted states.
+ *
+ * @method "_'s⁇expression type"
+ * @restricts "atom* expression"
+ */
+Semantic restriction "_'s⁇expression type" is
+[
+	exprType : neighborhood filtration expression's type
+|
+	exprType's states' element type*
+];
+
+Public method "_'s⁇subexpressions" is
+	[expr : neighborhood filtration expression | <expr's neighbors>];
 
 /******************************************************************************
  *                              Blink programs.                               *

@@ -1,0 +1,151 @@
+/*
+ * JavaScript Code Generators.avail
+ * Copyright (c) Todd L Smith and Taylor DH Smith, 2017.
+ * All rights reserved.
+ */
+
+Module "JavaScript Code Generators"
+Uses
+	"Abstract Code Generators",
+	"Avail"
+Names
+	/* JavaScript writers. */
+	"JavaScript writer",
+		"Write literal_to_",
+
+	/* JavaScript literalization. */
+	"“_”(JavaScript)",
+
+	/* JavaScript generators. */
+	"JavaScript generator"
+Body
+
+/******************************************************************************
+ *                          JavaScript code writers.                          *
+ ******************************************************************************/
+
+/**
+ * A {@type "JavaScript writer"} writes JavaScript source code.
+ *
+ * @type "JavaScript writer"
+ * @supertype "source writer"
+ */
+Public explicit class "JavaScript writer" extends source writer;
+
+Method "_'s⁇end-of-line comment start" is [cw : JavaScript writer | "//"];
+
+/******************************************************************************
+ *                            Expression writing.                             *
+ ******************************************************************************/
+
+/**
+ * Answer an appropriate JavaScript literal for the specified value.
+ *
+ * @method "“_”(JavaScript)"
+ * @param "lit" "any"
+ * @returns "nonempty string"
+ */
+Public abstract method "“_”(JavaScript)" is [any]→nonempty string;
+
+Public method "“_”(JavaScript)" is
+[
+	lit : integer
+|
+	“lit” ?→ nonempty string
+];
+
+/* Single character escape sequences for JavaScript string literal rendition. */
+char1Escapes ::=
+{
+	¢"\(00)" → "\\0",
+	¢"\(08)" → "\\b",
+	¢"\(09)" → "\\t",
+	¢"\(0A)" → "\\n",
+	¢"\(0B)" → "\\b",
+	¢"\(0C)" → "\\f",
+	¢"\(0D)" → "\\r",
+	¢"'"     → "\\'",
+	¢"\""    → "\\\"",
+	¢"\\"    → "\\\\"
+};
+
+Public method "“_”(JavaScript)" is
+[
+	lit : string
+|
+	s : nonempty string := "\"";
+	For each c of lit do
+	[
+		s ++=
+			char1Escapes[c] else
+			[
+				cp ::= c's code point;
+				if c is a control character ∨ 128 ≤ cp < 256 then
+				[
+					"\\x" ++ “cp → 1 bytes” (hex)
+				]
+				else if 256 ≤ cp < 65536 then
+				[
+					"\\u" ++ “cp → 4 bytes” (hex)
+				]
+				else if cp ≥ 65536 then
+				[
+					rem ::= cp - 65536;
+					low ::= 56320 + (rem bit∧ 1023);
+					high ::= 55296 + ((rem >> 10) bit∧ 1023);
+					"\\u" ++ “high→4 bytes”(hex) ++ "\\u" ++ “low→4 bytes”(hex)
+				]
+				else
+				[
+					<c>
+				]
+			];
+	];
+	s ++= "\"";
+	s
+];
+
+Public method "“_”(JavaScript)" is
+[
+	t : tuple
+|
+	s : nonempty string := "[";
+	i : natural number := 1;
+	While i ≤ |s|
+	do [s ++= “t[i]” (JavaScript);]
+	alternate with [s ++= ", ";];
+	s ++= "]";
+	s
+];
+
+/**
+ * Write a literal value to the specified {@type "JavaScript writer"}.
+ *
+ * @method "Write literal_to_"
+ * @param "lit" "any"
+ * @param "cw" "JavaScript writer"
+ * @returns "⊤"
+ */
+Public method "Write literal_to_" is
+[
+	lit : any,
+	cw : JavaScript writer
+|
+	Write “lit” (JavaScript) to cw;
+];
+
+/******************************************************************************
+ *                        JavaScript code generators.                         *
+ ******************************************************************************/
+
+/**
+ * A {@type "JavaScript generator"} translates an abstract syntax tree (AST)
+ * rooted at a particular expression into JavaScript source code.
+ *
+ * @type "JavaScript generator"
+ * @supertype "code generator"
+ * @field "target writer" "JavaScript writer"
+ */
+Public explicit class "JavaScript generator" extends code generator
+	with field
+		target writer : JavaScript writer ("_'s⁇writer");

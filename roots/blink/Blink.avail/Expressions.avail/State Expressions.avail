@@ -1,0 +1,393 @@
+/*
+ * State Expressions.avail
+ * Copyright (c) Todd L Smith and Taylor DH Smith, 2017.
+ * All rights reserved.
+ */
+
+Module "State Expressions"
+Uses
+	"Abstract Syntax Tree",
+	"Avail"
+Names
+	/* State enumeration statements. */
+	"(Blink)«_‡,and⁇»is|are a⁇public state|states.",
+
+	/* Neighborhood filtration expressions. */
+	"(Blink)_neighbors",
+	"(Blink)no neighbors are_",
+	"(Blink)any neighbors are_",
+	"(Blink)all neighbors are_",
+
+	/* Compiler support. */
+	"state variable name",
+	"state type",
+	"neighbors variable name",
+	"neighbors type",
+	"Require:_(_)is a state"
+Body
+
+/******************************************************************************
+ *                       State enumeration statements.                        *
+ ******************************************************************************/
+
+/**
+ * Answer the appropriate ordinal suffix for the specified {@type
+ * "natural number"}.
+ *
+ * @method "ordinal suffix for_"
+ * @param "n" "natural number"
+ * @returns "nonempty string"
+ */
+Private method "ordinal suffix for_" is
+[
+	n : natural number
+|
+	if 4 ≤ n mod 100 ≤ 20 then ["th"]
+	else [(<"th", "st", "nd", "rd"> ++ 6 of "th")[(n mod 10) + 1]]
+];
+
+/**
+ * Declare the supported public states of this particular Blink program. Create
+ * the generated standard {@type "variable"}s {@code "state"} and {@code
+ * "neighbors"}.
+ *
+ * @macro "(Blink)«_‡,and⁇»is|are a⁇public state|states."
+ * @param "statesPhrase" "list phrase ⇒ (nonempty string literal+)"
+ *        The declared state names.
+ * @returns "sequence phrase"
+ */
+Public macro "(Blink)«_‡,and⁇»is|are a⁇public state|states." is
+[
+	statesPhrase : list phrase ⇒ (nonempty string literal+)
+|
+	exprs ::= statesPhrase's expressions;
+	lastExpr ::= exprs' last;
+	If ¬lastExpr ∈ literal phrase then
+	[
+		Reject parse, expected:
+			format
+				"public state names to be statically known (but the “①”‘②’ \
+				\|name is not a literal)"
+			with
+				|exprs|,
+				ordinal suffix for |exprs|
+	];
+],
+[
+	statesPhrase : list phrase ⇒ (nonempty string literal+)
+|
+	states ::= evaluate statesPhrase;
+	/* Generate atoms and accessors for each of the states. */
+	atomsAndAccessors ::= map each state of states through
+		[
+			stateName ::= state's value;
+			stateAtom ::= new atom named stateName;
+			lit ::= a literal with expression type ::= (stateAtom's type);
+			rt ::= literal phrase ⇒ (stateAtom's type literal);
+			<
+				stateAtom,
+				send $"Macro_is«_,»_" with
+				«<
+					‘stateName’,
+					«<>»,
+					«[<send $"‘_’" with «<‘lit’>» : rt>] : rt»
+				>» : ⊤ → statement phrase
+			>
+		];
+	accessorStmts ::= stripe atomsAndAccessors at 2;
+	/* Generate the special "state" variable and give it a type which is the
+	 * enumeration of the named states.
+	 */
+	stateTuple ::= stripe atomsAndAccessors at 1;
+	stateSet ::= stateTuple→set;
+	If |stateTuple| ≠ |stateSet| then
+	[
+		Reject parse, expected:
+			"state names to be unique"
+	];
+	stateEnum ::= enumeration of stateSet;
+	enumStmts ::=
+	<
+		/* Give these methods untypable names, since only generated code should
+		 * send their messages.
+		 */
+		send $"Method_is_" with
+		«<
+			‘$"\"state\""’,
+			«[<‘stateEnum’>] : stateEnum's type»
+		>» : ⊤ → statement phrase,
+		send $"Method_is_" with
+		«<
+			‘$"\"neighbors\""’,
+			«[<‘stateEnum*’>] : stateEnum*'s type»
+		>» : ⊤ → statement phrase
+	>;
+	stateVarNameAtom ::= new atom named "state";
+	neighborsVarNameAtom ::= new atom named "neighbors";
+	stateVar ::= a variable with
+		expression type ::= stateEnum,
+		variable name ::= "state",
+		variable scope ::= global,
+		variable mutability ::= mutable;
+	neighborsVar ::= a variable with
+		expression type ::= stateEnum*,
+		variable name ::= "neighbors",
+		variable scope ::= global,
+		variable mutability ::= immutable;
+	varStmts ::=
+	<
+		send $"Method_is_" with
+		«<
+			‘stateVarNameAtom’,
+			«[<‘stateVar’>] : stateVar's type»
+		>» : ⊤ → statement phrase,
+		send $"Method_is_" with
+		«<
+			‘neighborsVarNameAtom’,
+			«[<‘neighborsVar’>] : neighborsVar's type»
+		>» : ⊤ → statement phrase,
+		/* Compiler support. Give these methods untypable names, since only
+		 * generated code should send their messages.
+		 */
+		send $"Method_is_" with
+		«<
+			‘$"\"state variable name\""’,
+			«[<‘stateVarNameAtom’>] : stateVarNameAtom's type»
+		>» : ⊤ → statement phrase,
+		send $"Method_is_" with
+		«<
+			‘$"\"neighbors variable name\""’,
+			«[<‘neighborsVarNameAtom’>] : neighborsVarNameAtom's type»
+		>» : ⊤ → statement phrase
+	>;
+	/* Generate and record a state enumeration statement. */
+	stateEnumExpr ::= a state enumeration statement with
+		declared states ::= stateTuple,
+		expression type ::= ⊤;
+	recordStmts ::= statement recorder for stateEnumExpr;
+	stmts ::= accessorStmts ++ enumStmts ++ varStmts ++ recordStmts;
+	seq «stmts»
+];
+
+/******************************************************************************
+ *                             Compiler support.                              *
+ ******************************************************************************/
+
+/**
+ * Answer the true name of the generated standard variable {@code "state"}. This
+ * macro can only be invoked after a {@type "state enumeration statement"} has
+ * been parsed.
+ *
+ * @macro "state variable name"
+ * @returns "send phrase ⇒ atom"
+ */
+Public macro "state variable name" is
+[
+	send $"\"state variable name\"" with «<>» : atom
+];
+
+/**
+ * Answer the true name of the generated standard variable {@code "neighbors"}.
+ * This macro can only be invoked after a {@type
+ * "neighbors enumeration statement"} has been parsed.
+ *
+ * @macro "neighbors variable name"
+ * @returns "send phrase ⇒ atom"
+ */
+Public macro "neighbors variable name" is
+[
+	send $"\"neighbors variable name\"" with «<>» : atom
+];
+
+/**
+ * Answer the type of the generated standard variable {@code "state"}. This
+ * macro can only be invoked after a {@type "state enumeration statement"} has
+ * been parsed, and should be used by the compiler to restrict the values passed
+ * to generic macros that must work with the generated state type.
+ *
+ * @macro "state type"
+ * @returns "send phrase ⇒ atom's type"
+ */
+Public macro "state type" is
+[
+	send $"\"state\"" with «<>» : atom's type
+];
+
+/**
+ * Answer the type of the generated standard variable {@code "neighbors"}. This
+ * macro can only be invoked after a {@type "state enumeration statement"} has
+ * been parsed, and should be used by the compiler to restrict the values passed
+ * to generic macros that must work with the generated state type.
+ *
+ * @macro "neighbors type"
+ * @returns "send phrase ⇒ atom*'s type"
+ */
+Public macro "neighbors type" is
+[
+	send $"\"neighbors\"" with «<>» : atom*'s type
+];
+
+/**
+ * {@method "Reject parse,expected:_" Reject the current parse} unless the
+ * specified {@type "atom"} is a declared state.
+ *
+ * @method "Require:_(_)is a state"
+ * @param "st" "atom"
+ *        The alleged state {@type "atom"}.
+ * @param "desc" "nonempty string"
+ *        A semantic description of the reason for the requirement.
+ * @returns "⊤"
+ */
+Public method "Require:_(_)is a state" is
+[
+	st : atom,
+	desc : nonempty string
+|
+	stateType ::= state type;
+	If ¬st ∈ stateType then
+	[
+		Reject parse, expected:
+			format
+				"‘①’ to be a declared state (but ‘②’ isn't among ‘③’)"
+			with
+				desc,
+				st's name,
+				“map each x of stateType's instances through [x's name]”
+					(as disjunctive list with serial comma)
+	];
+];
+
+/******************************************************************************
+ *                    Neighborhood filtration expressions.                    *
+ ******************************************************************************/
+
+/**
+ * Construct a {@type "neighborhood filtration expression"} that answers those
+ * neighbors that match the specified state.
+ *
+ * @macro "(Blink)_neighbors"
+ * @param "stPhrase" "literal phrase ⇒ (atom literal)"
+ * @returns "literal phrase ⇒ neighborhood filtration expression"
+ */
+Public macro "(Blink)_neighbors" is
+[
+	stPhrase : literal phrase ⇒ (atom literal)
+|
+	st ::= evaluate stPhrase's value;
+	stateType ::= state type;
+	Require: st ("operand of neighborhood filtration expression") is a state;
+	neighborsVar ::=
+		evaluate send neighbors variable name
+			with «<>» : neighbors type variable;
+	‘a neighborhood filtration expression with
+		expression type ::= st's type*,
+		unfiltered neighbors ::= neighborsVar,
+		accepted states ::= {st}’
+];
+
+/**
+ * Construct a {@type "neighborhood filtration expression"} that answers
+ * {@method "true"} iff no neighbors match the specified state.
+ *
+ * @macro "(Blink)no neighbors are_"
+ * @param "stPhrase" "literal phrase ⇒ (atom literal)"
+ * @returns "literal phrase ⇒ boolean expression"
+ */
+Public macro "(Blink)no neighbors are_" is
+[
+	stPhrase : literal phrase ⇒ (atom literal)
+|
+	st ::= evaluate stPhrase's value;
+	stateType ::= state type;
+	Require: st ("operand of neighborhood filtration expression") is a state;
+	neighborsVar ::=
+		evaluate send neighbors variable name
+			with «<>» : neighbors type variable;
+	filterExpr ::= a neighborhood filtration expression with
+		expression type ::= st's type*,
+		unfiltered neighbors ::= neighborsVar,
+		accepted states ::= {st};
+	sizeExpr ::= an operator expression with
+		expression type ::= whole number,
+		expression operator ::= "`|_`|",
+		expression operands ::= <filterExpr>;
+	zeroExpr ::= a literal with
+		expression type ::= (0's type);
+	eqExpr ::= an operator expression with
+		expression type ::= boolean,
+		expression operator ::= "_=_",
+		expression operands ::= <sizeExpr, zeroExpr>;
+	‘eqExpr’
+];
+
+/**
+ * Construct a {@type "neighborhood filtration expression"} that answers
+ * {@method "true"} iff any neighbors match the specified state.
+ *
+ * @macro "(Blink)any neighbors are_"
+ * @param "stPhrase" "literal phrase ⇒ (atom literal)"
+ * @returns "literal phrase ⇒ boolean expression"
+ */
+Public macro "(Blink)any neighbors are_" is
+[
+	stPhrase : literal phrase ⇒ (atom literal)
+|
+	st ::= evaluate stPhrase's value;
+	stateType ::= state type;
+	Require: st ("operand of neighborhood filtration expression") is a state;
+	neighborsVar ::=
+		evaluate send neighbors variable name
+			with «<>» : neighbors type variable;
+	filterExpr ::= a neighborhood filtration expression with
+		expression type ::= st's type*,
+		unfiltered neighbors ::= neighborsVar,
+		accepted states ::= {st};
+	sizeExpr ::= an operator expression with
+		expression type ::= whole number,
+		expression operator ::= "`|_`|",
+		expression operands ::= <filterExpr>;
+	zeroExpr ::= a literal with
+		expression type ::= (0's type);
+	ineqExpr ::= an operator expression with
+		expression type ::= boolean,
+		expression operator ::= "_≠_",
+		expression operands ::= <sizeExpr, zeroExpr>;
+	‘ineqExpr’
+];
+
+/**
+ * Construct a {@type "neighborhood filtration expression"} that answers
+ * {@method "true"} iff all neighbors match the specified state.
+ *
+ * @macro "(Blink)all neighbors are_"
+ * @param "stPhrase" "literal phrase ⇒ (atom literal)"
+ * @returns "literal phrase ⇒ boolean expression"
+ */
+Public macro "(Blink)all neighbors are_" is
+[
+	stPhrase : literal phrase ⇒ (atom literal)
+|
+	st ::= evaluate stPhrase's value;
+	stateType ::= state type;
+	Require: st ("operand of neighborhood filtration expression") is a state;
+	neighborsVar ::=
+		evaluate send neighbors variable name
+			with «<>» : neighbors type variable;
+	filterExpr ::= a neighborhood filtration expression with
+		expression type ::= st's type*,
+		unfiltered neighbors ::= neighborsVar,
+		accepted states ::= {st};
+	lhsExpr ::= an operator expression with
+		expression type ::= whole number,
+		expression operator ::= "`|_`|",
+		expression operands ::= <filterExpr>;
+	rhsExpr ::= an operator expression with
+		expression type ::= whole number,
+		expression operator ::= "`|_`|",
+		expression operands ::= <neighborsVar>;
+	eqExpr ::= an operator expression with
+		expression type ::= boolean,
+		expression operator ::= "_=_",
+		expression operands ::= <lhsExpr, rhsExpr>;
+	‘eqExpr’
+];

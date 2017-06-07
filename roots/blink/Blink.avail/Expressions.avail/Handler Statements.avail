@@ -7,13 +7,25 @@
 Module "Handler Statements"
 Uses
 	"Abstract Syntax Tree",
-	"Avail",
+	"Avail" =
+	(
+		-"scope map",
+		-"scope map:=_",
+		-"Push scope",
+		-"Pop scope",
+		…
+	),
+	"Block Expressions",
 	"Dimensional Analysis" = ("__", "ms"),
 	"Events",
-	"State Enumeration Statements" = ("state type")
+	"State Expressions"
 Names
 	/* Event handler statements. */
 	"(Blink)On_,_.",
+
+	/* Neighborhood occupancy changed handler statements. */
+	"(Blink)When I join any neighbors§,_.",
+	"(Blink)When I join any neighbors§:_.",
 
 	/* State changed handler statements. */
 	"(Blink)When I change from_§to_§,_.",
@@ -37,7 +49,10 @@ Names
 
 	/* Signal handler statements. */
 	"(Blink)To_,_.",
-	"(Blink)To_:_."
+	"(Blink)To_:_.",
+
+	/* Argument expressions. */
+	"(Blink)these neighbors"
 Body
 
 /******************************************************************************
@@ -71,6 +86,83 @@ Public macro "(Blink)On_,_." is
 ];
 
 /******************************************************************************
+ *             Neighborhood occupancy changed handler statements.             *
+ ******************************************************************************/
+
+/**
+ * Answer the name of the implicit {@type "variable" parameter} introduced by
+ * {@type "neighborhood state changed event handler statement" neighborhood
+ * state changed event handlers}.
+ *
+ * @macro "filtered neighbors name"
+ * @returns "literal phrase ⇒ nonempty string"
+ */
+Private macro "filtered neighbors name" is [‘"\"filtered neighbors\""’];
+
+/**
+ * Declare a {@method "neighborhood occupancy changed"} {@type
+ * "event handler statement" event handler}.
+ *
+ * @macro "(Blink)When I join any neighbors§,_."
+ * @param "stmtPhrase" "expression phrase ⇒ local statement"
+ * @returns "sequence phrase"
+ */
+Public macro "(Blink)When I join any neighbors§,_." is
+[
+	Push scope;
+	var ::= a variable with
+		expression type ::= neighbors type,
+		variable name ::= filtered neighbors name,
+		variable scope ::= local,
+		variable mutability ::= immutable;
+	Introduce variable var;
+],
+[
+	stmtPhrase : expression phrase ⇒ local statement
+|
+	Pop scope;
+	stmt ::= evaluate stmtPhrase;
+	handlerDeclExpr ::= an event handler statement with
+		expression type ::= ⊤,
+		handled event ::= neighborhood occupancy changed,
+		handler block ::= a block expression with
+			expression type ::= ⊤,
+			block body ::= <stmt>;
+	stmts ::= statement recorder for handlerDeclExpr;
+	seq «stmts»
+];
+
+/**
+ * Declare a {@method "neighborhood occupancy changed"} {@type
+ * "event handler statement" event handler}.
+ *
+ * @macro "(Blink)When I join any neighbors§,_."
+ * @param "blockPhrase" "expression phrase ⇒ block expression"
+ * @returns "sequence phrase"
+ */
+Public macro "(Blink)When I join any neighbors§:_." is
+[
+	Push scope;
+	var ::= a variable with
+		expression type ::= neighbors type,
+		variable name ::= filtered neighbors name,
+		variable scope ::= local,
+		variable mutability ::= immutable;
+	Introduce variable var;
+],
+[
+	blockPhrase : expression phrase ⇒ block expression
+|
+	Pop scope;
+	handlerDeclExpr ::= an event handler statement with
+		expression type ::= ⊤,
+		handled event ::= neighborhood occupancy changed,
+		handler block ::= evaluate blockPhrase;
+	stmts ::= statement recorder for handlerDeclExpr;
+	seq «stmts»
+];
+
+/******************************************************************************
  *                     State changed handler statements.                      *
  ******************************************************************************/
 
@@ -82,7 +174,7 @@ Public macro "(Blink)On_,_." is
  * @macro "(Blink)When I change from_§to_§,_."
  * @param "oldPhrase" "expression phrase ⇒ (atom literal)"
  * @param "newPhrase" "expression phrase ⇒ (atom literal)"
- * @param "stmtPhrase" "expression phrase ⇒ abstract statement"
+ * @param "stmtPhrase" "expression phrase ⇒ local statement"
  * @returns "sequence phrase"
  */
 Public macro "(Blink)When I change from_§to_§,_." is
@@ -124,7 +216,7 @@ Public macro "(Blink)When I change from_§to_§,_." is
 [
 	oldPhrase : expression phrase ⇒ (atom literal),
 	newPhrase : expression phrase ⇒ (atom literal),
-	stmtPhrase : expression phrase ⇒ abstract statement
+	stmtPhrase : expression phrase ⇒ local statement
 |
 	old ::= evaluate oldPhrase's value;
 	new ::= evaluate newPhrase's value;
@@ -216,7 +308,7 @@ Public macro "(Blink)When I change from_§to_§:_." is
  * @macro "(Blink)When any_§neighbor becomes_§,_."
  * @param "oldPhrase" "expression phrase ⇒ (atom literal)"
  * @param "newPhrase" "expression phrase ⇒ (atom literal)"
- * @param "stmtPhrase" "expression phrase ⇒ abstract statement"
+ * @param "stmtPhrase" "expression phrase ⇒ local statement"
  * @returns "sequence phrase"
  */
 Public macro "(Blink)When any_§neighbor becomes_§,_." is
@@ -224,43 +316,32 @@ Public macro "(Blink)When any_§neighbor becomes_§,_." is
 	oldPhrase : expression phrase ⇒ (atom literal)
 |
 	old ::= evaluate oldPhrase's value;
-	stateType ::= state type;
-	If ¬old ∈ state type then
-	[
-		Reject parse, expected:
-			format
-				"\"from\" argument of neighborhood state changed handler to be \
-				\|a declared state (but ‘①’ isn't among ‘②’)"
-			with
-				old's name,
-				“map each x of stateType's instances through [x's name]”
-					(as disjunctive list with serial comma)
-	];
+	Require:
+		old ("\"from\" argument of neighborhood state changed handler")
+			is a state;
 ],
 [
 	oldPhrase : expression phrase ⇒ (atom literal),
 	newPhrase : expression phrase ⇒ (atom literal)
 |
+	Push scope;
 	new ::= evaluate newPhrase's value;
-	stateType ::= state type;
-	If ¬new ∈ stateType then
-	[
-		Reject parse, expected:
-			format
-				"\"to\" argument of neighborhood state changed handler to be a \
-				\|declared state (but ‘①’ isn't among ‘②’)"
-			with
-				new's name,
-				“map each x of stateType's instances through [x's name]”
-					(as disjunctive list with serial comma)
-	];
-	/* TODO: [TLS] Make available a local variable for the changed neighbors. */
+	Require:
+		new ("\"to\" argument of neighborhood state changed handler")
+			is a state;
+	var ::= a variable with
+		expression type ::= neighbors type,
+		variable name ::= filtered neighbors name,
+		variable scope ::= local,
+		variable mutability ::= immutable;
+	Introduce variable var;
 ],
 [
 	oldPhrase : expression phrase ⇒ (atom literal),
 	newPhrase : expression phrase ⇒ (atom literal),
-	stmtPhrase : expression phrase ⇒ abstract statement
+	stmtPhrase : expression phrase ⇒ local statement
 |
+	Pop scope;
 	old ::= evaluate oldPhrase's value;
 	new ::= evaluate newPhrase's value;
 	stmt ::= evaluate stmtPhrase;
@@ -291,43 +372,32 @@ Public macro "(Blink)When any_§neighbor becomes_§:_." is
 	oldPhrase : expression phrase ⇒ (atom literal)
 |
 	old ::= evaluate oldPhrase's value;
-	stateType ::= state type;
-	If ¬old ∈ state type then
-	[
-		Reject parse, expected:
-			format
-				"\"from\" argument of neighborhood state changed handler to be \
-				\|a declared state (but ‘①’ isn't among ‘②’)"
-			with
-				old's name,
-				“map each x of stateType's instances through [x's name]”
-					(as disjunctive list with serial comma)
-	];
+	Require:
+		old ("\"from\" argument of neighborhood state changed handler")
+			is a state;
 ],
 [
 	oldPhrase : expression phrase ⇒ (atom literal),
 	newPhrase : expression phrase ⇒ (atom literal)
 |
+	Push scope;
 	new ::= evaluate newPhrase's value;
-	stateType ::= state type;
-	If ¬new ∈ stateType then
-	[
-		Reject parse, expected:
-			format
-				"\"to\" argument of neighborhood state changed handler to be a \
-				\|declared state (but ‘①’ isn't among ‘②’)"
-			with
-				new's name,
-				“map each x of stateType's instances through [x's name]”
-					(as disjunctive list with serial comma)
-	];
-	/* TODO: [TLS] Make available a local variable for the changed neighbors. */
+	Require:
+		new ("\"to\" argument of neighborhood state changed handler")
+			is a state;
+	var ::= a variable with
+		expression type ::= neighbors type,
+		variable name ::= filtered neighbors name,
+		variable scope ::= local,
+		variable mutability ::= immutable;
+	Introduce variable var;
 ],
 [
 	oldPhrase : expression phrase ⇒ (atom literal),
 	newPhrase : expression phrase ⇒ (atom literal),
 	blockPhrase : expression phrase ⇒ block expression
 |
+	Pop scope;
 	old ::= evaluate oldPhrase's value;
 	new ::= evaluate newPhrase's value;
 	block ::= evaluate blockPhrase;
@@ -349,12 +419,12 @@ Public macro "(Blink)When any_§neighbor becomes_§:_." is
  * event handler}.
  *
  * @macro "(Blink)When I become isolated,_."
- * @param "stmtPhrase" "expression phrase ⇒ abstract statement"
+ * @param "stmtPhrase" "expression phrase ⇒ local statement"
  * @returns "sequence phrase"
  */
 Public macro "(Blink)When I become isolated,_." is
 [
-	stmtPhrase : expression phrase ⇒ abstract statement
+	stmtPhrase : expression phrase ⇒ local statement
 |
 	evDeclExpr ::= an event handler statement with
 		expression type ::= ⊤,
@@ -397,14 +467,14 @@ Public macro "(Blink)When I become isolated:_." is
  * @macro "(Blink)When_has_remaining,_."
  * @param "tPhrase" "expression phrase ⇒ timer"
  * @param "thPhrase" "expression phrase ⇒ (whole number ms literal)"
- * @param "stmtPhrase" "expression phrase ⇒ abstract statement"
+ * @param "stmtPhrase" "expression phrase ⇒ local statement"
  * @returns "sequence phrase"
  */
 Public macro "(Blink)When_has_remaining,_." is
 [
 	tPhrase : expression phrase ⇒ timer,
 	thPhrase : expression phrase ⇒ (whole number ms literal),
-	stmtPhrase : expression phrase ⇒ abstract statement
+	stmtPhrase : expression phrase ⇒ local statement
 |
 	tDeclExpr ::= a timer threshold event handler statement with
 		expression type ::= ⊤,
@@ -452,13 +522,13 @@ Public macro "(Blink)When_has_remaining:_." is
  *
  * @macro "(Blink)When_expires,_."
  * @param "tPhrase" "expression phrase ⇒ timer"
- * @param "stmtPhrase" "expression phrase ⇒ abstract statement"
+ * @param "stmtPhrase" "expression phrase ⇒ local statement"
  * @returns "sequence phrase"
  */
 Public macro "(Blink)When_expires,_." is
 [
 	tPhrase : expression phrase ⇒ timer,
-	stmtPhrase : expression phrase ⇒ abstract statement
+	stmtPhrase : expression phrase ⇒ local statement
 |
 	tDeclExpr ::= a timer expired event handler statement with
 		expression type ::= ⊤,
@@ -502,13 +572,13 @@ Public macro "(Blink)When_expires:_." is
  *
  * @macro "(Blink)To_,_."
  * @param "sigPhrase" "expression phrase ⇒ signal"
- * @param "stmtPhrase" "expression phrase ⇒ abstract statement"
+ * @param "stmtPhrase" "expression phrase ⇒ local statement"
  * @returns "sequence phrase"
  */
 Public macro "(Blink)To_,_." is
 [
 	sigPhrase : expression phrase ⇒ signal,
-	stmtPhrase : expression phrase ⇒ abstract statement
+	stmtPhrase : expression phrase ⇒ local statement
 |
 	sig ::= evaluate sigPhrase;
 	stmt ::= evaluate stmtPhrase;
@@ -545,3 +615,31 @@ Public macro "(Blink)To_:_." is
 	stmts ::= statement recorder for sigDeclExpr;
 	seq «stmts»
 ];
+
+/******************************************************************************
+ *                           Argument expressions.                            *
+ ******************************************************************************/
+
+/**
+ * Answer the implicit {@type "variable" parameter} introduced by {@type
+ * "neighborhood state changed event handler statement" neighborhood state
+ * changed event handlers}. {@method "Reject parse,expected:_" Reject the
+ * current parse} if sent from the wrong context.
+ *
+ * @macro "(Blink)these neighbors"
+ * @returns "literal phrase ⇒ local variable"
+ */
+Public macro "(Blink)these neighbors" is
+[
+	name ::= filtered neighbors name;
+	Unless variable named name exists then
+	[
+		Reject parse, expected:
+			"filtered neighbors to be available (but these are available only \
+			\|within a neighborhood state changed event handler, e.g., \
+			\|\"When any_neighbor becomes_:_.\", or neighborhood occupancy \
+			\|changed event handler, e.g., \"When I join any neighbors_:_.\""
+	];
+	‘variable named name’
+];
+

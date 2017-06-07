@@ -70,15 +70,21 @@ Extends
 		/* Event handler statements. */
 		"(Blink)On_,_." → "On_,_.",
 
+		/* Neighbor occupancy changed handler statements. */
+		"(Blink)When I join any neighbors§,_."
+			→ "When I join any neighbors§,_.",
+		"(Blink)When I join any neighbors§:_."
+			→ "When I join any neighbors§:_.",
+
 		/* State changed handler statements. */
 		"(Blink)When I change from_§to_§,_." → "When I change from_§to_§,_.",
 		"(Blink)When I change from_§to_§:_." → "When I change from_§to_§:_.",
 
 		/* Neighbor state changed handler statements. */
-		"(Blink)When any_§neighbor becomes_§,_." →
-			"When any_§neighbor becomes_§,_.",
-		"(Blink)When any_§neighbor becomes_§:_." →
-			"When any_§neighbor becomes_§:_.",
+		"(Blink)When any_§neighbor becomes_§,_."
+			→ "When any_§neighbor becomes_§,_.",
+		"(Blink)When any_§neighbor becomes_§:_."
+			→ "When any_§neighbor becomes_§:_.",
 
 		/* Isolation handler statements. */
 		"(Blink)When I become isolated,_." → "When I become isolated,_.",
@@ -109,6 +115,9 @@ Extends
 		/* Ownership expressions. */
 		"(Blink)my_" → "my_",
 
+		/* Argument expressions. */
+		"(Blink)these neighbors" → "these neighbors",
+
 		/* Dimensioned expressions. */
 		"(Blink)_ms" → "_ms",
 		"(Blink)_s" → "_s",
@@ -138,6 +147,12 @@ Extends
 		/* Timer manipulation expressions. */
 		"(Blink)Expire|expire_in_" → "Expire|expire_in_",
 		"(Blink)Adjust|adjust_by_" → "Adjust|adjust_by_",
+
+		/* Neighborhood filtration expressions. */
+		"(Blink)_neighbors" → "_neighbors",
+		"(Blink)no neighbors are_" → "no neighbors are_",
+		"(Blink)any neighbors are_" → "any neighbors are_",
+		"(Blink)all neighbors are_" → "all neighbors are_",
 
 		/* Unary arithmetic operators. */
 		"(Blink)-_" → "-_",
@@ -249,3 +264,8 @@ Grammatical restriction {"_=_", "_is_", "_≠_", "_is not_", "_isn't_"} is
 
 /* Prefer "(x) is not (y)" to "x is (not y)". */
 Grammatical restriction {"_is_"} is <∅, {"not_"}>;
+
+/* Forbid various travesties. */
+Grammatical restriction {"my_"} is <{"(_)", "these neighbors"}>;
+Grammatical restriction {"not_"} is
+	<{"no neighbors are_", "any neighbors are_", "all neighbors are_"}>;

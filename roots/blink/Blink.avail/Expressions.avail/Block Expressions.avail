@@ -20,6 +20,7 @@ Names
 	"Push scope",
 	"Pop scope",
 	"Introduce variable_",
+	"variable named_exists",
 	"variable named_",
 	"Require:_does not shadow",
 
@@ -143,6 +144,23 @@ Public method "Introduce variable_" is
 /******************************************************************************
  *                           Local variable lookup.                           *
  ******************************************************************************/
+
+/**
+ * Interrogate the current scope to ascertain the existence of a {@method
+ * "local"} {@type "variable"} with the specified name.
+ *
+ * @method "variable named_exists"
+ * @param "varName" "string"
+ * @returns "boolean"
+ *          {@method "true"} if the requested {@method "local"} {@type
+ *          "variable"} exists, {@method "false"} otherwise.
+ */
+Public method "variable named_exists" is
+[
+	varName : string
+|
+	varName ∈ scope map
+];
 
 /**
  * Answer the {@method "local"} {@type "variable"} whose {@method "_'s⁇name"

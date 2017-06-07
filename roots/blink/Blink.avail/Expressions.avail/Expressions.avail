@@ -12,7 +12,7 @@ Extends
 	"Handler Statements",
 	"Operator Expressions",
 	"Signal Statements",
-	"State Enumeration Statements",
+	"State Expressions",
 	"Timer Expressions",
 	"Variable Expressions"
 Body

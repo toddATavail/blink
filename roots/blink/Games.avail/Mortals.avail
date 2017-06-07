@@ -68,19 +68,13 @@ When I become isolated, change my state to active.
  * advertise my own state and consider my neighbors' advertised states — I must
  * decide independently what to do based on what I know.
  */
-/*
 When I join any neighbors:
 [
-	/* It should be possible to give a name to the joined neighbors — maybe via
-	 * a parenthetical clause like (called "cluster") — by anaphor (i.e.,
-	 * "these neighbors") should work very well for simple cases.
-	 */
 	Adjust my lifetime by
-		if any of these neighbors are active, -5s;
-		else, if my state is active, 5s × count of these neighbors;
+		if any neighbors are active, -5s;
+		else, if my state is active, 5s × count of neighbors;
 		else, 0s.
 ].
-*/
 
 When my lifetime has 10s remaining, change my pattern duration to 500ms.
 

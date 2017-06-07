@@ -1,0 +1,30 @@
+/*
+ * JavaScript Translation.avail
+ * Copyright (c) Todd L Smith and Taylor DH Smith, 2017.
+ * All rights reserved.
+ */
+
+Module "JavaScript Translation"
+Uses
+	"Abstract Code Generators",
+	"Abstract Syntax Tree",
+	"Avail",
+	"JavaScript Code Generators"
+Names
+	"JavaScript translator"
+Body
+
+/******************************************************************************
+ *                          JavaScript translators.                           *
+ ******************************************************************************/
+
+/**
+ * A {@type "JavaScript translator"} translates an abstract syntax tree (AST)
+ * rooted at a particular {@type "abstract expression" expression} into
+ * JavaScript source code.
+ *
+ * @type "JavaScript translator"
+ * @supertype "JavaScript generator"
+ * @field "target writer" "JavaScript writer"
+ */
+Public explicit class "JavaScript translator" extends JavaScript generator;

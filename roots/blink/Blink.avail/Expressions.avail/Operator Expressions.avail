@@ -7,7 +7,8 @@
 Module "Operator Expressions"
 Uses
 	"Abstract Syntax Tree",
-	"Avail"
+	"Avail",
+	"Dimensional Analysis" = ("__", "ms")
 Names
 	/* Unary arithmetic operators. */
 	"(Blink)-_",
@@ -224,16 +225,25 @@ Private macro "Operator__is_;" is
  ******************************************************************************/
 
 Operator "-_" <integer> is integer;
+Operator "-_" <integer ms> is integer ms;
 
 /******************************************************************************
  *                        Binary arithmetic operators.                        *
  ******************************************************************************/
 
 Operator "_+_" <integer, integer> is integer;
+Operator "_+_" <integer ms, integer ms> is integer ms;
 Operator "_-_" <integer, integer> is integer;
+Operator "_-_" <integer ms, integer ms> is integer ms;
 Operator "_×_" <integer, integer> is integer;
+Operator "_×_" <integer ms, integer> is integer ms;
+Operator "_×_" <integer, integer ms> is integer ms;
 Operator "_÷_" <integer, integer> is integer;
+Operator "_÷_" <integer ms, integer> is integer ms;
+Operator "_÷_" <integer ms, integer ms> is integer;
 Operator "_\\_" <integer, integer> is integer;
+Operator "_\\_" <integer ms, integer> is integer ms;
+Operator "_\\_" <integer ms, integer ms> is integer;
 
 /******************************************************************************
  *                          Unary logical operators.                          *
@@ -253,15 +263,21 @@ Operator "_∨_" <boolean, boolean> is boolean;
  ******************************************************************************/
 
 Operator "_=_" <integer, integer> is boolean;
+Operator "_=_" <integer ms, integer ms> is boolean;
 Operator "_=_" <boolean, boolean> is boolean;
 Operator "_=_" <atom, atom> is boolean;
 Operator "_≠_" <integer, integer> is boolean;
+Operator "_≠_" <integer ms, integer ms> is boolean;
 Operator "_≠_" <boolean, boolean> is boolean;
 Operator "_≠_" <atom, atom> is boolean;
 Operator "_<_" <integer, integer> is boolean;
+Operator "_<_" <integer ms, integer ms> is boolean;
 Operator "_≤_" <integer, integer> is boolean;
+Operator "_≤_" <integer ms, integer ms> is boolean;
 Operator "_≥_" <integer, integer> is boolean;
+Operator "_≥_" <integer ms, integer ms> is boolean;
 Operator "_>_" <integer, integer> is boolean;
+Operator "_>_" <integer ms, integer ms> is boolean;
 
 /******************************************************************************
  *                              Tuple operators.                              *

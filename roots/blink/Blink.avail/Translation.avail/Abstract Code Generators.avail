@@ -1,0 +1,417 @@
+/*
+ * Abstract Code Generators.avail
+ * Copyright (c) Todd L Smith and Taylor DH Smith, 2017.
+ * All rights reserved.
+ */
+
+Module "Abstract Code Generators"
+Uses
+	"Abstract Syntax Tree" = ("abstract expression"),
+	"Avail"
+Names
+	/* Abstract code writers. */
+	"code writer",
+		"code type",
+			"_'s⁇code type",
+		"code accumulator",
+			"_'s⁇accumulator",
+			"_'s⁇accumulator:=_",
+			"`↑_'s⁇accumulator",
+	"Write_to_",
+
+	/* Abstract code generators. */
+	"code generator",
+		"target writer",
+			"_'s⁇writer",
+	"Emit_on_",
+
+	/* Source writers. */
+	"source writer",
+		"characters per line",
+			"_'s⁇characters per line",
+		"indentation level",
+			"_'s⁇indent",
+			"_'s⁇indent:=_",
+			"`↑_'s⁇indent",
+
+	/* Indentation. */
+	"Increase indent of_for_",
+	"Write indent to_",
+
+	/* Writing comments. */
+	"_'s⁇end-of-line comment start", /* subtype obligation */
+	"Write comment_in situ to_",
+	"Write comment_to_",
+
+	/* Utilities. */
+	"extract_-character line from_"
+Body
+
+/******************************************************************************
+ *                           Abstract code writers.                           *
+ ******************************************************************************/
+
+Public "code type" is a  new field atom;
+Public "code accumulator" is a new field atom;
+
+/**
+ * A {@type "code writer"} maintains an {@method "_'s⁇accumulator" accumulator}
+ * and facilities for updating that accumulator (both rawly and semantically)
+ * with code in an output format.
+ *
+ * @type "code writer"
+ * @supertype "object"
+ * @field "code type" "tuple's type"
+ *        The {@type "type"} of output code stored into the accumulator.
+ * @field "code accumulator" "tuple"
+ *        The accumulator for output code.
+ */
+Public class "code writer" extends object
+	with field
+		public code type : tuple's type
+	with mutable field
+		public referable code accumulator : tuple (
+			accessor "_'s⁇accumulator",
+			mutator "_'s⁇accumulator:=_",
+			referrer "`↑_'s⁇accumulator");
+
+/**
+ * Strengthen the type of code read from a {@type "code writer"}'s {@method
+ * "_'s⁇accumulator" accumulator}.
+ *
+ * @method "_'s⁇accumulator"
+ * @restricts "code writer's type"
+ */
+Semantic restriction "_'s⁇accumulator" is
+[
+	cwType : code writer's type
+|
+	cwType's code type's instance
+];
+
+/**
+ * Ensure that writes to a {@type "code writer"}'s {@method "_'s⁇accumulator"
+ * accumulator} are appropriately typed.
+ *
+ * @method "_'s⁇accumulator:=_"
+ * @restricts "code writer's type"
+ */
+Semantic restriction "_'s⁇accumulator:=_" is
+[
+	cwType : code writer's type,
+	tType : tuple's type
+|
+	Unless tType ⊆ cwType's code type's instance then
+	[
+		Reject parse, expected:
+			format
+				"code writer to accept the provided accumulator \
+				\|(but “①” is not a subtype of “②”)"
+			with tType, cwType's code type's instance
+	];
+	⊤
+];
+
+/**
+ * Write the specified {@param "code" code snippet} directly to the {@type
+ * "code writer"}'s {@method "_'s⁇accumulator" accumulator}.
+ *
+ * @method "Write_to_"
+ * @param "code" "tuple"
+ * @param "cw" "code writer"
+ * @returns "⊤"
+ */
+Public method "Write_to_" is
+[
+	code : tuple,
+	cw : code writer
+|
+	↑cw's accumulator ++= code;
+];
+
+/**
+ * {@method "Reject parse,expected:_" Reject the current parse} unless the
+ * code snippet is compatible with the {@type "code writer"}'s {@method
+ * "_'s⁇code type"}.
+ *
+ * @method "Write_to_"
+ * @restricts "tuple's type"
+ * @restricts "code writer's type"
+ */
+Semantic restriction "Write_to_" is
+[
+	codeType : tuple's type,
+	cwType : code writer's type
+|
+	Unless codeType ⊆ cwType's code type's instance then
+	[
+		Reject parse, expected:
+			format
+				"code writer to accept the provided snippet \
+				\|(but “①” is not a subtype of “②”)"
+			with codeType, cwType's code type's instance
+	];
+	⊤
+];
+
+/******************************************************************************
+ *                         Abstract code generators.                          *
+ ******************************************************************************/
+
+Public "target writer" is a new field atom;
+
+/**
+ * A {@type "code generator"} translates an abstract syntax tree (AST) rooted at
+ * a particular {@type "abstract expression" expression} into a target format.
+ *
+ * @type "code generator"
+ * @supertype "object"
+ * @field "target writer" "code writer"
+ *        The {@type "code writer"} that represents the target format.
+ */
+Public class "code generator" extends object
+	with field
+		public target writer : code writer ("_'s⁇writer");
+
+/**
+ * Emit the specified {@type "abstract expression" expression} to the supplied
+ * {@type "code generator"}. Emission only updates the internal {@type
+ * "code writer"}; it does not render to an output channel.
+ *
+ * @method "Emit_on_"
+ * @param "expr" "abstract expression"
+ *        The {@type "abstract expression" expression} to emit.
+ * @param "cg" "code generator"
+ *        The {@type "code generator"} upon which to emit {@param "expr"}.
+ * @returns "⊤"
+ */
+Public abstract method "Emit_on_" is [abstract expression, code generator]→⊤;
+
+/******************************************************************************
+ *                              Source writers.                               *
+ ******************************************************************************/
+
+Public "characters per line" is a new field atom;
+Public "indentation level" is a new field atom;
+
+/**
+ * A {@type "source writer"} writes textual source code.
+ *
+ * @type "source writer"
+ * @supertype "code writer"
+ * @field "code type" "string's type"
+ * @field "characters per line" "natural number"
+ *        The preferred maximum number of characters per line.
+ * @field "indentation level" "whole number"
+ *        The indentation level of the {@method "_'s⁇accumulator" accumulator}.
+ */
+Public class "source writer" extends code writer
+	with fields
+		code type : string's type,
+		public characters per line : natural number
+	with mutable field
+		public referable indentation level : whole number (
+			accessor "_'s⁇indent",
+			mutator "_'s⁇indent:=_",
+			referrer "`↑_'s⁇indent");
+
+/******************************************************************************
+ *                                Indentation.                                *
+ ******************************************************************************/
+
+/**
+ * Increase the indentation of the specified {@type "source writer"} for the
+ * application of the supplied {@type "function"}.
+ *
+ * @method "Increase indent of_for_"
+ * @param "cw" "source writer"
+ * @param "body" "[]→⊤"
+ *        The {@type "function"} to apply while indentation is increased.
+ * @returns "⊤"
+ */
+Public method "Increase indent of_for_" is
+[
+	cw : source writer,
+	body : []→⊤
+|
+	Guard [↑cw's indent++; body();]
+	intercept
+	[
+		e : descriptive exception
+	|
+		Write
+			format "*** ‘①’ (‘②’) ***"
+			with (a|an) “uppercase e's type's names→tuple[1]”, e's error message
+		to cw;
+	]
+	intercept
+	[
+		e : exception
+	|
+		Write
+			format "*** ‘①’ ***"
+			with (a|an) “uppercase e's type's names→tuple[1]”
+		to cw;
+	]
+	ensure [↑cw's indent--;];
+];
+
+/**
+ * Write a an appropriate amount of indentation, as horizontal tabs, to the
+ * specified {@type "source writer"}. It is assumed that the most recently
+ * written character is a line feed.
+ *
+ * @method "Write indent to_"
+ * @param "cw" "source writer"
+ * @returns "⊤"
+ */
+Public method "Write indent to_" is
+[
+	cw : source writer
+|
+	Assert:
+		cast cw's accumulator into [t : nonempty string | t's last = ¢"\n"]
+		else [true];
+	Write cw's indent of ¢"\t" to cw;
+];
+
+/******************************************************************************
+ *                             Writing comments.                              *
+ ******************************************************************************/
+
+/**
+ * Answer the sequence of {@type "character"}s that indicate the beginning of an
+ * end-of-line comment.
+ *
+ * @method "end-of-line comment start"
+ * @param "cw" "source writer"
+ * @returns "nonempty string"
+ */
+Public abstract method "_'s⁇end-of-line comment start" is
+	[source writer]→nonempty string;
+
+/**
+ * Write an end-of-line comment in situ to the specified {@type
+ * "source writer"}. No effort is made to word-wrap long comments, so this
+ * facility should be used for short comments only.
+ *
+ * @method "Write comment_in situ to_"
+ * @param "comment" "string"
+ * @param "cw" "source writer"
+ * @returns "⊤"
+ */
+Public method "Write comment_in situ to_" is
+[
+	comment : string,
+	cw : source writer
+|
+	Write
+		cw's end-of-line comment start
+		++ if comment is empty then [""] else [" "]
+		++ comment
+	to cw;
+];
+
+/**
+ * Make a best effort to extract a line from {@param "s"} that is no longer than
+ * {@param "max"} characters plus a line feed.
+ *
+ * @method "extract_-character line from_"
+ * @param "max" "natural number"
+ * @param "s" "string"
+ * @returns "<string…|2>"
+ *          A 2-{@type "tuple"} of the next line and the residue, respectively.
+ *          The next line does not include a terminal line feed.
+ */
+Public method "extract_-character line from_" is
+[
+	max : natural number,
+	s : string
+|
+	$body : <string…|2>;
+	/* "wsi" is the index of the last whitespace character discovered, and
+	 * "wslen" is the run length of that whitespace.
+	 */
+	wsi : whole number := 0;
+	wslen : whole number := 0;
+	/* Scan up to the character limit, looking for line feeds and whitespace. */
+	i : natural number := 1;
+	limit ::= |s| min max;
+	While i ≤ limit do
+	[
+		c ::= s[i];
+		/* Upon discovery of a line feed, compute the next line and the residue.
+		 * Answer them immediately.
+		 */
+		If c = ¢"\n" then [Exit body with <s[..i-1], s[i+1..]>];
+		/* Note the first whitespace character discovered. Skip any subsequent
+		 * whitespace characters — if they occur at the end of a line, then they
+		 * will be omitted.
+		 */
+		If c is whitespace then
+		[
+			wsi := i;
+			wslen := 1;
+			While (++i) < limit ∧ s[i] is whitespace do [wslen++;];
+		]
+		/* Otherwise, just move on to the next character. */
+		else [i++;];
+	];
+	/* If any whitespace was discovered, then answer the next line and the
+	 * residue.
+	 */
+	cast wsi into [nz : natural number | <s[..nz-1], s[nz+wslen..]>]
+	/* If no whitespace was discovered, then we cannot honor the character limit
+	 * strictly. Look for the next whitespace character and terminate the line
+	 * there.
+	 */
+	else
+	[
+		Until [(++i) > limit ∨ s[i] is whitespace];
+		wsi := i;
+		wslen := 1;
+		While (++i) < limit ∧ s[i] is whitespace do [wslen++;];
+		nz ::= wsi ?→ natural number;
+		<s[..nz-1], s[nz+wslen..]>
+	]
+];
+
+/**
+ * Write a comment to the specified {@type "source writer"}, wrapping long lines
+ * using the {@type "source writer"}'s preferred limit.
+ *
+ * @method "Write comment_to_"
+ * @param "comment" "string"
+ * @param "cw" "source writer"
+ * @returns "⊤"
+ */
+Public method "Write comment_to_" is
+[
+	comment : string,
+	cw : source writer
+|
+	/* Assume a tab width of 4 when calculating the current character limit. The
+	 * magic number 1 accounts for a trailing space after the comment marker.
+	 */
+	start ::= cw's end-of-line comment start;
+	sz ::= |start|;
+	limit ::= 1 max (cw's characters per line - 4 × cw's indent - sz - 1);
+	s : string := comment;
+	lines : string* := <>;
+	While |s| ≠ 0 do
+	[
+		line, residue ::= extract limit-character line from s;
+		lines ++= <line>;
+		s := residue;
+	];
+	For each line of lines do
+	[
+		Write indent to cw;
+		Write
+			start
+			++ if line is empty then [""] else [" "]
+			++ line
+			++ "\n"
+		to cw;
+	];
+];
