@@ -12,9 +12,29 @@ Names
 	/* JavaScript writers. */
 	"JavaScript writer",
 		"Write literal_to_",
+		"Write variable_to_",
+		"Write property access with_for_to_",
+		"Write parenthetic with_to_",
+		"Write block with_to_",
+		"Write arrow function(«_‡,»)with_to_",
+		"Write unary operator_with_to_",
+		"Write binary operator_with_with_to_",
+		"Write ternary operator with_with_with_to_",
+		"Write inline ternary operator with_with_with_to_",
+		"Write call of_«with_»to_",
+		"Write call of_with arguments_to_",
+		"Write statement with_to_",
+		"Write constant declaration_with_to_",
+		"Write variable declaration_«with_»?to_",
+		"Write conditional statement with_with_«with_»?to_",
+		"Write return with_to_",
+	"a JavaScript writer«(wrapped at_characters)»?",
 
 	/* JavaScript literalization. */
 	"“_”(JavaScript)",
+
+	/* JavaScript variable canonicalization. */
+	"“_”(JavaScript variable)",
 
 	/* JavaScript generators. */
 	"JavaScript generator"
@@ -32,10 +52,31 @@ Body
  */
 Public explicit class "JavaScript writer" extends source writer;
 
+/**
+ * Answer a {@type "JavaScript writer"}.
+ *
+ * @method "a JavaScript writer«(wrapped at_characters)»?"
+ * @param "p" "program"
+ * @param "optWidth" "[80..∞)"
+ *        (Optional, defaults to 80.) The preferred maximum number of characters
+ *        per line.
+ * @returns "JavaScript writer"
+ */
+Public method "a JavaScript writer«(wrapped at_characters)»?" is
+[
+	optWidth : [80..∞)?
+|
+	a JavaScript writer with
+		code type ::= string,
+		characters per line ::= optWidth[1] else [80],
+		code accumulator := <>,
+		indentation level := 0
+];
+
 Method "_'s⁇end-of-line comment start" is [cw : JavaScript writer | "//"];
 
 /******************************************************************************
- *                            Expression writing.                             *
+ *                              Literalization.                               *
  ******************************************************************************/
 
 /**
@@ -54,7 +95,11 @@ Public method "“_”(JavaScript)" is
 	“lit” ?→ nonempty string
 ];
 
-/* Single character escape sequences for JavaScript string literal rendition. */
+/**
+ * Single character escape sequences for JavaScript string literal rendition.
+ *
+ * @global "char1Escapes" "{character→nonempty string|}"
+ */
 char1Escapes ::=
 {
 	¢"\(00)" → "\\0",
@@ -111,12 +156,81 @@ Public method "“_”(JavaScript)" is
 |
 	s : nonempty string := "[";
 	i : natural number := 1;
-	While i ≤ |s|
-	do [s ++= “t[i]” (JavaScript);]
+	While i ≤ |t|
+	do [s ++= “t[(i++)]” (JavaScript);]
 	alternate with [s ++= ", ";];
 	s ++= "]";
 	s
 ];
+
+/******************************************************************************
+ *                         Variable canonicalization.                         *
+ ******************************************************************************/
+
+/**
+ * Answer an appropriate JavaScript variable name for the specified variable
+ * name.
+ *
+ * @method "“_”(JavaScript variable)"
+ * @param "name" "nonempty string"
+ * @returns "nonempty string"
+ */
+Public method "“_”(JavaScript variable)" is
+[
+	name : nonempty string
+|
+	s : string := "";
+	lowercase : boolean := true;
+	uppercase : boolean := false;
+	For each c of name do
+	[
+		cp ::= c's code point;
+		s ++=
+			if c is a control character ∨ 128 ≤ cp < 256 then
+			[
+				"X" ++ “cp → 1 bytes” (hex)
+			]
+			else if 256 ≤ cp < 65536 then
+			[
+				"U" ++ “cp → 4 bytes” (hex)
+			]
+			else if cp ≥ 65536 then
+			[
+				rem ::= cp - 65536;
+				low ::= 56320 + (rem bit∧ 1023);
+				high ::= 55296 + ((rem >> 10) bit∧ 1023);
+				"U" ++ “high→4 bytes”(hex) ++ "U" ++ “low→4 bytes”(hex)
+			]
+			else if c = ¢" " then
+			[
+				uppercase := true;
+				""
+			]
+			else if ¬c is a letter ∧ ¬c is an Arabic numeral then
+			[
+				"X" ++ “cp → 1 bytes” (hex)
+			]
+			else if lowercase then
+			[
+				<lowercase c>
+			]
+			else if uppercase then
+			[
+				uppercase := false;
+				<uppercase c>
+			]
+			else
+			[
+				<c>
+			];
+		lowercase := false;
+	];
+	s ?→ nonempty string
+];
+
+/******************************************************************************
+ *                            Expression writing.                             *
+ ******************************************************************************/
 
 /**
  * Write a literal value to the specified {@type "JavaScript writer"}.
@@ -132,6 +246,506 @@ Public method "Write literal_to_" is
 	cw : JavaScript writer
 |
 	Write “lit” (JavaScript) to cw;
+];
+
+/**
+ * Write a canonicalized variable name to the specified {@type
+ * "JavaScript writer"}.
+ *
+ * @method "Write variable_to_"
+ * @param "var" "nonempty string"
+ * @param "cw" "JavaScript writer"
+ * @returns "⊤"
+ */
+Public method "Write variable_to_" is
+[
+	var : nonempty string,
+	cw : JavaScript writer
+|
+	Write “var” (JavaScript variable) to cw;
+];
+
+/**
+ * Write a property access to the specified {@type "JavaScript writer"}.
+ *
+ * @method "Write property_of_to_"
+ * @param "obj" "[]→⊤"
+ *        The {@type "function"} responsible for generating the receiver of the
+ *        property access.
+ * @param "prop" "nonempty string"
+ *        The property key.
+ * @param "cw" "JavaScript writer"
+ * @returns "⊤"
+ */
+Public method "Write property access with_for_to_" is
+[
+	obj : []→⊤,
+	prop : nonempty string,
+	cw : JavaScript writer
+|
+	obj();
+	Write "." ++ prop to cw;
+];
+
+/**
+ * Write a property access to the specified {@type "JavaScript writer"}.
+ *
+ * @method "Write property_of_to_"
+ * @param "obj" "[]→nonempty string"
+ *        The {@type "function"} responsible for answering the receiver of the
+ *        property access.
+ * @param "prop" "nonempty string"
+ *        The property key.
+ * @param "cw" "JavaScript writer"
+ * @returns "⊤"
+ */
+Public method "Write property access with_for_to_" is
+[
+	obj : []→nonempty string,
+	prop : nonempty string,
+	cw : JavaScript writer
+|
+	Write obj() ++ "." ++ prop to cw;
+];
+
+/**
+ * Write a parenthesized expression to the specified {@type
+ * "JavaScript writer"}.
+ *
+ * @method "Write parenthetic with_to_"
+ * @param "expr" "[]→⊤"
+ * @param "cw" "JavaScript writer"
+ * @returns "⊤"
+ */
+Public method "Write parenthetic with_to_" is
+[
+	expr : []→⊤,
+	cw : JavaScript writer
+|
+	Write "(" to cw;
+	expr();
+	Write ")" to cw;
+];
+
+/**
+ * Write a block to the specified {@type "JavaScript writer"}.
+ *
+ * @method "Write block with_to_"
+ * @param "body" "[]→⊤"
+ *        The {@type "function"} responsible for generating the body of the
+ *        block.
+ * @param "cw" "JavaScript writer"
+ * @returns "⊤"
+ */
+Public method "Write block with_to_" is
+[
+	body : []→⊤,
+	cw : JavaScript writer
+|
+	Write indent to cw;
+	Write "{\n" to cw;
+	Increase indent of cw for body;
+	Write indent to cw;
+	Write "}" to cw;
+];
+
+/**
+ * Write an arrow function to the specified {@type "JavaScript writer"}.
+ *
+ * @method "Write arrow function(«_‡,»)with_to_"
+ * @param "args" "nonempty string*"
+ *        The names of the parameters.
+ * @param "body" "[]→⊤"
+ *        The {@type "function"} responsible for generating the body of the
+ *        arrow function.
+ * @param "cw" "JavaScript writer"
+ * @returns "⊤"
+ */
+Public method "Write arrow function(«_‡,»)with_to_" is
+[
+	args : nonempty string*,
+	body : []→⊤,
+	cw : JavaScript writer
+|
+	If |args| ≠ 1 then [Write "(" to cw;];
+	i : natural number := 1;
+	While i ≤ |args|
+	do [Write args[(i++)] to cw;]
+	alternate with [Write ", " to cw;];
+	If |args| ≠ 1 then [Write ")" to cw;];
+	Write " =>\n" to cw;
+	Write block with body to cw;
+];
+
+/**
+ * Write a unary operator expression to the specified {@type
+ * "JavaScript writer"}.
+ *
+ * @method "Write unary operator_with_to_"
+ * @param "op" "nonempty string"
+ *        The operator.
+ * @param "arg1" "[]→⊤"
+ *        The {@type "function"} responsible for generating the first operand.
+ * @param "cw" "JavaScript writer"
+ * @returns "⊤"
+ */
+Public method "Write unary operator_with_to_" is
+[
+	op : nonempty string,
+	arg1 : []→⊤,
+	cw : JavaScript writer
+|
+	Write op ++ " " to cw;
+	arg1();
+];
+
+/**
+ * Write a binary operator expression to the specified {@type
+ * "JavaScript writer"}.
+ *
+ * @method "Write binary operator_with_with_to_"
+ * @param "op" "nonempty string"
+ *        The operator.
+ * @param "arg1" "[]→⊤"
+ *        The {@type "function"} responsible for generating the first operand.
+ * @param "arg2" "[]→⊤"
+ *        The {@type "function"} responsible for generating the second operand.
+ * @param "cw" "JavaScript writer"
+ * @returns "⊤"
+ */
+Public method "Write binary operator_with_with_to_" is
+[
+	op : nonempty string,
+	arg1 : []→⊤,
+	arg2 : []→⊤,
+	cw : JavaScript writer
+|
+	arg1();
+	Write " " ++ op ++ " " to cw;
+	arg2();
+];
+
+/**
+ * Write an inline ternary operator expression to the specified {@type
+ * "JavaScript writer"}. Note that the operator is implied to be {@code "?:"},
+ * since this is the only valid ternary operator in JavaScript.
+ *
+ * @method "Write inline ternary operator with_with_with_to_"
+ * @param "arg1" "[]→⊤"
+ *        The {@type "function"} responsible for generating the first operand.
+ * @param "arg2" "[]→⊤"
+ *        The {@type "function"} responsible for generating the second operand.
+ * @param "arg3" "[]→⊤"
+ *        The {@type "function"} responsible for generating the third operand.
+ * @param "cw" "JavaScript writer"
+ * @returns "⊤"
+ */
+Public method "Write inline ternary operator with_with_with_to_" is
+[
+	arg1 : []→⊤,
+	arg2 : []→⊤,
+	arg3 : []→⊤,
+	cw : JavaScript writer
+|
+	arg1();
+	Write " ? " to cw;
+	arg2();
+	Write " : " to cw;
+	arg3();
+];
+
+/**
+ * Write a function call expression to the specified {@type
+ * "JavaScript writer"}.
+ *
+ * @method "Write call of_«with_»to_"
+ * @param "f" "[]→⊤"
+ *        The {@type "function"} responsible for generating the JavaScript
+ *        function object.
+ * @param "args" "([]→⊤)*"
+ *        The {@type "function"}s responsible for generating the JavaScript
+ *        function arguments, respectively.
+ * @param "cw" "JavaScript writer"
+ * @returns "⊤"
+ */
+Public method "Write call of_«with_»to_" is
+[
+	f : []→⊤,
+	args : ([]→⊤)*,
+	cw : JavaScript writer
+|
+	f();
+	Write "(" to cw;
+	If |args| ≤ 3 then
+	[
+		i : natural number := 1;
+		While i ≤ |args|
+		do [args[(i++)]();]
+		alternate with [Write ", " to cw;];
+	]
+	else
+	[
+		Write "\n" to cw;
+		Increase indent of cw for
+		[
+			i : natural number := 1;
+			While i ≤ |args|
+			do [args[(i++)]();]
+			alternate with
+			[
+				Write ",\n" to cw;
+				Write indent to cw;
+			];
+		];
+	];
+	Write ")" to cw;
+];
+
+/**
+ * Write a function call expression to the specified {@type
+ * "JavaScript writer"}.
+ *
+ * @method "Write call of_«with_»to_"
+ * @param "f" "[]→nonempty string"
+ *        The {@type "function"} responsible for answering the name of the
+ *        JavaScript function.
+ * @param "args" "([]→⊤)*"
+ *        The {@type "function"}s responsible for generating the JavaScript
+ *        function arguments, respectively.
+ * @param "cw" "JavaScript writer"
+ * @returns "⊤"
+ */
+Public method "Write call of_«with_»to_" is
+[
+	f : []→nonempty string,
+	args : ([]→⊤)*,
+	cw : JavaScript writer
+|
+	Write f() to cw;
+	Write "(" to cw;
+	If |args| ≤ 3 then
+	[
+		i : natural number := 1;
+		While i ≤ |args|
+		do [args[(i++)]();]
+		alternate with [Write ", " to cw;];
+	]
+	else
+	[
+		Write "\n" to cw;
+		Increase indent of cw for
+		[
+			i : natural number := 1;
+			While i ≤ |args|
+			do [args[(i++)]();]
+			alternate with
+			[
+				Write ",\n" to cw;
+				Write indent to cw;
+			];
+		];
+	];
+	Write ")" to cw;
+];
+
+Alias "Write call of_with arguments_to_" to $"Write call of_«with_»to_";
+
+/**
+ * Write a statement to the specified {@type "JavaScript writer"}. The
+ * appropriate indentation, terminal semicolon, and line feed are automatically
+ * written.
+ *
+ * @method "Write statement with_to_"
+ * @param "stmt" "[]→⊤"
+ *        The {@type "function"} responsible for generating the statement.
+ * @param "cw" "JavaScript writer"
+ * @returns "⊤"
+ */
+Public method "Write statement with_to_" is
+[
+	stmt : []→⊤,
+	cw : JavaScript writer
+|
+	Write indent to cw;
+	stmt();
+	Write ";\n" to cw;
+];
+
+/**
+ * Write a constant declaration to the specified {@type "JavaScript writer"}.
+ *
+ * @method "Write constant declaration_with_to_"
+ * @param "var" "nonempty string"
+ * @param "init" "[]→⊤"
+ *        The {@type "function"} responsible for generating the mandatory
+ *        initialization expression.
+ * @param "cw" "JavaScript writer"
+ * @returns "⊤"
+ */
+Public method "Write constant declaration_with_to_" is
+[
+	var : nonempty string,
+	init : []→⊤,
+	cw : JavaScript writer
+|
+	Write statement with
+	[
+		Write "const " ++ “var” (JavaScript variable) ++ " = " to cw;
+		init();
+	]
+	to cw;
+];
+
+/**
+ * Write a variable declaration to the specified {@type "JavaScript writer"}.
+ *
+ * @method "Write variable declaration_«with_»?to_"
+ * @param "var" "nonempty string"
+ * @param "optInit" "([]→⊤)?"
+ *        (Optional.) The {@type "function"} responsible for generating the
+ *        initialization expression.
+ * @param "cw" "JavaScript writer"
+ * @returns "⊤"
+ */
+Public method "Write variable declaration_«with_»?to_" is
+[
+	var : nonempty string,
+	optInit : ([]→⊤)?,
+	cw : JavaScript writer
+|
+	Write statement with
+	[
+		Write "let " ++ “var” (JavaScript variable) to cw;
+		If ¬optInit is empty then
+		[
+			Write " = " to cw;
+			optInit[1]();
+		];
+	]
+	to cw;
+];
+
+/**
+ * Write a conditional statement to the specified {@type "JavaScript writer"}.
+ *
+ * @method "Write conditional statement with_with_«with_»?to_"
+ * @param "pred" "[]→⊤"
+ *        The {@type "function"} responsible for generating the predicate.
+ * @param "trueBlock" "[]→⊤"
+ *        The {@type "function"} responsible for generating the pass block.
+ * @param "optFalseBlock" "([]→⊤)?"
+ *        (Optional.) The {@type "function"} responsible for generating the fail
+ *        block.
+ * @param "cw" "JavaScript writer"
+ * @returns "⊤"
+ */
+Public method "Write conditional statement with_with_«with_»?to_" is
+[
+	pred : []→⊤,
+	trueBlock : []→⊤,
+	optFalseBlock : ([]→⊤)?,
+	cw : JavaScript writer
+|
+	Write statement with
+	[
+		Write "if (" to cw;
+		pred();
+		Write ")\n" to cw;
+		Write block with trueBlock to cw;
+		If ¬optFalseBlock is empty then
+		[
+			Write "else\n" to cw;
+			Write block with optFalseBlock[1] to cw;
+		];
+	]
+	to cw;
+];
+
+/**
+ * Write a return statement to the specified {@type "JavaScript writer"}.
+ *
+ * @method "Write return with_to_"
+ * @param "ret" "[]→⊤"
+ *        The {@type "function"} responsible for generating the return
+ *        expression.
+ * @param "cw" "JavaScript writer"
+ * @returns "⊤"
+ */
+Public method "Write return with_to_" is
+[
+	ret : []→⊤,
+	cw : JavaScript writer
+|
+	Write statement with
+	[
+		Write "return " to cw;
+		ret();
+	]
+	to cw;
+];
+
+/**
+ * Write a ternary operator expression to the specified {@type
+ * "JavaScript writer"}. Note that the operator is implied to be {@code "?:"},
+ * since this is the only valid ternary operator in JavaScript.
+ *
+ * @method "Write inline ternary operator with_with_with_to_"
+ * @param "arg1" "[]→⊤"
+ *        The {@type "function"} responsible for generating the first operand.
+ * @param "arg2" "[]→⊤"
+ *        The {@type "function"} responsible for generating the second operand.
+ *        May render a multi-statement body.
+ * @param "arg3" "[]→⊤"
+ *        The {@type "function"} responsible for generating the third operand.
+ *        May render a multi-statement body.
+ * @param "cw" "JavaScript writer"
+ * @returns "⊤"
+ */
+Public method "Write ternary operator with_with_with_to_" is
+[
+	arg1 : []→⊤,
+	arg2 : []→⊤,
+	arg3 : []→⊤,
+	cw : JavaScript writer
+|
+	arg1();
+	Increase indent of cw for
+	[
+		Write "\n" to cw;
+		Write indent to cw;
+		Write "? " to cw;
+		Write call of
+		[
+			Write parenthetic with
+			[
+				Write arrow function () with
+				[
+					arg2();
+					Write "\n" to cw;
+				]
+				to cw;
+			]
+			to cw;
+		]
+		to cw;
+		Write "\n" to cw;
+		Write indent to cw;
+		Write ": " to cw;
+		Write call of
+		[
+			Write parenthetic with
+			[
+				Write arrow function () with
+				[
+					arg3();
+					Write "\n" to cw;
+				]
+				to cw;
+			]
+			to cw;
+		]
+		to cw;
+	];
 ];
 
 /******************************************************************************

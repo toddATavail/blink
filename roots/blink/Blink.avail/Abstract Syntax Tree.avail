@@ -980,7 +980,8 @@ Public class "timer threshold event handler statement"
 	with fields
 		public handled event : timer threshold's type ("_'s⁇event"),
 		public handled timer : timer ("_'s⁇timer"),
-		public declared timer threshold : whole number ms ("_'s⁇threshold");
+		public declared timer threshold : whole number ms expression
+			("_'s⁇threshold");
 
 Method "“_”" is
 [
@@ -1078,7 +1079,7 @@ Public "assignment value" is a new field atom;
 /**
  * An {@type "assignment statement"} assigns a value to a {@type "variable"}.
  *
- * @type "assignment expression"
+ * @type "assignment statement"
  * @supertype "abstract statement"
  * @field "assignment assignee" "variable"
  *        The {@type "variable"} that is the target of the {@type
@@ -1095,7 +1096,6 @@ Public method "_'s⁇subexpressions" is
 [
 	expr : assignment statement
 |
-	/* Don't include the target variable as a subexpression. */
 	<expr's value>
 ];
 
@@ -1426,7 +1426,7 @@ handledTimerExpirationEvents : {timer|} := ∅;
  * events supports uniqueness of handlers, permitting the compiler to reject
  * attempts to define conflicting handlers.
  */
-handledTimerThresholdEvents : {<timer, whole number ms…|2>|} := ∅;
+handledTimerThresholdEvents : {<timer, whole number ms expression…|2>|} := ∅;
 
 /**
  * The handled {@type "signal"}s. Registration of {@type "signal"}s supports
@@ -1519,13 +1519,13 @@ Private method "Register neighborhood state changed from_to_handler" is
  *
  * @method "Register timer threshold handler for_at_"
  * @param "t" "timer"
- * @param "th" "whole number ms"
+ * @param "th" "whole number ms expression"
  * @returns "⊤"
  */
 Private method "Register timer threshold handler for_at_" is
 [
 	t : timer,
-	th : whole number ms
+	th : whole number ms expression
 |
 	handledTimerThresholdEvents := handledTimerThresholdEvents + <t, th>;
 ];
@@ -1658,7 +1658,7 @@ Public method "statement recorder for_" is
 		[
 			Reject parse, expected:
 				format
-					"each timer theshold handler to be unique (but there \
+					"each timer threshold handler to be unique (but there \
 					\|is already a handler for ‘①’ at “②”)"
 				with
 					t's name,

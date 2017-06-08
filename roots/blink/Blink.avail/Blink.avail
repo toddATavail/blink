@@ -28,6 +28,10 @@ Uses
 		/* Tuples. */
 		"<«_‡,»>"
 	)
+	/* This puts the translation facilities into scope, so that translation
+	 * entry points can be run.
+	 */
+	/*"Translation"*/
 Extends
 	"Avail" =
 	(
@@ -47,7 +51,7 @@ Extends
 		"boot",
 		"button press",
 		"button release",
-		"click",
+		"single click",
 		"double click",
 		"triple click",
 		"long click"
@@ -55,8 +59,8 @@ Extends
 	"Expressions" =
 	(
 		/* State enumeration statements. */
-		"(Blink)«_‡,and⁇»is|are a⁇public state|states." →
-			"«_‡,and⁇»is|are a⁇public state|states.",
+		"(Blink)«_‡,and⁇»§is|are a⁇public state|states." →
+			"«_‡,and⁇»§is|are a⁇public state|states.",
 
 		/* Global variable declaration statements. */
 		"(Blink)_is_." → "_is_.",
@@ -220,7 +224,8 @@ Extends
 	"Lighting Patterns" =
 	(
 		"linear interpolation⁇",
-		"sinusoidal interpolation⁇"
+		"sinusoidal interpolation⁇",
+		"flashing interpolation⁇"
 	),
 	"Literals" =
 	(
@@ -229,10 +234,11 @@ Extends
 	),
 	"Standard Variables" =
 	(
-		"lighting⁇color variable" → "lighting⁇color",
-		"lighting⁇mode variable" → "lighting⁇mode",
-		"lighting⁇pattern variable" → "lighting⁇pattern",
-		"lighting⁇pattern duration variable" → "lighting⁇pattern duration"
+		"(Blink)lighting⁇color variable" → "lighting⁇color",
+		"(Blink)lighting⁇mode variable" → "lighting⁇mode",
+		"(Blink)lighting⁇pattern variable" → "lighting⁇pattern",
+		"(Blink)lighting⁇pattern duration variable"
+			→ "lighting⁇pattern duration"
 	)
 Body
 

@@ -52,7 +52,10 @@ Names
 	"(Blink)To_:_.",
 
 	/* Argument expressions. */
-	"(Blink)these neighbors"
+	"(Blink)these neighbors",
+
+	/* Compiler support. */
+	"filtered neighbors name"
 Body
 
 /******************************************************************************
@@ -97,10 +100,10 @@ Public macro "(Blink)On_,_." is
  * @macro "filtered neighbors name"
  * @returns "literal phrase ⇒ nonempty string"
  */
-Private macro "filtered neighbors name" is [‘"\"filtered neighbors\""’];
+Public macro "filtered neighbors name" is [‘"\"filtered neighbors\""’];
 
 /**
- * Declare a {@method "neighborhood occupancy changed"} {@type
+ * Declare a {@method "neighbors joined"} {@type
  * "event handler statement" event handler}.
  *
  * @macro "(Blink)When I join any neighbors§,_."
@@ -124,7 +127,7 @@ Public macro "(Blink)When I join any neighbors§,_." is
 	stmt ::= evaluate stmtPhrase;
 	handlerDeclExpr ::= an event handler statement with
 		expression type ::= ⊤,
-		handled event ::= neighborhood occupancy changed,
+		handled event ::= neighbors joined,
 		handler block ::= a block expression with
 			expression type ::= ⊤,
 			block body ::= <stmt>;
@@ -133,7 +136,7 @@ Public macro "(Blink)When I join any neighbors§,_." is
 ];
 
 /**
- * Declare a {@method "neighborhood occupancy changed"} {@type
+ * Declare a {@method "neighbors joined"} {@type
  * "event handler statement" event handler}.
  *
  * @macro "(Blink)When I join any neighbors§,_."
@@ -156,7 +159,7 @@ Public macro "(Blink)When I join any neighbors§:_." is
 	Pop scope;
 	handlerDeclExpr ::= an event handler statement with
 		expression type ::= ⊤,
-		handled event ::= neighborhood occupancy changed,
+		handled event ::= neighbors joined,
 		handler block ::= evaluate blockPhrase;
 	stmts ::= statement recorder for handlerDeclExpr;
 	seq «stmts»
@@ -479,7 +482,7 @@ Public macro "(Blink)When_has_remaining,_." is
 	tDeclExpr ::= a timer threshold event handler statement with
 		expression type ::= ⊤,
 		handled timer ::= evaluate tPhrase,
-		declared timer threshold ::= evaluate thPhrase's value,
+		declared timer threshold ::= evaluate thPhrase,
 		handler block ::= a block expression with
 			expression type ::= ⊤,
 			block body ::= <evaluate stmtPhrase>;
@@ -506,7 +509,7 @@ Public macro "(Blink)When_has_remaining:_." is
 	tDeclExpr ::= a timer threshold event handler statement with
 		expression type ::= ⊤,
 		handled timer ::= evaluate tPhrase,
-		declared timer threshold ::= evaluate thPhrase's value,
+		declared timer threshold ::= evaluate thPhrase,
 		handler block ::= evaluate blockPhrase;
 	stmts ::= statement recorder for tDeclExpr;
 	seq «stmts»

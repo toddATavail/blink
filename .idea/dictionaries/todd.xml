@@ -2,6 +2,8 @@
   <dictionary name="todd">
     <words>
       <w>anaphor</w>
+      <w>canonicalization</w>
+      <w>canonicalized</w>
       <w>declarator</w>
       <w>declarators</w>
       <w>literalization</w>

@@ -16,6 +16,7 @@ Body
 "team" is [1..2].
 
 "initialize" is a signal.
+"set team color" is a signal.
 On boot, now initialize.
 To initialize:
 [
@@ -40,22 +41,23 @@ To initialize:
 
 "change sides" is a signal.
 On long click, now change sides.
+On double click, now change sides.
 To change sides:
 [
 	/* This is modular arithmetic; wrap around is automatic. */
 	team += 1.
-	Log if team = 1, "team is now 1"; else "team is now 2".
 	Now set team color.
 ].
 
-"set team color" is a signal.
 To set team color:
 [
 	Change my color to
-		if my state is inactive, if team = 1, green;
+		if my state is inactive,
+			if team = 1, green;
 			else, magenta;
-		else if team = 1, dark green;
-			else dark magenta.
+		else,
+			if team = 1, dark green;
+			else, dark magenta.
 ].
 
 "lifetime" is a timer.
