@@ -11,19 +11,16 @@
 
 publicStates(["dead", "active", "inactive"]);
 rangedInteger("team", 1, 2);
-timer("lifetime");
 
 // Signal names are registered, to provide validation.
-signals(["initialize", "change sides", "play begins"]);
+signals(["initialize", "change sides", "begin play", "set team color"]);
 
 deviceOn("initialize");
 when("initialize", () => {
 	this.team = 1;
 	this.light.mode = Light.modes.constant;
-	this.light.color = Color.GREEN;
-	this.light.opacity = 1.0;
-	console.log(this.light, this.light.color);
 	this.state = "dead";
+	signal("set team color");
 });
 
 onLongClick("change sides");
@@ -32,40 +29,51 @@ when("change sides", () => {
 	// Modular arithmetic is implemented here by overriding property getters and
 	// setters. So the fused assignment restricts the value to lie in [1,2].
     this.team += 1;
-	this.log("team is " + this.team);
-    this.light.color = (this.team === 1) ? Color.GREEN : Color.PURPLE;
+	this.log((this.team === 1) ? "team is now 1" : "team is now 2");
+    signal("set team color");
 });
 
-onTripleClick("play begins");
+when("set team color", () => {
+	this.light.color = (this.state === "inactive" 
+		? ((this.team === 1) 
+			? 0x00ff00   // green
+			: 0xff00ff)  // magenta
+		: ((this.team === 1) 
+			? 0x006400   // dark green
+			: 0x8B008B)  // dark magenta
+	);
+});
+
+timer("lifetime");
+onTripleClick("begin play");
 onNeighborStateTransition("dead", "inactive", (neighbors) => {
-	signal("play begins");
+	signal("begin play");
 });
 
-when("play begins", () => {
+when("begin play", () => {
     this.state = "inactive";
     this.lifetime = 5 * Time.SECOND;
-	this.light.color = (this.team === 1) ? Color.GREEN : Color.PURPLE;
+	
     this.light.mode = Light.modes.pulsing;
     this.light.interpolation = Interpolation.sinusoidal;
     this.light.frequency = 2 * Time.SECOND;
+	signal("set team color");
 });
 
 onIsolated(() => {
 	if (this.state === "inactive") {
 		this.state = "active";
-		this.light.color = Color.WHITE; // TODO pulse!
+		this.light.color = 0xffffff;
 	}
 });
 
 onJoinNeighbors((neighbors) => {
-	if (this.state === "inactive") {
-		if (neighbors.some(n => n.state === "active")) {
-			this.lifetime -= 5 * Time.SECOND;
-		}
-	} else if (this.state === "active") {
-		this.lifetime = this.lifetime + neighbors.length * 5 * Time.SECOND;
+	this.lifetime += (neighbors.some(n => n.state === "active")
+		? -5 * Time.SECOND
+		: neighbors.length * 5 * Time.SECOND);
+	if (this.state === "active") {
 		this.state = "inactive";
-		this.light.color = (this.team === 1) ? Color.GREEN : Color.PURPLE;
+		signal("set team color");
 	}
 });
 
@@ -77,5 +85,5 @@ whenTimerThreshold("lifetime", 10 * Time.SECOND, () => {
 whenTimerExpires("lifetime", () => {
 	this.state = "dead";
     this.light.mode = Light.modes.constant;
-    this.light.color = Color.GRAY;
+    signal("set team color");
 });

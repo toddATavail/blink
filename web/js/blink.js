@@ -191,8 +191,8 @@ Blink.prototype = Object.assign(Object.create(THREE.Group.prototype), {
     render: function () {
         if (this.executor.light instanceof LightInterface) {
             // this.light.color = this.executor.light.color;
-            this.primaryMesh.material.color =
-                this.executor.light.color.clone().multiplyScalar(0.6);
+            this.primaryMesh.material.color.setHex(this.executor.light.color);
+            this.primaryMesh.material.color.multiplyScalar(0.6);
         }
     },
     writeDebugText: function (msg) {

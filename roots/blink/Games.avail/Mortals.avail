@@ -33,9 +33,9 @@ To initialize:
 	 * team := 1.
 	 */
 	Change my team to 1.
-	Change my color to green.
 	Change my lighting mode to constant.
 	Change my state to dead.
+	Now set team color.
 ].
 
 "change sides" is a signal.
@@ -44,9 +44,18 @@ To change sides:
 [
 	/* This is modular arithmetic; wrap around is automatic. */
 	team += 1.
+	Log if team = 1, "team is now 1"; else "team is now 2".
+	Now set team color.
+].
+
+"set team color" is a signal.
+To set team color:
+[
 	Change my color to
-		if team = 1, green;
-		else, purple.
+		if my state is inactive, if team = 1, green;
+			else, magenta;
+		else if team = 1, dark green;
+			else dark magenta.
 ].
 
 "lifetime" is a timer.
@@ -56,13 +65,19 @@ When any dead neighbor becomes inactive, now begin play.
 To begin play:
 [
 	Change my state to inactive.
+	Expire my lifetime in 60s.
+	
 	Change my lighting mode to pulsing.
 	Change my pattern to sinusoidal.
 	Change my pattern duration to 2s.
-	Expire my lifetime in 60s.
+	Now set team color.
 ].
 
-When I become isolated, change my state to active.
+When I become isolated, if my state is inactive:
+[
+	Change my state to active.
+	Change my color to white.
+].
 
 /* Since I cannot command any other Blinks to do anything — I can only
  * advertise my own state and consider my neighbors' advertised states — I must
@@ -74,12 +89,18 @@ When I join any neighbors:
 		if any neighbors are active, -5s;
 		else, if my state is active, 5s × count of neighbors;
 		else, 0s.
+	If my state is active:
+	[
+		Change my state to inactive.
+		Now set team color.
+	].
 ].
 
 When my lifetime has 10s remaining, change my pattern duration to 500ms.
 
 When my lifetime expires:
 [
+	Change my state to dead.
 	Change my lighting mode to constant.
-	Change my color to gray.
+	Now set team color.
 ].
