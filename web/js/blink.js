@@ -170,12 +170,6 @@ function Blink(sideLength, snapgrid, initVector, initProgram) {
         this.setHex(hexTarget);
         this.moveToHex();
     });
-
-    this.executor.addEventListener("stateChange", (e) => {
-        if (options.debugTextActivated) {
-            this.writeDebugText(e.value);
-        }
-    })
 }
 
 Blink.prototype = Object.assign(Object.create(THREE.Group.prototype), {
@@ -275,6 +269,18 @@ Blink.prototype = Object.assign(Object.create(THREE.Group.prototype), {
         }
         this.executor = new BlinkExecutor(this);
         this.executor.setProgram(this.currentProgram);
+        this.executor.addEventListener("stateChange", (e) => {
+            if (options.debugTextActivated) {
+                this.writeDebugText(e.current);
+            }
+            this.neighbors.forEach(n => {
+                n.executor.dispatch({
+                    type: "neighborStateChange",
+                    previous: e.previous,
+                    current: e.current
+                });
+            })
+        });
         this.executor.turnOn();
     }
 });

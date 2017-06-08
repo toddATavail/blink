@@ -20,8 +20,11 @@ function BlinkExecutor (blink, initialProgram) {
             {
                 throw new Error("State " + state + " not one of the predefined states!");
             }
-            this._state = state;
-            this.dispatch({type: "stateChange", value: state});
+            if (state !== this._state) {
+                let previous = this._state;
+                this._state = state;
+                this.dispatch({type: "stateChange", current: state, previous: previous});
+            }
         },
         get: () => this._state,
         configurable: false
@@ -36,7 +39,7 @@ function BlinkExecutor (blink, initialProgram) {
         this._signalHandlers.get(signal.name)();
     });
 
-    this._timers = new BlinkTimer();
+    this._timers = new Map();
 
     this.light = new LightInterface();
 
@@ -70,7 +73,9 @@ BlinkExecutor.prototype = {
         }
         this.dispatchEvent(event);
     },
-    
+    signalDispatcher: function (signal) {
+        return () => this.dispatch({type: "signal", name: signal});
+    },
     setProgram: function (program) {
         // note that API functions must be anonymous functions here to bind correctly
         const signal = 
@@ -113,17 +118,42 @@ BlinkExecutor.prototype = {
         const whenTimerExpires =
             (timerName, callback) => whenTimerThreshold(timerName, 0, callback);
 
-        const deviceOn = (cb) => this.addEventListener("deviceOn", cb);
-        const onSingleClick = (cb) => this.addEventListener("singleClick", cb);
-        const onDoubleClick = (cb) => this.addEventListener("doubleClick", cb);
-        const onTripleClick = (cb) => this.addEventListener("tripleClick", cb);
-        const onLongClick = (cb) => this.addEventListener("longClick", cb);
-        const onJoinNeighbors = (cb) => this.addEventListener("joinNeighbors", (event) => cb(event.contexts));
-        const onIsolated = (cb) => this.addEventListener("isolated", cb);
-
-        const UNIMPL = (name) => (() => console.info(name + "() is not yet implemented!"));
-        const rangedInteger = UNIMPL("rangedInteger");
+        // UI events take signal names
+        const deviceOn = (name) => 
+            this.addEventListener("deviceOn", this.signalDispatcher(name));
+        const onSingleClick = (name) => 
+            this.addEventListener("singleClick", this.signalDispatcher(name));
+        const onDoubleClick = (name) => 
+            this.addEventListener("doubleClick", this.signalDispatcher(name));
+        const onTripleClick = (name) => 
+            this.addEventListener("tripleClick", this.signalDispatcher(name));
+        const onLongClick = (name) => 
+            this.addEventListener("longClick", this.signalDispatcher(name));
         
+        const onJoinNeighbors = (cb) => 
+            this.addEventListener("joinNeighbors", 
+                (event) => cb(event.contexts));
+        const onIsolated = (cb) => 
+            this.addEventListener("isolated", cb);
+        const onNeighborStateTransition = (previous, current, cb) => {
+            this.addEventListener("neighborStateChange", e => {
+                if (e.previous === previous && e.current === current) {
+                    cb(e.object);
+                }
+            });
+        };
+
+        const rangedInteger = (name, min, max) => {
+            var value = min;
+            Object.defineProperty(this, name, {
+                get: () => value,
+                set: (newValue) => {
+                    value = (newValue - min) % (max - min + 1) + min;
+                },
+                configurable: false
+            });
+        };
+
         try {
             eval(program); // CAUTION
         } catch (e) {

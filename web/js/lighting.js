@@ -22,3 +22,12 @@ const Light = {
         }
     }
 }
+
+const Interpolation = {
+    sinusoidal: function (start, end, alpha) {
+        return ((Math.cos(2 * alpha / Math.PI) + 1) / 2) * (start - end) + end;   
+    },
+    linear: function (start, end, alpha) {
+        return start + alpha * (end - start);
+    }
+}

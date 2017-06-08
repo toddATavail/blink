@@ -1,7 +1,7 @@
 var options = {
-    multiClickThreshold: 500,
-    longHoldDuration: 1500,
-    debugTextActivated: false
+    multiClickThreshold: 300,
+    longHoldDuration: 1000,
+    debugTextActivated: true
 };
 
 Number.prototype.mod = function (n) {
