@@ -201,6 +201,30 @@ Public method "Translate_" is
 	];
 ];
 
+Public method "Translate_" is
+[
+	tr : (extend code generator with code type : string's type)
+|
+	For each stmt of tr's source do
+	[
+		Guard
+		[
+			Visit tr
+				upon stmt
+				deconstructed by [x : abstract expression | x's subexpressions];
+		]
+		intercept
+    	[
+    		e : exception
+    	|
+    		Write
+    			format "*****\n‘①’\n*****"
+    			with “e” (stack summary)
+    		to tr's writer;
+    	];
+	];
+];
+
 /******************************************************************************
  *                              Source writers.                               *
  ******************************************************************************/

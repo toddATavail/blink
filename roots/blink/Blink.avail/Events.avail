@@ -14,13 +14,13 @@ Names
 			"boot",
 			"button press",
 			"button release",
-			"click",
+			"single click",
 			"double click",
 			"triple click",
 			"long click",
 		"software event",
 			"heartbeat",
-			"neighborhood occupancy changed",
+			"neighbors joined",
 			"isolated",
 			"state changed",
 			"neighborhood state changed",
@@ -60,10 +60,10 @@ Public "button release" is a new atom;
 /**
  * An {@type "atom"} that denotes pressing and then releasing a Blink's button.
  *
- * @method "click"
+ * @method "single click"
  * @returns "atom"
  */
-Public "click" is a new atom;
+Public "single click" is a new atom;
 
 /**
  * An {@type "atom"} that denotes pressing and then releasing a Blink's button
@@ -105,7 +105,7 @@ Public macro "hardware event" is
 		boot,
 		button press,
 		button release,
-		click,
+		single click,
 		double click,
 		triple click,
 		long click
@@ -126,13 +126,13 @@ Public macro "hardware event" is
 Public "heartbeat" is a new atom;
 
 /**
- * An {@type "atom"} that denotes that neighbors have magnetically attached or
- * detached from a Blink.
+ * An {@type "atom"} that denotes that neighbors have magnetically attached
+ * to a Blink.
  *
- * @method "neighborhood occupancy changed"
+ * @method "neighbors joined"
  * @returns "atom"
  */
-Public "neighborhood occupancy changed" is a new atom;
+Public "neighbors joined" is a new atom;
 
 /**
  * An {@type "atom"} that denotes that a Blink has become isolated from all
@@ -189,7 +189,7 @@ Public macro "software event" is
 [
 	‘{
 		heartbeat,
-		neighborhood occupancy changed,
+		neighbors joined,
 		isolated,
 		state changed,
 		neighborhood state changed,
@@ -215,12 +215,12 @@ Public macro "event" is
 		boot,
 		button press,
 		button release,
-		click,
+		single click,
 		double click,
 		triple click,
 		long click,
 		heartbeat,
-		neighborhood occupancy changed,
+		neighbors joined,
 		isolated,
 		state changed,
 		neighborhood state changed,

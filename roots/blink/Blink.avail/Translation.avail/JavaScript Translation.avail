@@ -11,6 +11,7 @@ Uses
 	"Avail" = ("variable" → "Avail variable", …),
 	"Dimensional Analysis" = ("__", "ms", "_'s⁇extent"),
 	"Events",
+	"Expressions" = ("filtered neighbors name"),
 	"JavaScript Code Generators",
 	"Lighting Modes",
 	"Lighting Patterns",
@@ -68,8 +69,8 @@ Public method "a JavaScript translator for_«(wrapped at_characters)»?" is
 Public method "*Translate to JavaScript" is
 [
 	cg ::= a JavaScript translator for program accumulator;
-	Translate cg;
-	Print: cg's writer's accumulator;
+	Guard [Translate cg;]
+	ensure [Print: cg's writer's accumulator;];
 ];
 
 /******************************************************************************
@@ -110,11 +111,9 @@ Method "After visiting_upon_" is
 	lit : lighting mode literal
 |
 	cw ::= cg's writer;
-	Write property access with
-	[
-		Write "Light.modes" to cw;
-	]
-	for lit's value's name ?→ nonempty string
+	Write property access
+		with ["Light.modes"]
+		for lit's value's name ?→ nonempty string
 	to cw;
 ];
 
@@ -125,11 +124,9 @@ Method "After visiting_upon_" is
 |
 	cw ::= cg's writer;
 	name ::= lit's value's name;
-	Write property access with
-	[
-		Write "Interpolation" to cw;
-	]
-	for name[1..0 max (first index of " " in name - 1)] ?→ nonempty string
+	Write property access
+		with ["Interpolation"]
+		for name[1..0 max (first index of " " in name - 1)] ?→ nonempty string
 	to cw;
 ];
 
@@ -151,11 +148,9 @@ Method "After visiting_upon_" is
 	var : global variable
 |
 	cw ::= cg's writer;
-	Write property access with
-	[
-		Write "this" to cw;
-	]
-	for “var's name” (JavaScript variable)
+	Write property access
+		with ["this"]
+		for “var's name” (JavaScript variable)
 	to cw;
 ];
 
@@ -165,11 +160,9 @@ Method "After visiting_upon_" is
 	var : (Blink) lighting color variable's type
 |
 	cw ::= cg's writer;
-	Write property access with
-	[
-		Write "this" to cw;
-	]
-	for "color"
+	Write property access
+		with ["this.light"]
+		for "color"
 	to cw;
 ];
 
@@ -179,11 +172,9 @@ Method "After visiting_upon_" is
 	var : (Blink) lighting mode variable's type
 |
 	cw ::= cg's writer;
-	Write property access with
-	[
-		Write "this" to cw;
-	]
-	for "mode"
+	Write property access
+		with ["this.light"]
+		for "mode"
 	to cw;
 ];
 
@@ -193,11 +184,9 @@ Method "After visiting_upon_" is
 	var : (Blink) lighting pattern variable's type
 |
 	cw ::= cg's writer;
-	Write property access with
-	[
-		Write "this" to cw;
-	]
-	for "interpolation"
+	Write property access
+		with ["this.light"]
+		for "interpolation"
 	to cw;
 ];
 
@@ -207,12 +196,18 @@ Method "After visiting_upon_" is
 	var : (Blink) lighting pattern duration variable's type
 |
 	cw ::= cg's writer;
-	Write property access with
-	[
-		Write "this" to cw;
-	]
-	for "frequency"
+	Write property access
+		with ["this.light"]
+		for "frequency"
 	to cw;
+];
+
+Method "After visiting_upon_" is
+[
+	cg : JavaScript translator,
+	var : (extend variable with variable name : filtered neighbors name's type)
+|
+	Write variable "neighbors" to cg's writer;
 ];
 
 /******************************************************************************
@@ -225,11 +220,9 @@ Method "After visiting_upon_" is
 	t : timer
 |
 	cw ::= cg's writer;
-	Write property access with
-	[
-		Write "this" to cw;
-	]
-	for t's name
+	Write property access
+		with ["this"]
+		for t's name
 	to cw;
 ];
 
@@ -269,8 +262,112 @@ Method "Visit_upon_deconstructed by_(breadth first=_)" is
 ];
 
 /******************************************************************************
+ *                          Conditional expressions.                          *
+ ******************************************************************************/
+
+Method "Visit_upon_deconstructed by_(breadth first=_)" is
+[
+	cg : JavaScript translator,
+	expr : conditional statement,
+	deconstructor : [⊥]→tuple,
+	breadthFirst : false's type
+|
+	cw ::= cg's writer;
+	Write conditional statement
+		with
+		[
+			Visit cg upon expr's predicate deconstructed by
+				[x : abstract expression | x's subexpressions];
+		]
+		with
+		[
+			For each stmt of expr's positive block's body do
+			[
+				Visit cg upon stmt deconstructed by
+					[x : abstract expression | x's subexpressions];
+			];
+		]
+	to cw;
+];
+
+Method "Visit_upon_deconstructed by_(breadth first=_)" is
+[
+	cg : JavaScript translator,
+	expr : conditional expression,
+	deconstructor : [⊥]→tuple,
+	breadthFirst : false's type
+|
+	cw ::= cg's writer;
+	If expr's expression type = ⊤ then
+	[
+		Write conditional statement
+			with
+			[
+				Visit cg upon expr's predicate deconstructed by
+					[x : abstract expression | x's subexpressions];
+			]
+			with
+			[
+				For each stmt of expr's positive block's body do
+				[
+					Visit cg upon stmt deconstructed by
+						[x : abstract expression | x's subexpressions];
+				];
+			]
+			with
+			[
+				For each stmt of expr's negative block's body do
+				[
+					Visit cg upon stmt deconstructed by
+						[x : abstract expression | x's subexpressions];
+				];
+			]
+		to cw;
+	]
+	else
+	[
+		Write ternary operator
+			with
+			[
+				Visit cg upon expr's predicate deconstructed by
+					[x : abstract expression | x's subexpressions];
+			]
+			with
+			[
+				For each stmt of expr's positive block's body do
+				[
+					Write indent to cw;
+					Visit cg upon stmt deconstructed by
+						[x : abstract expression | x's subexpressions];
+				];
+			]
+			with
+			[
+				For each stmt of expr's negative block's body do
+				[
+					Write indent to cw;
+					Visit cg upon stmt deconstructed by
+						[x : abstract expression | x's subexpressions];
+				];
+			]
+		to cw;
+	];
+];
+
+/******************************************************************************
  *                           Operator expressions.                            *
  ******************************************************************************/
+
+/**
+ * Operator characters for rendition of unary operators.
+ *
+ * @global "op1Map" "{nonempty string→nonempty string|}"
+ */
+op1Map ::=
+{
+	"-_" → "-",
+	"¬"  → "!"
+};
 
 Method "Visit_upon_deconstructed by_(breadth first=_)" is
 [
@@ -281,10 +378,7 @@ Method "Visit_upon_deconstructed by_(breadth first=_)" is
 	breadthFirst : false's type
 |
 	cw ::= cg's writer;
-	op ::=
-		replace all occurrences of "_" in expr's operator with ""
-			?→ nonempty string;
-	Write unary operator op with
+	Write unary operator op1Map[expr's operator] with
 	[
 		Visit cg upon expr's operands[1] deconstructed by
 			[x : abstract expression | x's subexpressions];
@@ -296,15 +390,54 @@ Method "Visit_upon_deconstructed by_(breadth first=_)" is
 [
 	cg : JavaScript translator,
 	expr : (extend operator expression with
+		expression operator : "`|_`|"'s type,
+		expression operands : <any expression…|1>),
+	deconstructor : [⊥]→tuple,
+	breadthFirst : false's type
+|
+	cw ::= cg's writer;
+	Write property access
+		with
+		[
+			Visit cg upon expr's operands[1] deconstructed by
+				[x : abstract expression | x's subexpressions];
+		]
+		for "length"
+	to cw;
+];
+
+/**
+ * Operator characters for rendition of binary operators.
+ *
+ * @global "op2Map" "{nonempty string→nonempty string|}"
+ */
+op2Map ::=
+{
+	"_+_"  → "+",
+	"_-_"  → "-",
+	"_×_"  → "*",
+	"_÷_"  → "/",
+	"_\\_" → "%",
+	"_∧_"  → "&&",
+	"_∨_"  → "||",
+	"_=_"  → "===",
+	"_≠_"  → "!==",
+	"_<_"  → "<",
+	"_≤_"  → "<=",
+	"_≥_"  → ">=",
+	"_>_"  → ">"
+};
+
+Method "Visit_upon_deconstructed by_(breadth first=_)" is
+[
+	cg : JavaScript translator,
+	expr : (extend operator expression with
 		expression operands : <any expression…|2>),
 	deconstructor : [⊥]→tuple,
 	breadthFirst : false's type
 |
 	cw ::= cg's writer;
-	op ::=
-		replace all occurrences of "_" in expr's operator with ""
-			?→ nonempty string;
-	Write binary operator op
+	Write binary operator op2Map[expr's operator]
 		with
 		[
 			Visit cg upon expr's operands[1] deconstructed by
@@ -351,9 +484,9 @@ Method "After visiting_upon_" is
 	cw ::= cg's writer;
 	Write statement with
 	[
-		Write call of ["signals"] with
+		Write call of ["signal"] with
 		[
-			Write literal <stmt's signal's name> to cw;
+			Write literal stmt's signal's name to cw;
 		]
 		to cw;
 	]
@@ -420,17 +553,17 @@ Method "After visiting_upon_" is
  ******************************************************************************/
 
 /**
- * Emit a hardware event handler.
+ * Emit an event handler.
  *
- * @method "Emit hardware event handler(_)for_on_"
+ * @method "Emit event handler(_)for_on_"
  * @param "call" "nonempty string"
- *        The JavaScript name of the hardware event.
+ *        The JavaScript name of the {@type "event"}.
  * @param "block" "block expression"
  *        The {@type "block expression"} to emit as the handler's body.
  * @param "cg" "JavaScript translator"
  * @returns "⊤"
  */
-Private method "Emit hardware event handler(_)for_on_" is
+Private method "Emit event handler(_)for_on_" is
 [
 	call : nonempty string,
 	block : block expression,
@@ -456,12 +589,17 @@ Private method "Emit hardware event handler(_)for_on_" is
 	to cw;
 ];
 
+/**
+ * The JavaScript handler names for {@type "hardware event"}s.
+ *
+ * @global "hardwareEventMap" "{hardware event→nonempty string|}"
+ */
 hardwareEventMap ::=
 {
-	boot           → "deviceOn",
+	boot           → "onBoot",
 	button press   → "onButtonPress",
 	button release → "onButtonRelease",
-	click          → "onClick",
+	single click   → "onSingleClick",
 	double click   → "onDoubleClick",
 	triple click   → "onTripleClick",
 	long click     → "onLongClick"
@@ -475,8 +613,181 @@ Method "Visit_upon_deconstructed by_(breadth first=_)" is
 	deconstructor : [⊥]→tuple,
 	breadthFirst : false's type
 |
-	Emit hardware event handler (hardwareEventMap[stmt's event])
-		for stmt's block on cg;
+	Emit event handler (hardwareEventMap[stmt's event]) for stmt's block on cg;
+];
+
+/**
+ * The JavaScript handler names for {@type "software event"}s.
+ *
+ * @global "softwareEventMap" "{hardware event→nonempty string|}"
+ */
+softwareEventMap ::=
+{
+	heartbeat        → "whenHeartBeats",
+	isolated         → "whenIsolated"
+};
+
+Method "Visit_upon_deconstructed by_(breadth first=_)" is
+[
+	cg : JavaScript translator,
+	stmt : (extend event handler statement with
+		handled event : software event),
+	deconstructor : [⊥]→tuple,
+	breadthFirst : false's type
+|
+	Emit event handler (softwareEventMap[stmt's event]) for stmt's block on cg;
+];
+
+Method "Visit_upon_deconstructed by_(breadth first=_)" is
+[
+	cg : JavaScript translator,
+	stmt : (extend event handler statement with
+		handled event : neighbors joined's type),
+	deconstructor : [⊥]→tuple,
+	breadthFirst : false's type
+|
+	cw ::= cg's writer;
+	Write statement with
+	[
+		Write call of ["whenNeighborsJoined"]
+			with
+			[
+				Write arrow function ("neighbors") with
+				[
+					For each localStmt of stmt's block's body do
+					[
+						Visit cg upon localStmt deconstructed by
+							[x : abstract expression | x's subexpressions];
+					];
+				]
+				to cw;
+			]
+		to cw;
+	]
+	to cw;
+];
+
+Method "Visit_upon_deconstructed by_(breadth first=_)" is
+[
+	cg : JavaScript translator,
+	stmt : state changed event handler statement,
+	deconstructor : [⊥]→tuple,
+	breadthFirst : false's type
+|
+	cw ::= cg's writer;
+	Write statement with
+	[
+		Write call of ["whenStateChanges"]
+			with [Write literal stmt's previous state's name to cw;]
+			with [Write literal stmt's next state's name to cw;]
+			with
+			[
+				Write arrow function () with
+				[
+					For each localStmt of stmt's block's body do
+					[
+						Visit cg upon localStmt deconstructed by
+							[x : abstract expression | x's subexpressions];
+					];
+				]
+				to cw;
+			]
+		to cw;
+	]
+	to cw;
+];
+
+Method "Visit_upon_deconstructed by_(breadth first=_)" is
+[
+	cg : JavaScript translator,
+	stmt : neighborhood state changed event handler statement,
+	deconstructor : [⊥]→tuple,
+	breadthFirst : false's type
+|
+	cw ::= cg's writer;
+	Write statement with
+	[
+		Write call of ["whenNeighborStateChanges"]
+			with [Write literal stmt's previous state's name to cw;]
+			with [Write literal stmt's next state's name to cw;]
+			with
+			[
+				Write arrow function ("neighbors") with
+				[
+					For each localStmt of stmt's block's body do
+					[
+						Visit cg upon localStmt deconstructed by
+							[x : abstract expression | x's subexpressions];
+					];
+				]
+				to cw;
+			]
+		to cw;
+	]
+	to cw;
+];
+
+Method "Visit_upon_deconstructed by_(breadth first=_)" is
+[
+	cg : JavaScript translator,
+	stmt : timer threshold event handler statement,
+	deconstructor : [⊥]→tuple,
+	breadthFirst : false's type
+|
+	cw ::= cg's writer;
+	Write statement with
+	[
+		Write call of ["whenTimerThreshold"]
+			with [Write literal stmt's timer's name to cw;]
+			with
+			[
+				Visit cg upon stmt's threshold deconstructed by
+					[x : abstract expression | x's subexpressions];
+			]
+			with
+			[
+				Write arrow function () with
+				[
+					For each localStmt of stmt's block's body do
+					[
+						Visit cg upon localStmt deconstructed by
+							[x : abstract expression | x's subexpressions];
+					];
+				]
+				to cw;
+			]
+		to cw;
+	]
+	to cw;
+];
+
+Method "Visit_upon_deconstructed by_(breadth first=_)" is
+[
+	cg : JavaScript translator,
+	stmt : timer expired event handler statement,
+	deconstructor : [⊥]→tuple,
+	breadthFirst : false's type
+|
+	cw ::= cg's writer;
+	Write statement with
+	[
+		Write call of ["whenTimerExpires"]
+			with [Write literal stmt's timer's name to cw;]
+			with
+			[
+				Write arrow function () with
+				[
+					For each localStmt of stmt's block's body do
+					[
+						Visit cg upon localStmt deconstructed by
+							[x : abstract expression | x's subexpressions];
+					];
+				]
+				to cw;
+			]
+		to cw;
+	]
+	to cw;
 ];
 
 Method "Visit_upon_deconstructed by_(breadth first=_)" is
@@ -489,7 +800,7 @@ Method "Visit_upon_deconstructed by_(breadth first=_)" is
 	cw ::= cg's writer;
 	Write statement with
 	[
-		Write call of ["when"]
+		Write call of ["to"]
 			with
 			[
 				Write literal stmt's signal's name to cw;
@@ -553,7 +864,7 @@ Method "After visiting_upon_" is
 	cw ::= cg's writer;
 	Write statement with
 	[
-		Write call of ["signal"] with
+		Write call of ["now"] with
 		[
 			Write literal stmt's signal's name to cw;
 		]
@@ -621,7 +932,7 @@ Method "Visit_upon_deconstructed by_(breadth first=_)" is
 			]
 			with
 			[
-				Write binary operator "="
+				Write binary operator "+"
 					with
 					[
 						Visit cg upon stmt's timer deconstructed by
@@ -638,3 +949,45 @@ Method "Visit_upon_deconstructed by_(breadth first=_)" is
 	]
 	to cw;
 ];
+
+/******************************************************************************
+ *                    Neighborhood filtration expressions.                    *
+ ******************************************************************************/
+
+Method "Visit_upon_deconstructed by_(breadth first=_)" is
+[
+	cg : JavaScript translator,
+	stmt : (extend neighborhood filtration expression with
+		accepted states : {atom|1}),
+	deconstructor : [⊥]→tuple,
+	breadthFirst : false's type
+|
+	cw ::= cg's writer;
+	Write call
+		of
+		[
+			Write property access
+				with
+				[
+					Visit cg upon stmt's neighbors deconstructed by
+						[x : abstract expression | x's subexpressions];
+				]
+				for "filter"
+			to cw;
+		]
+		with
+		[
+			Write arrow function ("n") with
+			[
+				Write indent to cw;
+				Write binary operator "==="
+					with [Write property access with ["n"] for "state" to cw;]
+					with [Write literal stmt's states→tuple[1]'s name to cw;]
+				to cw;
+				Write "\n" to cw;
+			]
+			to cw;
+		]
+	to cw;
+];
+

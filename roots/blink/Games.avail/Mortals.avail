@@ -41,6 +41,7 @@ To initialize:
 
 "change sides" is a signal.
 On long click, now change sides.
+On double click, now change sides.
 To change sides:
 [
 	/* This is modular arithmetic; wrap around is automatic. */

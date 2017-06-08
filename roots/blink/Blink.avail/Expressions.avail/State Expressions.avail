@@ -10,7 +10,7 @@ Uses
 	"Avail"
 Names
 	/* State enumeration statements. */
-	"(Blink)«_‡,and⁇»is|are a⁇public state|states.",
+	"(Blink)«_‡,and⁇»§is|are a⁇public state|states.",
 
 	/* Neighborhood filtration expressions. */
 	"(Blink)_neighbors",
@@ -51,12 +51,12 @@ Private method "ordinal suffix for_" is
  * the generated standard {@type "variable"}s {@code "state"} and {@code
  * "neighbors"}.
  *
- * @macro "(Blink)«_‡,and⁇»is|are a⁇public state|states."
+ * @macro "(Blink)«_‡,and⁇»§is|are a⁇public state|states."
  * @param "statesPhrase" "list phrase ⇒ (nonempty string literal+)"
  *        The declared state names.
  * @returns "sequence phrase"
  */
-Public macro "(Blink)«_‡,and⁇»is|are a⁇public state|states." is
+Public macro "(Blink)«_‡,and⁇»§is|are a⁇public state|states." is
 [
 	statesPhrase : list phrase ⇒ (nonempty string literal+)
 |
