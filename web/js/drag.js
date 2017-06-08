@@ -8,9 +8,12 @@ const DragState = {
 
 const FREE_PLAY_THRESHOLD = 0.05;
 
-function dragGroup(_targets, _plane, _camera, _domElement, _cameraControls) {
+function dragGroup(_targets, _plane, _camera, _domElement, _cameraControls, _grid) {
     var state = DragState.None;
     var selected = [];
+    var anchor;
+    var moveTarget;
+    var delta;
 
     var dragStartPosition;
     var dragStartTime;
@@ -50,6 +53,7 @@ function dragGroup(_targets, _plane, _camera, _domElement, _cameraControls) {
             while (dragTarget.dragParent && dragTarget.parent) {
                 dragTarget = dragTarget.parent;
             }
+            anchor = dragTarget;
 
             var alreadySelected = !!selected.find(o => (o.object === dragTarget));
             if (event.shiftKey) {
@@ -78,8 +82,8 @@ function dragGroup(_targets, _plane, _camera, _domElement, _cameraControls) {
         }
         updateMouse(event);
         raycaster.setFromCamera(mouse, _camera);
-        var moveTarget = raycaster.ray.intersectPlane(_plane);
-        var delta = moveTarget.sub(dragStartPosition);
+        moveTarget = raycaster.ray.intersectPlane(_plane);
+        delta = moveTarget.sub(dragStartPosition);
         if (state === DragState.FreePlay) {
             if (delta.length() > FREE_PLAY_THRESHOLD) {
                 state = DragState.Drag;
@@ -94,6 +98,30 @@ function dragGroup(_targets, _plane, _camera, _domElement, _cameraControls) {
             });
         }
     }
+    function onDocumentKeyDown(event) {
+        // console.log(event);
+        if (state === DragState.Drag) {
+            if (event.key === "q" || event.key === "PageUp") {
+                // CCW
+                selected.forEach(s => {
+                    let fromAnchor = s.object.hex.clone().sub(anchor.hex);
+                    let rotation = new THREE.Vector2(fromAnchor.y, - fromAnchor.x-fromAnchor.y);
+                    s.object.hex.add(rotation);
+                    s.initial.add(_grid.toPosition(rotation));
+                    s.object.dispatchEvent({type: "drag", position: s.initial.clone().add(delta)});
+                });
+            } else if (event.key === "e" || event.key === "PageDown") {
+                // CW
+                selected.forEach(s => {
+                    let fromAnchor = s.object.hex.clone().sub(anchor.hex);
+                    let rotation = new THREE.Vector2(-fromAnchor.x - fromAnchor.y, fromAnchor.x);
+                    s.object.setHex(s.object.hex.clone().add(rotation));
+                    s.initial.add(_grid.toPosition(rotation));
+                    s.object.dispatchEvent({type: "drag", position: s.initial.clone().add(delta)});
+                });
+            }
+        }
+    }
     function onDocumentMouseUp(event) {
         event.preventDefault();
         if (state === DragState.FreePlay) {
@@ -105,10 +133,12 @@ function dragGroup(_targets, _plane, _camera, _domElement, _cameraControls) {
             deselectAll();
         }
         state = DragState.None;
+        anchor = null;
         _cameraControls.enabled = cachedCameraState;
     }
 
     _domElement.addEventListener('mousemove', onDocumentMouseMove, false);
-    _domElement.addEventListener( 'mousedown', onDocumentMouseDown, false );
-    _domElement.addEventListener( 'mouseup', onDocumentMouseUp, false );
+    _domElement.addEventListener('mousedown', onDocumentMouseDown, false );
+    _domElement.addEventListener('mouseup', onDocumentMouseUp, false );
+    window.addEventListener('keydown', onDocumentKeyDown, true );
 }

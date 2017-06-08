@@ -1,33 +1,61 @@
 function LightInterface () {
-    this.colorCycle = [new THREE.Color(0xffffff)];
+    this.colorCycle = [new THREE.Color(Color.WHITE)];
     Object.defineProperty(this, "color", {
         get: () => {
             throw new Error("Cannot query color");
         },
         set: (hex) => {
             this.colorCycle = [new THREE.Color(hex)];
+            this.resetPhase();
         }
     })
-    this.frequency = 1000; // 1s
-    this.mode = Light.modes.raw;
-    this.colorSpace = Color.RGB;
+    this.frequency = 1000;
+
+    let mode = Light.modes.raw;
+    Object.defineProperty(this, "mode", {
+        get: () => mode,
+        set: (fn) => {
+            mode = fn;
+            this.resetPhase();
+        }
+    });
+    this.colorSpace = Color.spaces.RGB;
     this.interpolation = Interpolation.flashing;
+    this.resetPhase();
+    this.runningTemporaryCycle = false;
+    this.temporaryCycle = [];
+    this.temporaryTimer = null;
 }
 LightInterface.prototype = {
     constructor: LightInterface,
+    f: function () {
+        return (this.runningTemporaryCycle
+            ? this.temporaryFrequency
+            : this.frequency);
+    },
     getAlpha: function (time) {
-        return (time % this.frequency) / this.frequency;
+        let f = this.f();
+        return (time % f) / f;
+    },
+    getCycleCount: function (time) {
+        return Math.floor(time / this.f());
     },
     modeColors: function () {
         if (typeof this.mode !== "function") {
             console.warn(this.mode);
         }
+        if (this.runningTemporaryCycle) {
+            return this.temporaryCycle;
+        }
         return this.mode(this.colorCycle);
+    },
+    resetPhase: function (time) {
+        this.patternStart = time || Date.now();
     },
     getInterpolatedPair: function (time) {
         let colors = this.modeColors();
         // console.log(colors);
-        let i = Math.floor(time / this.frequency) % colors.length;
+        let i = this.getCycleCount(time) % colors.length;
         let j = (i + 1) % colors.length;
         return [colors[i], colors[j]];
     },
@@ -43,17 +71,38 @@ LightInterface.prototype = {
         return this.colorSpace.set(target, interpolated);
     },
     renderTo: function (target, time) {
-        time = time || Date.now();
+        time = (time || Date.now()) - this.patternStart;
         return this.interpolate(target, time);
+    },
+    pulse: function (hex, frequency, loops) {
+        if (this.temporaryTimer !== null) {
+            clearTimeout(this.temporaryTimer);
+        }
+        this.temporaryFrequency = frequency || this.frequency;
+        let duration = (loops || 1) * this.temporaryFrequency * 2;
+        this.temporaryCycle = [
+            this.colorCycle[0],
+            new THREE.Color(hex)
+        ];
+        this.resetPhase();
+        this.runningTemporaryCycle = true;
+        this.temporaryTimer = setTimeout(() => this.endTemporary(), duration);
+    },
+    endTemporary: function () {
+        this.runningTemporaryCycle = false;
+        this.temporaryCycle = [];
+        this.resetPhase();
     }
 }
 
 const Color = {
     WHITE: 0xffffff,
-    RGB: {
-        get: (color) => color.toArray(),
-        set: (target, arr) => target.setRGB(arr[0], arr[1], arr[2]),
-        create: (arr) => new THREE.Color(arr[0], arr[1], arr[2])
+    spaces: {
+        RGB: {
+            get: (color) => color.toArray(),
+            set: (target, arr) => target.setRGB(arr[0], arr[1], arr[2]),
+            create: (arr) => new THREE.Color(arr[0], arr[1], arr[2])
+        }
     }
 }
 

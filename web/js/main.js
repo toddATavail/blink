@@ -1,5 +1,5 @@
 var options = {
-    multiClickThreshold: 300,
+    multiClickThreshold: 500,
     longHoldDuration: 1000,
     debugTextActivated: true
 };
@@ -170,7 +170,7 @@ for (let i = 0; i < 6; i++) {
 
 var programLoader = new THREE.FileLoader();
 programLoader.load(
-    "../reference/Mortals.js",
+    "games/mortals.2.js",
     function (program) {
         console.log("Loaded program:", program.substring(0, 20));
         blinks.forEach(b => b.resetProgram(program));
@@ -186,7 +186,7 @@ var draggingPlane = new THREE.Plane();
 draggingPlane.setComponents(0, 0, 1, 0);
 
 const dragTargets = blinks.map(b => b.primaryMesh);
-var dragControls = new dragGroup(blinks.map(b => b.primaryMesh), draggingPlane, camera, renderer.domElement, cameraControls);
+var dragControls = new dragGroup(blinks.map(b => b.primaryMesh), draggingPlane, camera, renderer.domElement, cameraControls, hexgrid);
 
 var ambient = new THREE.AmbientLight(0xf0f0f0, 0)
 scene.add( ambient );

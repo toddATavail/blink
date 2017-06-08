@@ -1,13 +1,13 @@
-function randomID () {
-    return Math.random().toString(36).substring(2,12);
+function randomID() {
+    return Math.random().toString(36).substring(2, 12);
 }
 
 var globalID = 0;
-function issueID () {
+function issueID() {
     return globalID++;
 }
 
-function BlinkExecutor (blink, initialProgram) {
+function BlinkExecutor(blink, initialProgram) {
     this.blink = blink;
     this.on = false;
     this.uniqueID = issueID();
@@ -16,14 +16,13 @@ function BlinkExecutor (blink, initialProgram) {
     this._allowedStates = [];
     Object.defineProperty(this, "state", {
         set: (state) => {
-            if (this._allowedStates.indexOf(state) === -1)
-            {
+            if (this._allowedStates.indexOf(state) === -1) {
                 throw new Error("State " + state + " not one of the predefined states!");
             }
             if (state !== this._state) {
                 let previous = this._state;
                 this._state = state;
-                this.dispatch({type: "stateChange", current: state, previous: previous});
+                this.dispatch({ type: "stateChange", current: state, previous: previous });
             }
         },
         get: () => this._state,
@@ -46,7 +45,7 @@ function BlinkExecutor (blink, initialProgram) {
     if (initialProgram) {
         this.setProgram(initialProgram);
     }
-} 
+}
 
 BlinkExecutor.prototype = {
     constructor: BlinkExecutor,
@@ -58,7 +57,7 @@ BlinkExecutor.prototype = {
             this.log("Already on. Use restart instead.");
         } else {
             this.on = true;
-            this.dispatch({type: "deviceOn"});
+            this.dispatch({ type: "deviceOn" });
         }
     },
     restart: function () {
@@ -74,16 +73,17 @@ BlinkExecutor.prototype = {
         this.dispatchEvent(event);
     },
     signalDispatcher: function (signal) {
-        return () => this.dispatch({type: "signal", name: signal});
+        return () => this.dispatch({ type: "signal", name: signal });
     },
     setProgram: function (program) {
         // note that API functions must be anonymous functions here to bind correctly
-        const signal = 
-            (signalName) => this.dispatch({type: "signal", name: signalName});
-        const signals = (signalNames) =>
-            signalNames.forEach(
-                signalName => this._signalHandlers.set(signalName, null));
-        const when = (signalName, callback) => {
+        const now =
+            (signalName) => this.dispatch({ type: "signal", name: signalName });
+        const just =
+            (signalName) => () => now(signalName);
+        const signal = signalName => this._signalHandlers.set(signalName, null);
+        const signals = (signalNames) => signalNames.forEach(signal);
+        const to = (signalName, callback) => {
             if (!this._signalHandlers.has(signalName)) {
                 throw new Error("Signal name not declared: " + signalName);
             }
@@ -118,25 +118,25 @@ BlinkExecutor.prototype = {
         const whenTimerExpires =
             (timerName, callback) => whenTimerThreshold(timerName, 0, callback);
 
-        // UI events take signal names
-        // TODO: Todd wants these to take callbacks instead of strings
-        const deviceOn = (name) => 
-            this.addEventListener("deviceOn", this.signalDispatcher(name));
-        const onSingleClick = (name) => 
-            this.addEventListener("singleClick", this.signalDispatcher(name));
-        const onDoubleClick = (name) => 
-            this.addEventListener("doubleClick", this.signalDispatcher(name));
-        const onTripleClick = (name) => 
-            this.addEventListener("tripleClick", this.signalDispatcher(name));
-        const onLongClick = (name) => 
-            this.addEventListener("longClick", this.signalDispatcher(name));
-        
-        const onJoinNeighbors = (cb) => 
-            this.addEventListener("joinNeighbors", 
+        // ==== HARDWARE EVENT HANDLERS ====
+        const onBoot = (cb) => this.addEventListener("deviceOn", cb);
+        // onButtonPress
+        // onButtonRelease
+        // onClick
+        const onSingleClick = (cb) => this.addEventListener("singleClick", cb);
+        const onDoubleClick = (cb) => this.addEventListener("doubleClick", cb);
+        const onTripleClick = (cb) => this.addEventListener("tripleClick", cb);
+        // onMultiClick
+        const onLongClick = (cb) => this.addEventListener("longClick", cb);
+
+        const whenJoinNeighbors = (cb) =>
+            this.addEventListener("joinNeighbors",
                 (event) => cb(event.contexts));
-        const onIsolated = (cb) => 
+        // whenLeaveNeighbors
+        const whenIsolated = (cb) =>
             this.addEventListener("isolated", cb);
-        const onNeighborStateTransition = (previous, current, cb) => {
+        // whenSurrounded
+        const whenNeighborStateChanges = (previous, current, cb) => {
             this.addEventListener("neighborStateChange", e => {
                 if (e.previous === previous && e.current === current) {
                     cb(e.object);
