@@ -32,7 +32,7 @@ const DEFAULT_PROGRAM = `
     })
     onDoubleClick(() => { 
         this.team = (this.team + 1) % 2;
-        this.log("chaning to team " + this.team);
+        this.log("changing to team " + this.team);
         this.light.color = teamColor();
     });
     onIsolated(() => {

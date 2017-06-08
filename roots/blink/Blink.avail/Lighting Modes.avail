@@ -49,6 +49,6 @@ Body
  * RGB LED.
  *
  * @type "lighting mode"
- * @alias "{constant, pulsing}ᵀ"
+ * @supertype "atom"
  */
 Public macro "lighting mode" is [‘{constant's value, pulsing's value}ᵀ’];

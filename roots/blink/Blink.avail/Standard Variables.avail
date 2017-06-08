@@ -14,10 +14,10 @@ Uses
 	"Lighting Patterns"
 Names
 	/* Standard variables. */
-	"lighting⁇color variable",
-	"lighting⁇mode variable",
-	"lighting⁇pattern variable",
-	"lighting⁇pattern duration variable"
+	"(Blink)lighting⁇color variable",
+	"(Blink)lighting⁇mode variable",
+	"(Blink)lighting⁇pattern variable",
+	"(Blink)lighting⁇pattern duration variable"
 Body
 
 /******************************************************************************
@@ -45,7 +45,7 @@ Private macro "Standard variable_is_;" is
 		variable name ::= varName,
 		variable scope ::= global,
 		variable mutability ::= mutable;
-	methodName ::= varName ++ " variable";
+	methodName ::= "(Blink)" ++ varName ++ " variable";
 	exprs ::=
 	<
 		send $"Method_is_" with «<‘methodName’, «[<‘var’>] : var's type»>» : ⊤

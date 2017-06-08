@@ -6,7 +6,7 @@
 
 Module "Abstract Code Generators"
 Uses
-	"Abstract Syntax Tree" = ("abstract expression"),
+	"Abstract Syntax Tree",
 	"Avail"
 Names
 	/* Abstract code writers. */
@@ -21,9 +21,11 @@ Names
 
 	/* Abstract code generators. */
 	"code generator",
+		"source program",
+			"_'s⁇source",
 		"target writer",
 			"_'s⁇writer",
-	"Emit_on_",
+	"Translate_",
 
 	/* Source writers. */
 	"source writer",
@@ -158,6 +160,7 @@ Semantic restriction "Write_to_" is
  *                         Abstract code generators.                          *
  ******************************************************************************/
 
+Public "source program" is a new field atom;
 Public "target writer" is a new field atom;
 
 /**
@@ -166,26 +169,37 @@ Public "target writer" is a new field atom;
  *
  * @type "code generator"
  * @supertype "object"
+ * @field "source program" "program"
+ *        The source {@type "program"}.
  * @field "target writer" "code writer"
  *        The {@type "code writer"} that represents the target format.
  */
-Public class "code generator" extends object
+Public class "code generator" extends visitor
 	with field
+		public source program : program ("_'s⁇source"),
 		public target writer : code writer ("_'s⁇writer");
 
 /**
- * Emit the specified {@type "abstract expression" expression} to the supplied
- * {@type "code generator"}. Emission only updates the internal {@type
- * "code writer"}; it does not render to an output channel.
+ * Translate the {@method "_'s⁇source" source} {@type "program"} of the
+ * specified {@type "code generator"}. The resulting program is available via
+ * the argument's {@method "_'s⁇writer" writer's} {@method "_'s⁇accumulator"
+ * accumulator}.
  *
- * @method "Emit_on_"
- * @param "expr" "abstract expression"
- *        The {@type "abstract expression" expression} to emit.
+ * @method "Translate_"
  * @param "cg" "code generator"
- *        The {@type "code generator"} upon which to emit {@param "expr"}.
  * @returns "⊤"
  */
-Public abstract method "Emit_on_" is [abstract expression, code generator]→⊤;
+Public method "Translate_" is
+[
+	tr : code generator
+|
+	For each stmt of tr's source do
+	[
+		Visit tr
+			upon stmt
+			deconstructed by [x : abstract expression | x's subexpressions];
+	];
+];
 
 /******************************************************************************
  *                              Source writers.                               *
@@ -237,20 +251,11 @@ Public method "Increase indent of_for_" is
 	Guard [↑cw's indent++; body();]
 	intercept
 	[
-		e : descriptive exception
-	|
-		Write
-			format "*** ‘①’ (‘②’) ***"
-			with (a|an) “uppercase e's type's names→tuple[1]”, e's error message
-		to cw;
-	]
-	intercept
-	[
 		e : exception
 	|
 		Write
-			format "*** ‘①’ ***"
-			with (a|an) “uppercase e's type's names→tuple[1]”
+			format "*****\n‘①’\n*****"
+			with “e” (stack summary)
 		to cw;
 	]
 	ensure [↑cw's indent--;];

@@ -1078,7 +1078,7 @@ Public "assignment value" is a new field atom;
 /**
  * An {@type "assignment statement"} assigns a value to a {@type "variable"}.
  *
- * @type "assignment expression"
+ * @type "assignment statement"
  * @supertype "abstract statement"
  * @field "assignment assignee" "variable"
  *        The {@type "variable"} that is the target of the {@type
@@ -1095,7 +1095,6 @@ Public method "_'s⁇subexpressions" is
 [
 	expr : assignment statement
 |
-	/* Don't include the target variable as a subexpression. */
 	<expr's value>
 ];
 

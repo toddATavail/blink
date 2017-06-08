@@ -12,7 +12,8 @@ Names
 	/* Lighting patterns. */
 	"lighting pattern",
 		"linear interpolation⁇",
-		"sinusoidal interpolation⁇"
+		"sinusoidal interpolation⁇",
+		"flashing interpolation⁇"
 Body
 
 /******************************************************************************
@@ -44,11 +45,24 @@ Body
 ]();
 
 /**
+ * Answer a {@type "literal"} that denotes flashing interpolation.
+ *
+ * @macro "flashing interpolation⁇"
+ * @returns "atom literal"
+ */
+[
+	a ::= new atom named "flashing interpolation";
+	lit ::= a literal with expression type ::= (a's type);
+	Public macro "flashing interpolation⁇" is [‘lit’];
+]();
+
+/**
  * A {@type "lighting pattern"} denotes the possible lighting patterns of a
  * Blink. The modes correspond to built-in functions that support the lighting
  * modes.
  *
  * @type "lighting pattern"
- * @alias "{constant, pulsing}ᵀ"
+ * @supertype "atom"
  */
-Public macro "lighting pattern" is [‘{linear's value, sinusoidal's value}ᵀ’];
+Public macro "lighting pattern" is
+	[‘{linear's value, sinusoidal's value, flashing's value}ᵀ’];

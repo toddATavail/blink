@@ -220,7 +220,8 @@ Extends
 	"Lighting Patterns" =
 	(
 		"linear interpolation⁇",
-		"sinusoidal interpolation⁇"
+		"sinusoidal interpolation⁇",
+		"flashing interpolation⁇"
 	),
 	"Literals" =
 	(
@@ -229,10 +230,11 @@ Extends
 	),
 	"Standard Variables" =
 	(
-		"lighting⁇color variable" → "lighting⁇color",
-		"lighting⁇mode variable" → "lighting⁇mode",
-		"lighting⁇pattern variable" → "lighting⁇pattern",
-		"lighting⁇pattern duration variable" → "lighting⁇pattern duration"
+		"(Blink)lighting⁇color variable" → "lighting⁇color",
+		"(Blink)lighting⁇mode variable" → "lighting⁇mode",
+		"(Blink)lighting⁇pattern variable" → "lighting⁇pattern",
+		"(Blink)lighting⁇pattern duration variable"
+			→ "lighting⁇pattern duration"
 	)
 Body
 

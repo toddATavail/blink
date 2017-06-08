@@ -8,10 +8,23 @@ Module "JavaScript Translation"
 Uses
 	"Abstract Code Generators",
 	"Abstract Syntax Tree",
-	"Avail",
-	"JavaScript Code Generators"
+	"Avail" = ("variable" → "Avail variable", …),
+	"Dimensional Analysis" = ("__", "ms", "_'s⁇extent"),
+	"Events",
+	"JavaScript Code Generators",
+	"Lighting Modes",
+	"Lighting Patterns",
+	"Standard Variables"
 Names
-	"JavaScript translator"
+	/* JavaScript translators. */
+	"JavaScript translator",
+	"a JavaScript translator for_«(wrapped at_characters)»?",
+
+	/* JavaScript translation. */
+	"*Translate to JavaScript"
+Entries
+	/* JavaScript translation. */
+	"*Translate to JavaScript"
 Body
 
 /******************************************************************************
@@ -25,6 +38,603 @@ Body
  *
  * @type "JavaScript translator"
  * @supertype "JavaScript generator"
- * @field "target writer" "JavaScript writer"
  */
 Public explicit class "JavaScript translator" extends JavaScript generator;
+
+/**
+ * Answer a {@type "JavaScript translator"} for the specified {@type "program"}.
+ *
+ * @method "a JavaScript translator for_«(wrapped at_characters)»"
+ * @param "p" "program"
+ * @param "optWidth" "[80..∞)"
+ *        (Optional, defaults to 80.) The preferred maximum number of characters
+ *        per line.
+ */
+Public method "a JavaScript translator for_«(wrapped at_characters)»?" is
+[
+	p : program,
+	optWidth : [80..∞)?
+|
+	a JavaScript translator with
+		target writer ::=
+			a JavaScript writer (wrapped at optWidth[1] else [80] characters),
+		source program ::= p
+];
+
+/******************************************************************************
+ *                          High-level translation.                           *
+ ******************************************************************************/
+
+Public method "*Translate to JavaScript" is
+[
+	cg ::= a JavaScript translator for program accumulator;
+	Translate cg;
+	Print: cg's writer's accumulator;
+];
+
+/******************************************************************************
+ *                                 Literals.                                  *
+ ******************************************************************************/
+
+Method "After visiting_upon_" is
+[
+	cg : JavaScript translator,
+	lit : literal
+|
+	Write literal lit's value to cg's writer;
+];
+
+Method "After visiting_upon_" is
+[
+	cg : JavaScript translator,
+	lit : integer ms literal
+|
+	cw ::= cg's writer;
+	Write binary operator "*"
+		with [Write literal lit's value's extent to cw;]
+		with [Write "Time.MILLISECOND" to cw;]
+	to cw;
+];
+
+Method "After visiting_upon_" is
+[
+	cg : JavaScript translator,
+	lit : atom literal
+|
+	Write literal lit's value's name to cg's writer;
+];
+
+Method "After visiting_upon_" is
+[
+	cg : JavaScript translator,
+	lit : lighting mode literal
+|
+	cw ::= cg's writer;
+	Write property access with
+	[
+		Write "Light.modes" to cw;
+	]
+	for lit's value's name ?→ nonempty string
+	to cw;
+];
+
+Method "After visiting_upon_" is
+[
+	cg : JavaScript translator,
+	lit : lighting pattern literal
+|
+	cw ::= cg's writer;
+	name ::= lit's value's name;
+	Write property access with
+	[
+		Write "Interpolation" to cw;
+	]
+	for name[1..0 max (first index of " " in name - 1)] ?→ nonempty string
+	to cw;
+];
+
+/******************************************************************************
+ *                                 Variables.                                 *
+ ******************************************************************************/
+
+Method "After visiting_upon_" is
+[
+	cg : JavaScript translator,
+	var : variable
+|
+	Write variable var's name to cg's writer;
+];
+
+Method "After visiting_upon_" is
+[
+	cg : JavaScript translator,
+	var : global variable
+|
+	cw ::= cg's writer;
+	Write property access with
+	[
+		Write "this" to cw;
+	]
+	for “var's name” (JavaScript variable)
+	to cw;
+];
+
+Method "After visiting_upon_" is
+[
+	cg : JavaScript translator,
+	var : (Blink) lighting color variable's type
+|
+	cw ::= cg's writer;
+	Write property access with
+	[
+		Write "this" to cw;
+	]
+	for "color"
+	to cw;
+];
+
+Method "After visiting_upon_" is
+[
+	cg : JavaScript translator,
+	var : (Blink) lighting mode variable's type
+|
+	cw ::= cg's writer;
+	Write property access with
+	[
+		Write "this" to cw;
+	]
+	for "mode"
+	to cw;
+];
+
+Method "After visiting_upon_" is
+[
+	cg : JavaScript translator,
+	var : (Blink) lighting pattern variable's type
+|
+	cw ::= cg's writer;
+	Write property access with
+	[
+		Write "this" to cw;
+	]
+	for "interpolation"
+	to cw;
+];
+
+Method "After visiting_upon_" is
+[
+	cg : JavaScript translator,
+	var : (Blink) lighting pattern duration variable's type
+|
+	cw ::= cg's writer;
+	Write property access with
+	[
+		Write "this" to cw;
+	]
+	for "frequency"
+	to cw;
+];
+
+/******************************************************************************
+ *                                  Timers.                                   *
+ ******************************************************************************/
+
+Method "After visiting_upon_" is
+[
+	cg : JavaScript translator,
+	t : timer
+|
+	cw ::= cg's writer;
+	Write property access with
+	[
+		Write "this" to cw;
+	]
+	for t's name
+	to cw;
+];
+
+/******************************************************************************
+ *                             Block expressions.                             *
+ ******************************************************************************/
+
+Method "Visit_upon_deconstructed by_(breadth first=_)" is
+[
+	cg : JavaScript translator,
+	expr : block expression,
+	deconstructor : [⊥]→tuple,
+	breadthFirst : false's type
+|
+	cw ::= cg's writer;
+	Write block with
+	[
+		For each stmt of expr's body do
+		[
+			If stmt's expression type = ⊤ then
+			[
+				Visit cg upon stmt deconstructed by
+					[x : abstract expression | x's subexpressions];
+			]
+			else
+			[
+				Write return with
+				[
+					Visit cg upon stmt deconstructed by
+						[x : abstract expression | x's subexpressions];
+				]
+				to cw;
+			];
+		];
+	]
+	to cw;
+];
+
+/******************************************************************************
+ *                           Operator expressions.                            *
+ ******************************************************************************/
+
+Method "Visit_upon_deconstructed by_(breadth first=_)" is
+[
+	cg : JavaScript translator,
+	expr : (extend operator expression with
+		expression operands : <any expression…|1>),
+	deconstructor : [⊥]→tuple,
+	breadthFirst : false's type
+|
+	cw ::= cg's writer;
+	op ::=
+		replace all occurrences of "_" in expr's operator with ""
+			?→ nonempty string;
+	Write unary operator op with
+	[
+		Visit cg upon expr's operands[1] deconstructed by
+			[x : abstract expression | x's subexpressions];
+	]
+	to cw;
+];
+
+Method "Visit_upon_deconstructed by_(breadth first=_)" is
+[
+	cg : JavaScript translator,
+	expr : (extend operator expression with
+		expression operands : <any expression…|2>),
+	deconstructor : [⊥]→tuple,
+	breadthFirst : false's type
+|
+	cw ::= cg's writer;
+	op ::=
+		replace all occurrences of "_" in expr's operator with ""
+			?→ nonempty string;
+	Write binary operator op
+		with
+		[
+			Visit cg upon expr's operands[1] deconstructed by
+				[x : abstract expression | x's subexpressions];
+		]
+		with
+		[
+			Visit cg upon expr's operands[2] deconstructed by
+				[x : abstract expression | x's subexpressions];
+		]
+	to cw;
+];
+
+/******************************************************************************
+ *                       State enumeration statements.                        *
+ ******************************************************************************/
+
+Method "After visiting_upon_" is
+[
+	cg : JavaScript translator,
+	stmt : state enumeration statement
+|
+	cw ::= cg's writer;
+	Write statement with
+	[
+		Write call of ["publicStates"] with
+		[
+			Write literal map each x of stmt's states through [x's name] to cw;
+		]
+		to cw;
+	]
+	to cw;
+];
+
+/******************************************************************************
+ *                       Signal declaration statements.                       *
+ ******************************************************************************/
+
+Method "After visiting_upon_" is
+[
+	cg : JavaScript translator,
+	stmt : signal declaration statement
+|
+	cw ::= cg's writer;
+	Write statement with
+	[
+		Write call of ["signals"] with
+		[
+			Write literal <stmt's signal's name> to cw;
+		]
+		to cw;
+	]
+	to cw;
+];
+
+/******************************************************************************
+ *                       Timer declaration statements.                        *
+ ******************************************************************************/
+
+Method "After visiting_upon_" is
+[
+	cg : JavaScript translator,
+	stmt : timer declaration statement
+|
+	cw ::= cg's writer;
+	Write statement with
+	[
+		Write call of ["timer"] with
+		[
+			Write literal stmt's timer's name to cw;
+		]
+		to cw;
+	]
+	to cw;
+];
+
+/******************************************************************************
+ *                      Variable declaration statements.                      *
+ ******************************************************************************/
+
+Method "After visiting_upon_" is
+[
+	cg : JavaScript translator,
+	stmt : (extend variable declaration statement with
+		declared variable : integer global variable)
+|
+	cw ::= cg's writer;
+	var ::= stmt's variable;
+	Write statement with
+	[
+		Write call of ["rangedInteger"]
+			with [Write literal “var's name” (JavaScript variable) to cw;]
+			with [Write literal ⎣var's expression type⎦ to cw;]
+			with [Write literal ⎡var's expression type⎤ to cw;]
+		to cw;
+	]
+	to cw;
+];
+
+Method "After visiting_upon_" is
+[
+	cg : JavaScript translator,
+	stmt : (extend variable declaration statement with
+		declared variable : local variable)
+|
+	cw ::= cg's writer;
+	var ::= stmt's variable;
+	Write variable declaration var's name to cw;
+];
+
+/******************************************************************************
+ *                            Handler statements.                             *
+ ******************************************************************************/
+
+/**
+ * Emit a hardware event handler.
+ *
+ * @method "Emit hardware event handler(_)for_on_"
+ * @param "call" "nonempty string"
+ *        The JavaScript name of the hardware event.
+ * @param "block" "block expression"
+ *        The {@type "block expression"} to emit as the handler's body.
+ * @param "cg" "JavaScript translator"
+ * @returns "⊤"
+ */
+Private method "Emit hardware event handler(_)for_on_" is
+[
+	call : nonempty string,
+	block : block expression,
+	cg : JavaScript translator
+|
+	cw ::= cg's writer;
+	Write statement with
+	[
+		Write call of [call] with
+		[
+			Write arrow function () with
+			[
+				For each stmt of block's body do
+				[
+					Visit cg upon stmt deconstructed by
+						[x : abstract expression | x's subexpressions];
+				];
+			]
+			to cw;
+		]
+		to cw;
+	]
+	to cw;
+];
+
+hardwareEventMap ::=
+{
+	boot           → "deviceOn",
+	button press   → "onButtonPress",
+	button release → "onButtonRelease",
+	click          → "onClick",
+	double click   → "onDoubleClick",
+	triple click   → "onTripleClick",
+	long click     → "onLongClick"
+};
+
+Method "Visit_upon_deconstructed by_(breadth first=_)" is
+[
+	cg : JavaScript translator,
+	stmt : (extend event handler statement with
+		handled event : hardware event),
+	deconstructor : [⊥]→tuple,
+	breadthFirst : false's type
+|
+	Emit hardware event handler (hardwareEventMap[stmt's event])
+		for stmt's block on cg;
+];
+
+Method "Visit_upon_deconstructed by_(breadth first=_)" is
+[
+	cg : JavaScript translator,
+	stmt : signal handler statement,
+	deconstructor : [⊥]→tuple,
+	breadthFirst : false's type
+|
+	cw ::= cg's writer;
+	Write statement with
+	[
+		Write call of ["when"]
+			with
+			[
+				Write literal stmt's signal's name to cw;
+			]
+			with
+			[
+				Write arrow function () with
+				[
+					For each localStmt of stmt's block's body do
+					[
+						Visit cg upon localStmt deconstructed by
+							[x : abstract expression | x's subexpressions];
+					];
+				]
+				to cw;
+			]
+		to cw;
+	]
+	to cw;
+];
+
+/******************************************************************************
+ *                           Assignment statements.                           *
+ ******************************************************************************/
+
+Method "Visit_upon_deconstructed by_(breadth first=_)" is
+[
+	cg : JavaScript translator,
+	stmt : assignment statement,
+	deconstructor : [⊥]→tuple,
+	breadthFirst : false's type
+|
+	cw ::= cg's writer;
+	Write statement with
+	[
+		Write binary operator "="
+			with
+			[
+				Visit cg upon stmt's assignee deconstructed by
+                	[x : abstract expression | x's subexpressions];
+			]
+			with
+			[
+				Visit cg upon stmt's value deconstructed by
+					[x : abstract expression | x's subexpressions];
+			]
+		to cw;
+	]
+	to cw;
+];
+
+/******************************************************************************
+ *                          Fire signal statements.                           *
+ ******************************************************************************/
+
+Method "After visiting_upon_" is
+[
+	cg : JavaScript translator,
+	stmt : fire signal statement
+|
+	cw ::= cg's writer;
+	Write statement with
+	[
+		Write call of ["signal"] with
+		[
+			Write literal stmt's signal's name to cw;
+		]
+		to cw;
+	]
+	to cw;
+];
+
+/******************************************************************************
+ *                             Timer expressions.                             *
+ ******************************************************************************/
+
+Method "Visit_upon_deconstructed by_(breadth first=_)" is
+[
+	cg : JavaScript translator,
+	expr : timer query expression,
+	deconstructor : [⊥]→tuple,
+	breadthFirst : false's type
+|
+	Visit cg upon expr's timer deconstructed by
+		[x : abstract expression | x's subexpressions];
+];
+
+Method "Visit_upon_deconstructed by_(breadth first=_)" is
+[
+	cg : JavaScript translator,
+	stmt : timer set statement,
+	deconstructor : [⊥]→tuple,
+	breadthFirst : false's type
+|
+	cw ::= cg's writer;
+	Write statement with
+	[
+		Write binary operator "="
+			with
+			[
+				Visit cg upon stmt's timer deconstructed by
+                	[x : abstract expression | x's subexpressions];
+			]
+			with
+			[
+				Visit cg upon stmt's value deconstructed by
+					[x : abstract expression | x's subexpressions];
+			]
+		to cw;
+	]
+	to cw;
+];
+
+Method "Visit_upon_deconstructed by_(breadth first=_)" is
+[
+	cg : JavaScript translator,
+	stmt : timer update statement,
+	deconstructor : [⊥]→tuple,
+	breadthFirst : false's type
+|
+	cw ::= cg's writer;
+	Write statement with
+	[
+		Write binary operator "="
+			with
+			[
+				Visit cg upon stmt's timer deconstructed by
+                	[x : abstract expression | x's subexpressions];
+			]
+			with
+			[
+				Write binary operator "="
+					with
+					[
+						Visit cg upon stmt's timer deconstructed by
+							[x : abstract expression | x's subexpressions];
+					]
+					with
+					[
+						Visit cg upon stmt's value deconstructed by
+							[x : abstract expression | x's subexpressions];
+					]
+				to cw;
+			]
+		to cw;
+	]
+	to cw;
+];
