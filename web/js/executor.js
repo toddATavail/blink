@@ -129,13 +129,15 @@ BlinkExecutor.prototype = {
         // onMultiClick
         const onLongClick = (cb) => this.addEventListener("longClick", cb);
 
-        const whenJoinNeighbors = (cb) =>
+        // whenHeartBeats
+        const whenNeighborsJoined = (cb) =>
             this.addEventListener("joinNeighbors",
                 (event) => cb(event.contexts));
-        // whenLeaveNeighbors
+        // whenNeighborsRemoved
         const whenIsolated = (cb) =>
             this.addEventListener("isolated", cb);
         // whenSurrounded
+        // whenStateChanges
         const whenNeighborStateChanges = (previous, current, cb) => {
             this.addEventListener("neighborStateChange", e => {
                 if (e.previous === previous && e.current === current) {
