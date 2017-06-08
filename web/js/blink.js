@@ -5,6 +5,7 @@ loader.load(
     (font) => droidFont = font
 );
 
+
 function createBlinkGeometry(side, thickness, bevel) {
     thickness = thickness || (side / 4);
     bevel = bevel || 0.1;
@@ -191,8 +192,7 @@ Blink.prototype = Object.assign(Object.create(THREE.Group.prototype), {
     render: function () {
         if (this.executor.light instanceof LightInterface) {
             // this.light.color = this.executor.light.color;
-            this.primaryMesh.material.color.setHex(this.executor.light.color);
-            this.primaryMesh.material.color.multiplyScalar(0.6);
+            this.executor.light.renderTo(this.primaryMesh.material.color);
         }
     },
     writeDebugText: function (msg) {

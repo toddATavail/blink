@@ -52,7 +52,7 @@ onNeighborStateTransition("dead", "inactive", (neighbors) => {
 
 when("begin play", () => {
     this.state = "inactive";
-    this.lifetime = 5 * Time.SECOND;
+    this.lifetime = 60 * Time.SECOND;
 	
     this.light.mode = Light.modes.pulsing;
     this.light.interpolation = Interpolation.sinusoidal;
@@ -70,7 +70,9 @@ onIsolated(() => {
 onJoinNeighbors((neighbors) => {
 	this.lifetime += (neighbors.some(n => n.state === "active")
 		? -5 * Time.SECOND
-		: neighbors.length * 5 * Time.SECOND);
+		: (this.state === "active"
+			? neighbors.length * 5 * Time.SECOND
+			: 0));
 	if (this.state === "active") {
 		this.state = "inactive";
 		signal("set team color");

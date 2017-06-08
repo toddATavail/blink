@@ -188,12 +188,16 @@ draggingPlane.setComponents(0, 0, 1, 0);
 const dragTargets = blinks.map(b => b.primaryMesh);
 var dragControls = new dragGroup(blinks.map(b => b.primaryMesh), draggingPlane, camera, renderer.domElement, cameraControls);
 
-var ambient = new THREE.AmbientLight(0xf0f0f0, 0.5)
+var ambient = new THREE.AmbientLight(0xf0f0f0, 0)
 scene.add( ambient );
 
 Object.assign(options, {
     resetCamera: cameraControls.reset,
 });
+
+const guiHelpers = {
+    resetProgram: () => blinks.forEach(b => b.resetProgram())
+}
 
 function initGUI () {
     var gui = new dat.GUI({width: 512});
@@ -210,6 +214,8 @@ function initGUI () {
                 blinks.forEach(blink => blink.clearDebugText());
             }
         });
+    
+    gui.add(guiHelpers, "resetProgram").name("Reset all blink state");
 };
 
 function onWindowResize() {
@@ -219,11 +225,22 @@ function onWindowResize() {
 };
 window.addEventListener( 'resize', onWindowResize, false );
 
-
+let renderErrorCount = 0;
+const RENDER_ERROR_MAX = 100;
 var render = function () {
-    requestAnimationFrame( render );
-    blinks.forEach(blink => blink.render());
-    renderer.render(scene, camera);
+    try {
+        blinks.forEach(blink => blink.render());
+        renderer.render(scene, camera);
+    } catch (e) {
+        console.error(e);
+        renderErrorCount++;
+    }
+
+    if (renderErrorCount >= RENDER_ERROR_MAX) {
+        console.error("Maximum render failures reached, aborting app!");
+    } else {
+        requestAnimationFrame( render );
+    }
 };
 
 render();

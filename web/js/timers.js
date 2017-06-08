@@ -9,7 +9,7 @@ function BlinkTimer () {
 
 BlinkTimer.prototype = {
     set: function (value) {
-        console.log("updating timer", this, value);
+        // console.log("updating timer", this, value);
         this.value = value;
         this.running = value > 0;
         this.thresholds.forEach(threshold => {

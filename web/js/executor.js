@@ -119,6 +119,7 @@ BlinkExecutor.prototype = {
             (timerName, callback) => whenTimerThreshold(timerName, 0, callback);
 
         // UI events take signal names
+        // TODO: Todd wants these to take callbacks instead of strings
         const deviceOn = (name) => 
             this.addEventListener("deviceOn", this.signalDispatcher(name));
         const onSingleClick = (name) => 
