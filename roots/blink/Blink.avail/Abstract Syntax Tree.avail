@@ -975,7 +975,7 @@ Public "declared timer threshold" is a new field atom;
  * @field "declared timer threshold" "whole number ms"
  *        The threshold of time remaining.
  */
-Public class "timer threshold event handler statement"
+Public explicit class "timer threshold event handler statement"
 	extends event handler statement
 	with fields
 		public handled event : timer threshold's type ("_'s⁇event"),
@@ -1007,7 +1007,7 @@ Method "“_”" is
  * @field "handled timer" "timer"
  *        The expired {@type "timer"}.
  */
-Public class "timer expired event handler statement"
+Public explicit class "timer expired event handler statement"
 	extends event handler statement
 	with fields
 		public handled event : timer expired's type ("_'s⁇event"),
@@ -1690,7 +1690,19 @@ Public method "statement recorder for_" is
 	else [/* Nothing. */];
 	Cast expr into
 	[
-		h : event handler statement
+		h : (extend event handler statement with handled event :
+			{
+				boot,
+				button press,
+				button release,
+				single click,
+				double click,
+				triple click,
+				long click,
+				heartbeat,
+				neighbors joined,
+				isolated
+			}ᵀ)
 	|
 		ev ::= h's event;
 		If h's event ∈ handledEvents then

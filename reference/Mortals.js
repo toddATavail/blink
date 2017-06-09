@@ -9,83 +9,120 @@
  * the comments wouldn't be generated.
  */
 
-publicStates(["dead", "active", "inactive"]);
+publicStates(["active", "inactive", "dead"]);
 rangedInteger("team", 1, 2);
-
-// Signal names are registered, to provide validation.
-signals(["initialize", "change sides", "begin play", "set team color"]);
-
-deviceOn("initialize");
-when("initialize", () => {
+signal("initialize");
+signal("set team color");
+onBoot(() =>
+{
+	now("initialize");
+});
+to("initialize", () =>
+{
 	this.team = 1;
 	this.light.mode = Light.modes.constant;
 	this.state = "dead";
-	signal("set team color");
+	now("set team color");
 });
-
-onLongClick("change sides");
-onDoubleClick("change sides");
-when("change sides", () => {
-	// Modular arithmetic is implemented here by overriding property getters and
-	// setters. So the fused assignment restricts the value to lie in [1,2].
-    this.team += 1;
-	this.log((this.team === 1) ? "team is now 1" : "team is now 2");
-    signal("set team color");
+signal("change sides");
+onLongClick(() =>
+{
+	now("change sides");
 });
-
-when("set team color", () => {
-	this.light.color = (this.state === "inactive" 
-		? ((this.team === 1) 
-			? 0x00ff00   // green
-			: 0xff00ff)  // magenta
-		: ((this.team === 1) 
-			? 0x006400   // dark green
-			: 0x8B008B)  // dark magenta
-	);
+onDoubleClick(() =>
+{
+	now("change sides");
 });
-
+to("change sides", () =>
+{
+	this.team = this.team + 1;
+	now("set team color");
+});
+to("set team color", () =>
+{
+	this.light.color = this.state === "inactive"
+		? (() =>
+		{
+			this.team === 1
+				? (() =>
+				{
+					65280
+				})()
+				: (() =>
+				{
+					16711935
+				})()
+		})()
+		: (() =>
+		{
+			this.team === 1
+				? (() =>
+				{
+					25600
+				})()
+				: (() =>
+				{
+					9109643
+				})()
+		})();
+});
 timer("lifetime");
-onTripleClick("begin play");
-onNeighborStateTransition("dead", "inactive", (neighbors) => {
-	signal("begin play");
+signal("begin play");
+onTripleClick(() =>
+{
+	now("begin play");
 });
-
-when("begin play", () => {
-    this.state = "inactive";
-    this.lifetime = 60 * Time.SECOND;
-	
-    this.light.mode = Light.modes.pulsing;
-    this.light.interpolation = Interpolation.sinusoidal;
-    this.light.frequency = 2 * Time.SECOND;
-	signal("set team color");
+whenNeighborStateChanges("dead", "inactive", neighbors =>
+{
+	now("begin play");
 });
-
-onIsolated(() => {
-	if (this.state === "inactive") {
+to("begin play", () =>
+{
+	this.state = "inactive";
+	this.lifetime = 60000 * Time.MILLISECOND;
+	this.light.mode = Light.modes.pulsing;
+	this.light.interpolation = Interpolation.sinusoidal;
+	this.light.frequency = 2000 * Time.MILLISECOND;
+	now("set team color");
+});
+whenIsolated(() =>
+{
+	if (this.state === "inactive")
+	{
 		this.state = "active";
-		this.light.color = 0xffffff;
-	}
+		this.light.color = 16777215;
+	};
 });
-
-onJoinNeighbors((neighbors) => {
-	this.lifetime += (neighbors.some(n => n.state === "active")
-		? -5 * Time.SECOND
-		: (this.state === "active"
-			? neighbors.length * 5 * Time.SECOND
-			: 0));
-	if (this.state === "active") {
+whenNeighborsJoined(neighbors =>
+{
+	if (this.state === "inactive" && this.neighbors.filter(n =>
+	{
+		n.state === "active"
+	}).length !== 0)
+	{
+		this.lifetime = this.lifetime + - 5000 * Time.MILLISECOND;
+	};
+	if (this.state === "active")
+	{
+		this.lifetime = this.lifetime + 5000 * Time.MILLISECOND * this.neighbors.filter(n =>
+		{
+			n.state === "inactive"
+		}).length;
 		this.state = "inactive";
-		signal("set team color");
-	}
+		now("set team color");
+	};
 });
-
-whenTimerThreshold("lifetime", 10 * Time.SECOND, () => {
-    this.light.frequency = 0.5 * Time.SECOND;
+whenTimerThreshold("lifetime", 30000 * Time.MILLISECOND, () =>
+{
+	this.light.frequency = 1000 * Time.MILLISECOND;
 });
-
-// probably just an alias for whenTimer(name, 0, fn)
-whenTimerExpires("lifetime", () => {
+whenTimerThreshold("lifetime", 10000 * Time.MILLISECOND, () =>
+{
+	this.light.frequency = 500 * Time.MILLISECOND;
+});
+whenTimerExpires("lifetime", () =>
+{
 	this.state = "dead";
-    this.light.mode = Light.modes.constant;
-    signal("set team color");
+	this.light.mode = Light.modes.constant;
+	now("set team color");
 });
