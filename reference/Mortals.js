@@ -43,27 +43,33 @@ to("set team color", () =>
 	this.light.color = this.state === "inactive"
 		? (() =>
 		{
-			this.team === 1
+			return this.team === 1
 				? (() =>
 				{
-					65280
+					return 65280;
+
 				})()
 				: (() =>
 				{
-					16711935
-				})()
+					return 16711935;
+
+				})();
+
 		})()
 		: (() =>
 		{
-			this.team === 1
+			return this.team === 1
 				? (() =>
 				{
-					25600
+					return 25600;
+
 				})()
 				: (() =>
 				{
-					9109643
-				})()
+					return 9109643;
+
+				})();
+
 		})();
 });
 timer("lifetime");

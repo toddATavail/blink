@@ -334,20 +334,46 @@ Method "Visit_upon_deconstructed by_(breadth first=_)" is
 			]
 			with
 			[
-				For each stmt of expr's positive block's body do
+				size ::= |expr's positive block's body|;
+				For each stmt, i of expr's positive block's body do
 				[
-					Write indent to cw;
-					Visit cg upon stmt deconstructed by
-						[x : abstract expression | x's subexpressions];
+					If i = size then
+					[
+						Write return with
+						[
+							Visit cg upon stmt deconstructed by
+								[x : abstract expression | x's subexpressions];
+						]
+						to cw;
+					]
+					else
+					[
+						Write indent to cw;
+						Visit cg upon stmt deconstructed by
+							[x : abstract expression | x's subexpressions];
+					];
 				];
 			]
 			with
 			[
-				For each stmt of expr's negative block's body do
+				size ::= |expr's negative block's body|;
+				For each stmt, i of expr's negative block's body do
 				[
-					Write indent to cw;
-					Visit cg upon stmt deconstructed by
-						[x : abstract expression | x's subexpressions];
+					If i = size then
+					[
+						Write return with
+						[
+							Visit cg upon stmt deconstructed by
+								[x : abstract expression | x's subexpressions];
+						]
+						to cw;
+					]
+					else
+					[
+						Write indent to cw;
+						Visit cg upon stmt deconstructed by
+							[x : abstract expression | x's subexpressions];
+					];
 				];
 			]
 		to cw;
