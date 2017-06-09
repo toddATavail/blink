@@ -100,11 +100,11 @@ whenNeighborsJoined(neighbors =>
 		n.state === "active"
 	}).length !== 0)
 	{
-		this.lifetime = this.lifetime + - 5000 * Time.MILLISECOND;
+		this.lifetime = this.lifetime + -5000 * Time.MILLISECOND;
 	};
 	if (this.state === "active")
 	{
-		this.lifetime = this.lifetime + 5000 * Time.MILLISECOND * neighbors.filter(n =>
+		this.lifetime = this.lifetime + +5000 * Time.MILLISECOND * neighbors.filter(n =>
 		{
 			n.state === "inactive"
 		}).length;
