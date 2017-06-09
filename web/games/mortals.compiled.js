@@ -40,31 +40,30 @@ to("change sides", () =>
 });
 to("set team color", () =>
 {
-	debugger;
 	this.light.color = this.state === "inactive"
 		? (() =>
 		{
-			this.team === 1
+			return this.team === 1
 				? (() =>
 				{
-					65280
+					return 65280;
 				})()
 				: (() =>
 				{
-					16711935
-				})()
+					return 16711935;
+				})();
 		})()
 		: (() =>
 		{
-			this.team === 1
+			return this.team === 1
 				? (() =>
 				{
-					25600
+					return 25600;
 				})()
 				: (() =>
 				{
-					9109643
-				})()
+					return 9109643;
+				})();
 		})();
 });
 timer("lifetime");
@@ -96,7 +95,7 @@ whenIsolated(() =>
 });
 whenNeighborsJoined(neighbors =>
 {
-	if (this.state === "inactive" && this.neighbors.filter(n =>
+	if (this.state === "inactive" && neighbors.filter(n =>
 	{
 		n.state === "active"
 	}).length !== 0)
@@ -105,7 +104,7 @@ whenNeighborsJoined(neighbors =>
 	};
 	if (this.state === "active")
 	{
-		this.lifetime = this.lifetime + 5000 * Time.MILLISECOND * this.neighbors.filter(n =>
+		this.lifetime = this.lifetime + 5000 * Time.MILLISECOND * neighbors.filter(n =>
 		{
 			n.state === "inactive"
 		}).length;
