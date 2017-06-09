@@ -395,7 +395,7 @@ Public method "Write unary operator_with_to_" is
 	arg1 : []→⊤,
 	cw : JavaScript writer
 |
-	Write op ++ " " to cw;
+	Write op to cw;
 	arg1();
 ];
 

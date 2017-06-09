@@ -392,6 +392,7 @@ Method "Visit_upon_deconstructed by_(breadth first=_)" is
 op1Map ::=
 {
 	"-_" → "-",
+	"+_" → "+",
 	"¬"  → "!"
 };
 

@@ -94,7 +94,7 @@ When I join any neighbors:
 	].
 	If my state is active:
 	[
-		Adjust my lifetime by 5s × count of these neighbors that are inactive.
+		Adjust my lifetime by +5s × count of these neighbors that are inactive.
 		Change my state to inactive.
 		Now set team color.
 		/* If inactiveCount, pulse my light white for 1s. */

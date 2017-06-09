@@ -161,6 +161,7 @@ Extends
 
 		/* Unary arithmetic operators. */
 		"(Blink)-_" → "-_",
+		"(Blink)+_" → "+_",
 
 		/* Binary arithmetic operators. */
 		"(Blink)_+_" → "_+_",
@@ -247,8 +248,8 @@ Body
  * operators, and forbid negation from nesting (without intervening
  * parentheses).
  */
-Grammatical restriction "-_" is
-	<{"-_", "_+_", "_-_", "_×_", "_*_", "_÷_", "_/_", "_\\_"}>;
+Grammatical restriction {"-_", "+_"} is
+	<{"-_", "+_", "_+_", "_-_", "_×_", "_*_", "_÷_", "_/_", "_\\_"}>;
 
 /* Establish that addition and subtraction are left associative. */
 Grammatical restriction {"_+_", "_-_"} is <∅, {"_+_", "_-_"}>;
