@@ -17,41 +17,6 @@ const Arrangements = {
     }
 }
 
-const DEFAULT_PROGRAM = `
-    publicStates(['init', 'alone', 'friends']);
-    const teamColor = () => {
-        if (this.team === 0) {
-            return Color.NEON_GREEN;
-        }
-        return Color.PURPLE;
-    }
-    deviceOn(() => {
-        this.state = 'init';
-        this.team = 0;
-        this.light.color = teamColor();
-    })
-    onDoubleClick(() => { 
-        this.team = (this.team + 1) % 2;
-        this.log("changing to team " + this.team);
-        this.light.color = teamColor();
-    });
-    onIsolated(() => {
-        this.state = 'alone';
-        this.light.color = Color.GRAY;
-    });
-    onJoinNeighbors((nbrs) => {
-        if (this.state === 'alone') {
-            this.state = 'friends';
-        }
-        let alone = nbrs.filter(n => n.state === 'alone');
-        if (alone.length > 0) {
-            this.state = 'friends';
-            this.team = alone[0].team; // THIS IS ILLEGAL IN GENERATED CODE
-        }
-        this.light.color = teamColor();
-    })
-`; // TODO: use a loader
-
 function HexCoordinates (side) {
     side = side || 1;
     this.v_y = Math.sqrt(3) * side;
@@ -168,15 +133,6 @@ for (let i = 0; i < 6; i++) {
     blinks.push( blink );
 }
 
-var programLoader = new THREE.FileLoader();
-programLoader.load(
-    "games/mortals.2.js",
-    function (program) {
-        console.log("Loaded program:", program.substring(0, 20));
-        blinks.forEach(b => b.resetProgram(program));
-    }
-)
-
 var helper = new THREE.GridHelper( 20, 20 );
 helper.rotateX( - Math.PI / 2);
 helper.material.opacity = 0.25;
@@ -195,9 +151,39 @@ Object.assign(options, {
     resetCamera: cameraControls.reset,
 });
 
-const guiHelpers = {
-    resetProgram: () => blinks.forEach(b => b.resetProgram())
+
+var programLoader = new THREE.FileLoader();
+function initProgram  (program) {
+    console.log("Loaded program. Start:", program.substring(0, 20));
+    blinks.forEach(b => b.resetProgram(program));
 }
+var lastCustomProgram = "throw new Error('No custom program entered');";
+
+const guiHelpers = {
+    resetProgram: () => blinks.forEach(b => b.resetProgram()),
+    loadProgramFile: (file) => {
+        if (file === "") {
+            return initProgram(lastCustomProgram);
+        }
+        programLoader.load(
+            file + "?" + Math.floor(Math.random()*10000),
+            (program) => initProgram(program)
+        );
+    },
+    currentProgram: "games/mortals.handwritten.js",
+    programNames: {
+        "Mortals v2 (handwritten)": "games/mortals.handwritten.js",
+        "Mortals v2 (compiled)": "games/mortals.compiled.js",
+        "Toy - Infect": "games/toy_infect.js",
+        "last custom program": ""
+    },
+    loadProgramString: () => {
+        lastCustomProgram = prompt("Paste program code in the textbox below:");
+        initProgram(lastCustomProgram);
+    }
+}
+
+guiHelpers.loadProgramFile(guiHelpers.currentProgram);
 
 function initGUI () {
     var gui = new dat.GUI({width: 512});
@@ -216,6 +202,9 @@ function initGUI () {
         });
     
     gui.add(guiHelpers, "resetProgram").name("Reset all blink state");
+    gui.add(guiHelpers, "currentProgram", guiHelpers.programNames)
+        .onFinishChange(file => guiHelpers.loadProgramFile(file));
+    gui.add(guiHelpers, "loadProgramString").name("Load custom program...");
 };
 
 function onWindowResize() {
