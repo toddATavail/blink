@@ -166,7 +166,7 @@ const guiHelpers = {
             return initProgram(lastCustomProgram);
         }
         programLoader.load(
-            file,
+            file + "?" + Math.floor(Math.random()*10000),
             (program) => initProgram(program)
         );
     },
