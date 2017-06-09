@@ -721,7 +721,6 @@ Public method "Write ternary operator with_with_with_to_" is
 				Write arrow function () with
 				[
 					arg2();
-					Write "\n" to cw;
 				]
 				to cw;
 			]
@@ -738,7 +737,6 @@ Public method "Write ternary operator with_with_with_to_" is
 				Write arrow function () with
 				[
 					arg3();
-					Write "\n" to cw;
 				]
 				to cw;
 			]

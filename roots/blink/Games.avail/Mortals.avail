@@ -87,14 +87,14 @@ When I become isolated, if my state is inactive:
  */
 When I join any neighbors:
 [
-	If my state is inactive and any neighbors are active:
+	If my state is inactive and any of these neighbors are active:
 	[
 		Adjust my lifetime by -5s.
 		/* Pulse my light black for 1s. */
 	].
 	If my state is active:
 	[
-		Adjust my lifetime by 5s × count of inactive neighbors.
+		Adjust my lifetime by 5s × count of these neighbors that are inactive.
 		Change my state to inactive.
 		Now set team color.
 		/* If inactiveCount, pulse my light white for 1s. */

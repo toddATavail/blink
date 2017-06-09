@@ -47,14 +47,11 @@ to("set team color", () =>
 				? (() =>
 				{
 					return 65280;
-
 				})()
 				: (() =>
 				{
 					return 16711935;
-
 				})();
-
 		})()
 		: (() =>
 		{
@@ -62,14 +59,11 @@ to("set team color", () =>
 				? (() =>
 				{
 					return 25600;
-
 				})()
 				: (() =>
 				{
 					return 9109643;
-
 				})();
-
 		})();
 });
 timer("lifetime");
@@ -101,7 +95,7 @@ whenIsolated(() =>
 });
 whenNeighborsJoined(neighbors =>
 {
-	if (this.state === "inactive" && this.neighbors.filter(n =>
+	if (this.state === "inactive" && neighbors.filter(n =>
 	{
 		n.state === "active"
 	}).length !== 0)
@@ -110,7 +104,7 @@ whenNeighborsJoined(neighbors =>
 	};
 	if (this.state === "active")
 	{
-		this.lifetime = this.lifetime + 5000 * Time.MILLISECOND * this.neighbors.filter(n =>
+		this.lifetime = this.lifetime + 5000 * Time.MILLISECOND * neighbors.filter(n =>
 		{
 			n.state === "inactive"
 		}).length;

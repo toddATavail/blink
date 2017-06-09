@@ -337,7 +337,13 @@ Method "Visit_upon_deconstructed by_(breadth first=_)" is
 				size ::= |expr's positive block's body|;
 				For each stmt, i of expr's positive block's body do
 				[
-					If i = size then
+					If i ≠ size then
+					[
+						Write indent to cw;
+						Visit cg upon stmt deconstructed by
+							[x : abstract expression | x's subexpressions];
+					]
+					else
 					[
 						Write return with
 						[
@@ -345,12 +351,6 @@ Method "Visit_upon_deconstructed by_(breadth first=_)" is
 								[x : abstract expression | x's subexpressions];
 						]
 						to cw;
-					]
-					else
-					[
-						Write indent to cw;
-						Visit cg upon stmt deconstructed by
-							[x : abstract expression | x's subexpressions];
 					];
 				];
 			]
@@ -359,7 +359,13 @@ Method "Visit_upon_deconstructed by_(breadth first=_)" is
 				size ::= |expr's negative block's body|;
 				For each stmt, i of expr's negative block's body do
 				[
-					If i = size then
+					If i ≠ size then
+					[
+						Write indent to cw;
+						Visit cg upon stmt deconstructed by
+							[x : abstract expression | x's subexpressions];
+					]
+					else
 					[
 						Write return with
 						[
@@ -367,12 +373,6 @@ Method "Visit_upon_deconstructed by_(breadth first=_)" is
 								[x : abstract expression | x's subexpressions];
 						]
 						to cw;
-					]
-					else
-					[
-						Write indent to cw;
-						Visit cg upon stmt deconstructed by
-							[x : abstract expression | x's subexpressions];
 					];
 				];
 			]

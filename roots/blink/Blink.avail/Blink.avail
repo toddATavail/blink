@@ -27,11 +27,11 @@ Uses
 
 		/* Tuples. */
 		"<«_‡,»>"
-	)
+	),
 	/* This puts the translation facilities into scope, so that translation
 	 * entry points can be run.
 	 */
-	/*"Translation"*/
+	"Translation"
 Extends
 	"Avail" =
 	(
@@ -153,10 +153,11 @@ Extends
 		"(Blink)Adjust|adjust_by_" → "Adjust|adjust_by_",
 
 		/* Neighborhood filtration expressions. */
-		"(Blink)_neighbors" → "_neighbors",
-		"(Blink)no neighbors are_" → "no neighbors are_",
-		"(Blink)any neighbors are_" → "any neighbors are_",
-		"(Blink)all neighbors are_" → "all neighbors are_",
+		"(Blink)_neighbors" → "my⁇_neighbors",
+		"(Blink)_that are_" → "_that are_",
+		"(Blink)none of_are_" → "none of_are_",
+		"(Blink)any of_are_" → "any of_are_",
+		"(Blink)all of_are_" → "all of_are_",
 
 		/* Unary arithmetic operators. */
 		"(Blink)-_" → "-_",
