@@ -95,9 +95,13 @@ When I join any neighbors:
 	If my state is active:
 	[
 		Adjust my lifetime by +5s × count of these neighbors that are inactive.
+		If my lifetime's remaining time > 10s,
+			change my pattern duration to 1000ms.
+		If my lifetime's remaining time > 30s,
+			change my pattern duration to 2s.
 		Change my state to inactive.
 		Now set team color.
-		/* If inactiveCount, pulse my light white for 1s. */
+		/* If count of these neighbors that are inactive > 0, pulse my light white for 1s. */
 	].
 ].
 

@@ -91,7 +91,7 @@ whenIsolated(() =>
 	{
 		this.state = "active";
 		this.light.color = 16777215;
-	};
+	}
 });
 whenNeighborsJoined(neighbors =>
 {
@@ -101,16 +101,24 @@ whenNeighborsJoined(neighbors =>
 	}).length !== 0)
 	{
 		this.lifetime = this.lifetime + -5000 * Time.MILLISECOND;
-	};
+	}
 	if (this.state === "active")
 	{
 		this.lifetime = this.lifetime + +5000 * Time.MILLISECOND * neighbors.filter(n =>
 		{
 			n.state === "inactive"
 		}).length;
+		if (this.lifetime > 10000 * Time.MILLISECOND)
+		{
+			this.light.frequency = 1000 * Time.MILLISECOND;
+		}
+		if (this.lifetime > 30000 * Time.MILLISECOND)
+		{
+			this.light.frequency = 2000 * Time.MILLISECOND;
+		}
 		this.state = "inactive";
 		now("set team color");
-	};
+	}
 });
 whenTimerThreshold("lifetime", 30000 * Time.MILLISECOND, () =>
 {

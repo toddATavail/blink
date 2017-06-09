@@ -646,19 +646,17 @@ Public method "Write conditional statement with_with_«with_»?to_" is
 	optFalseBlock : ([]→⊤)?,
 	cw : JavaScript writer
 |
-	Write statement with
+	Write indent to cw;
+	Write "if (" to cw;
+	pred();
+	Write ")\n" to cw;
+	Write block with trueBlock to cw;
+	If ¬optFalseBlock is empty then
 	[
-		Write "if (" to cw;
-		pred();
-		Write ")\n" to cw;
-		Write block with trueBlock to cw;
-		If ¬optFalseBlock is empty then
-		[
-			Write "else\n" to cw;
-			Write block with optFalseBlock[1] to cw;
-		];
-	]
-	to cw;
+		Write "else\n" to cw;
+		Write block with optFalseBlock[1] to cw;
+	];
+	Write "\n" to cw;
 ];
 
 /**
