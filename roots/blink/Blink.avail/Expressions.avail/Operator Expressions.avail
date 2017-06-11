@@ -12,6 +12,7 @@ Uses
 Names
 	/* Unary arithmetic operators. */
 	"(Blink)-_",
+	"(Blink)+_",
 
 	/* Binary arithmetic operators. */
 	"(Blink)_+_",
@@ -226,6 +227,8 @@ Private macro "Operator__is_;" is
 
 Operator "-_" <integer> is integer;
 Operator "-_" <integer ms> is integer ms;
+Operator "+_" <integer> is integer;
+Operator "+_" <integer ms> is integer ms;
 
 /******************************************************************************
  *                        Binary arithmetic operators.                        *

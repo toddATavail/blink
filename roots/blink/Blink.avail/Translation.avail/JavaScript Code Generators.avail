@@ -395,7 +395,7 @@ Public method "Write unary operator_with_to_" is
 	arg1 : []→⊤,
 	cw : JavaScript writer
 |
-	Write op ++ " " to cw;
+	Write op to cw;
 	arg1();
 ];
 
@@ -646,19 +646,17 @@ Public method "Write conditional statement with_with_«with_»?to_" is
 	optFalseBlock : ([]→⊤)?,
 	cw : JavaScript writer
 |
-	Write statement with
+	Write indent to cw;
+	Write "if (" to cw;
+	pred();
+	Write ")\n" to cw;
+	Write block with trueBlock to cw;
+	If ¬optFalseBlock is empty then
 	[
-		Write "if (" to cw;
-		pred();
-		Write ")\n" to cw;
-		Write block with trueBlock to cw;
-		If ¬optFalseBlock is empty then
-		[
-			Write "else\n" to cw;
-			Write block with optFalseBlock[1] to cw;
-		];
-	]
-	to cw;
+		Write "else\n" to cw;
+		Write block with optFalseBlock[1] to cw;
+	];
+	Write "\n" to cw;
 ];
 
 /**
@@ -721,7 +719,6 @@ Public method "Write ternary operator with_with_with_to_" is
 				Write arrow function () with
 				[
 					arg2();
-					Write "\n" to cw;
 				]
 				to cw;
 			]
@@ -738,7 +735,6 @@ Public method "Write ternary operator with_with_with_to_" is
 				Write arrow function () with
 				[
 					arg3();
-					Write "\n" to cw;
 				]
 				to cw;
 			]

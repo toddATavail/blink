@@ -14,9 +14,10 @@ Names
 
 	/* Neighborhood filtration expressions. */
 	"(Blink)_neighbors",
-	"(Blink)no neighbors are_",
-	"(Blink)any neighbors are_",
-	"(Blink)all neighbors are_",
+	"(Blink)_that are_",
+	"(Blink)none of_are_",
+	"(Blink)any of_are_",
+	"(Blink)all of_are_",
 
 	/* Compiler support. */
 	"state variable name",
@@ -263,7 +264,7 @@ Public method "Require:_(_)is a state" is
 
 /**
  * Construct a {@type "neighborhood filtration expression"} that answers those
- * neighbors that match the specified state.
+ * global neighbors that match the specified state.
  *
  * @macro "(Blink)_neighbors"
  * @param "stPhrase" "literal phrase ⇒ (atom literal)"
@@ -286,26 +287,51 @@ Public macro "(Blink)_neighbors" is
 ];
 
 /**
+ * Construct a {@type "neighborhood filtration expression"} that answers those
+ * local neighbors that match the specified state.
+ *
+ * @macro "(Blink)_that are_"
+ * @param "neighborsPhrase" "expression phrase ⇒ (atom* expression)"
+ * @param "stPhrase" "literal phrase ⇒ (atom literal)"
+ * @returns "literal phrase ⇒ neighborhood filtration expression"
+ */
+Public macro "(Blink)_that are_" is
+[
+	neighborsPhrase : expression phrase ⇒ (atom* expression),
+	stPhrase : literal phrase ⇒ (atom literal)
+|
+	neighbors ::= evaluate neighborsPhrase;
+	st ::= evaluate stPhrase's value;
+	stateType ::= state type;
+	Require:
+		st ("final operand of neighborhood filtration expression") is a state;
+	‘a neighborhood filtration expression with
+		expression type ::= st's type*,
+		unfiltered neighbors ::= neighbors,
+		accepted states ::= {st}’
+];
+
+/**
  * Construct a {@type "neighborhood filtration expression"} that answers
  * {@method "true"} iff no neighbors match the specified state.
  *
- * @macro "(Blink)no neighbors are_"
+ * @macro "(Blink)none of_are_"
+ * @param "neighborsPhrase" "expression phrase ⇒ (atom* expression)"
  * @param "stPhrase" "literal phrase ⇒ (atom literal)"
  * @returns "literal phrase ⇒ boolean expression"
  */
-Public macro "(Blink)no neighbors are_" is
+Public macro "(Blink)none of_are_" is
 [
+	neighborsPhrase : expression phrase ⇒ (atom* expression),
 	stPhrase : literal phrase ⇒ (atom literal)
 |
+	neighbors ::= evaluate neighborsPhrase;
 	st ::= evaluate stPhrase's value;
-	stateType ::= state type;
-	Require: st ("operand of neighborhood filtration expression") is a state;
-	neighborsVar ::=
-		evaluate send neighbors variable name
-			with «<>» : neighbors type variable;
+	Require:
+		st ("final operand of neighborhood filtration expression") is a state;
 	filterExpr ::= a neighborhood filtration expression with
 		expression type ::= st's type*,
-		unfiltered neighbors ::= neighborsVar,
+		unfiltered neighbors ::= neighbors,
 		accepted states ::= {st};
 	sizeExpr ::= an operator expression with
 		expression type ::= whole number,
@@ -324,23 +350,24 @@ Public macro "(Blink)no neighbors are_" is
  * Construct a {@type "neighborhood filtration expression"} that answers
  * {@method "true"} iff any neighbors match the specified state.
  *
- * @macro "(Blink)any neighbors are_"
+ * @macro "(Blink)any of_are_"
+ * @param "neighborsPhrase" "expression phrase ⇒ (atom* expression)"
  * @param "stPhrase" "literal phrase ⇒ (atom literal)"
  * @returns "literal phrase ⇒ boolean expression"
  */
-Public macro "(Blink)any neighbors are_" is
+Public macro "(Blink)any of_are_" is
 [
+	neighborsPhrase : expression phrase ⇒ (atom* expression),
 	stPhrase : literal phrase ⇒ (atom literal)
 |
+	neighbors ::= evaluate neighborsPhrase;
 	st ::= evaluate stPhrase's value;
 	stateType ::= state type;
-	Require: st ("operand of neighborhood filtration expression") is a state;
-	neighborsVar ::=
-		evaluate send neighbors variable name
-			with «<>» : neighbors type variable;
+	Require:
+		st ("final operand of neighborhood filtration expression") is a state;
 	filterExpr ::= a neighborhood filtration expression with
 		expression type ::= st's type*,
-		unfiltered neighbors ::= neighborsVar,
+		unfiltered neighbors ::= neighbors,
 		accepted states ::= {st};
 	sizeExpr ::= an operator expression with
 		expression type ::= whole number,
@@ -359,32 +386,34 @@ Public macro "(Blink)any neighbors are_" is
  * Construct a {@type "neighborhood filtration expression"} that answers
  * {@method "true"} iff all neighbors match the specified state.
  *
- * @macro "(Blink)all neighbors are_"
+ * @macro "(Blink)all of_are_"
+ * @param "neighborsPhrase" "expression phrase ⇒ (atom* expression)"
  * @param "stPhrase" "literal phrase ⇒ (atom literal)"
  * @returns "literal phrase ⇒ boolean expression"
  */
-Public macro "(Blink)all neighbors are_" is
+Public macro "(Blink)all of_are_" is
 [
+	neighborsPhrase : expression phrase ⇒ (atom* expression),
 	stPhrase : literal phrase ⇒ (atom literal)
 |
+	neighbors ::= evaluate neighborsPhrase;
 	st ::= evaluate stPhrase's value;
 	stateType ::= state type;
-	Require: st ("operand of neighborhood filtration expression") is a state;
-	neighborsVar ::=
-		evaluate send neighbors variable name
-			with «<>» : neighbors type variable;
+	Require:
+		st ("final operand of neighborhood filtration expression") is a state;
 	filterExpr ::= a neighborhood filtration expression with
 		expression type ::= st's type*,
-		unfiltered neighbors ::= neighborsVar,
+		unfiltered neighbors ::= neighbors,
 		accepted states ::= {st};
 	lhsExpr ::= an operator expression with
 		expression type ::= whole number,
 		expression operator ::= "`|_`|",
 		expression operands ::= <filterExpr>;
+	/* TODO: [TLS] This shouldn't repeat the neighbors expression. */
 	rhsExpr ::= an operator expression with
 		expression type ::= whole number,
 		expression operator ::= "`|_`|",
-		expression operands ::= <neighborsVar>;
+		expression operands ::= <neighbors>;
 	eqExpr ::= an operator expression with
 		expression type ::= boolean,
 		expression operator ::= "_=_",
