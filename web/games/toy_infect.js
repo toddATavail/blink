@@ -1,9 +1,9 @@
 publicStates(['init', 'alone', 'friends']);
 const teamColor = () => {
     if (this.team === 0) {
-        return 0xff0000;
+        return 0xbb3300;
     }
-    return 0x0000ff;
+    return 0x0033bb;
 }
 onBoot(() => {
     this.state = 'init';
@@ -29,4 +29,4 @@ whenNeighborsJoined((nbrs) => {
         this.team = alone[0].team; // THIS IS ILLEGAL IN GENERATED CODE
     }
     this.light.color = teamColor();
-})
+});
