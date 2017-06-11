@@ -120,6 +120,18 @@ function dragGroup(_targets, _plane, _camera, _domElement, _cameraControls, _gri
                     s.object.dispatchEvent({type: "drag", position: s.initial.clone().add(delta)});
                 });
             }
+        } else if (state === DragState.None) {
+            if (event.key === "a" && event.ctrlKey) {
+                _targets.forEach(target => {
+                    while (target.dragParent) {
+                        target = target.parent;
+                    }
+                    if (selected.indexOf(target) === -1) {
+                        select(target);
+                    }
+                });
+                event.preventDefault();
+            }
         }
     }
     function onDocumentMouseUp(event) {

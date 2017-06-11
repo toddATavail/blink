@@ -154,6 +154,9 @@ Object.assign(options, {
 
 var programLoader = new THREE.FileLoader();
 function initProgram  (program) {
+    if (!program) {
+        return console.error("Blank program!");
+    }
     console.log("Loaded program. Start:", program.substring(0, 20));
     blinks.forEach(b => b.resetProgram(program));
 }
@@ -175,6 +178,7 @@ const guiHelpers = {
         "Mortals v2 (handwritten)": "games/mortals.handwritten.js",
         "Mortals v2 (compiled)": "games/mortals.compiled.js",
         "Toy - Infect": "games/toy_infect.js",
+        "Toy - Colors": "games/toy_random_colors.js",
         "last custom program": ""
     },
     loadProgramString: () => {

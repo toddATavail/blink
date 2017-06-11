@@ -30,13 +30,14 @@ function BlinkExecutor(blink, initialProgram) {
     });
 
     this._signalHandlers = new Map();
-    this.addEventListener("signal", (signal) => {
+    let signalListener = (signal) => {
         if (!this._signalHandlers.has(signal.name)) {
             console.error(signal);
             throw new Error("Unknown signal '" + signal.name + "'");
         }
         this._signalHandlers.get(signal.name)();
-    });
+    };
+    this.addEventListener("signal", signalListener);
 
     this._timers = new Map();
 
@@ -168,6 +169,13 @@ BlinkExecutor.prototype = {
     },
     validateProgram: function () {
         // nothing for now
+    },
+    die: function () {
+        this._timers.forEach(t => t.clear());
+        for (event in this._listeners) {
+            this._listeners[event].forEach(
+                cb => this.removeEventListener(event, cb));
+        }
     }
 };
 

@@ -57,6 +57,14 @@ BlinkTimer.prototype = {
                 this.running = false;
             }
         }, this.value - threshold.time);
+    },
+    clear: function () {
+        while (this.thresholds.length) {
+            let removed = this.thresholds.pop();
+            if (removed.timer !== null) {
+                clearTimeout(removed.timer);
+            }
+        }
     }
 }
 

@@ -43,7 +43,7 @@ function Blink(sideLength, snapgrid, initVector, initProgram) {
     this.outline = new THREE.Mesh(hexGeometry, outlineMaterial);
     this.outline.scale.multiplyScalar(1.05);
 
-    this.light = new THREE.PointLight(0xffffff, 0.5, 0, 2);
+    this.light = new THREE.PointLight(0xffffff, 0.5, 0, 1);
     this.light.position.z = 1;
 
     this.snapgrid = snapgrid;
