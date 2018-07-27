@@ -10,7 +10,7 @@
   "devDependencies": {
     "@types/dat-gui": "^0.6.2",
     "@types/three": "^0.84.8",
-    "serve": "~>6.4.9"
+    "serve": "^6.4.9"
   },
   "scripts": {
     "start": "serve",
